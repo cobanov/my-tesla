@@ -2,6 +2,8 @@ import "server-only";
 import { connection } from "next/server";
 import { cache } from "react";
 import { chargeSessions } from "./charge-sessions";
+import { chargeTimeHistoryDays, type LevelTime } from "./charge-time";
+import { chargeLevelTimesQuery } from "./charge-time-sql";
 import { database } from "./database";
 
 export type ChargeTypeTotals = {
@@ -116,5 +118,16 @@ export const dcCurves = cache(
           .map(({ level, power }) => ({ level, power })),
       }))
       .filter((curve) => curve.points.length > 1);
+  },
+);
+
+const dayMs = 86_400_000;
+
+export const chargeLevelTimes = cache(
+  async (carId: number): Promise<LevelTime[]> => {
+    await connection();
+    const { relation: sessions } = await chargeSessions(carId);
+    const since = new Date(Date.now() - chargeTimeHistoryDays * dayMs);
+    return chargeLevelTimesQuery(database(), sessions, carId, since);
   },
 );

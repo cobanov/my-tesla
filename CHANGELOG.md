@@ -4,6 +4,11 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Added
+
+- Charging insights: a Charging time panel. It shows how long a charge takes from one battery level to another, for DC and for AC, with a typical and a slow time. The times come from the time that the charges of the last 2 years spent at each battery percent. [Decision 0014](docs/decisions/0014-charging-time.md) explains the rule.
+- Places: a Frequent routes panel. It groups the drives of the period by start and end place, and it shows the number of drives, the typical distance and duration, the consumption, the usual departure hour, and links to the fastest and the slowest drive. [Decision 0015](docs/decisions/0015-frequent-routes.md) explains what counts as a place.
+
 ## [1.6.1] - 2026-10-07
 
 ### Fixed

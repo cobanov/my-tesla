@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MapsOff, PlacesMap, type MapPlace } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
@@ -7,7 +8,12 @@ import { PeriodLinks } from "@/components/period-links";
 import { requireCar } from "@/lib/car-route";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
 import { mapThemeOf } from "@/lib/preferences";
-import { chargingPlaces, geofenceList, visitedPlaces } from "@/lib/places-data";
+import {
+  chargingPlaces,
+  frequentRoutes,
+  geofenceList,
+  visitedPlaces,
+} from "@/lib/places-data";
 import { toElevation } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -32,10 +38,11 @@ export default async function PlacesPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [visited, charging, geofences] = await Promise.all([
+  const [visited, charging, geofences, routes] = await Promise.all([
     visitedPlaces(car.id, from),
     chargingPlaces(car.id, from),
     geofenceList(),
+    frequentRoutes(car.id, from, f.timeZone),
   ]);
 
   const top = visited.slice(0, 10);
@@ -258,6 +265,59 @@ export default async function PlacesPage({
           )}
         </Panel>
       </div>
+
+      <Panel
+        title="Frequent routes"
+        className="mt-4"
+        action={<span className="text-xs text-subtle">3 drives or more</span>}
+      >
+        {routes.length ? (
+          <ol className="divide-y divide-border">
+            {routes.map((route) => (
+              <li key={route.key} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="truncate text-sm font-medium">
+                    {route.from} → {route.to}
+                  </span>
+                  <span className="shrink-0 text-sm tabular">
+                    {route.drives}{" "}
+                    <span className="text-muted-foreground">drives</span>
+                  </span>
+                </div>
+                <p className="mt-1.5 truncate text-xs text-muted-foreground tabular">
+                  {[
+                    f.distance(route.typicalKm),
+                    f.duration(route.typicalMin),
+                    route.whPerKm === null ? null : f.efficiency(route.whPerKm),
+                    `usually at ${f.hour(route.usualHour)}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <p className="mt-1 flex flex-wrap gap-x-4 text-xs text-subtle tabular">
+                  <Link
+                    href={`/cars/${car.id}/drives/${route.fastestId}`}
+                    transitionTypes={["tab-forward"]}
+                    className="underline underline-offset-2 transition-tesla hover:text-foreground"
+                  >
+                    Fastest {f.duration(route.fastestMin)}
+                  </Link>
+                  <Link
+                    href={`/cars/${car.id}/drives/${route.slowestId}`}
+                    transitionTypes={["tab-forward"]}
+                    className="underline underline-offset-2 transition-tesla hover:text-foreground"
+                  >
+                    Slowest {f.duration(route.slowestMin)}
+                  </Link>
+                  <span>Last drive {f.dayInline(route.lastAt, now)}</span>
+                </p>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <PanelNote>No route with 3 drives or more in this period.</PanelNote>
+        )}
+      </Panel>
 
       <section className="mt-14">
         <h2 className="text-2xl font-medium">Saved places</h2>

@@ -3,8 +3,12 @@ import { connection } from "next/server";
 import { cache } from "react";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
+import {
+  frequentRoutesQuery,
+  type FrequentRouteRow,
+} from "./frequent-routes-sql";
 import { placeLabel } from "./vehicle";
-import { getPlaceStyle } from "./viewer";
+import { getPlaceStyle, getRangeKind } from "./viewer";
 
 type Place = {
   geofence: string | null;
@@ -48,6 +52,13 @@ export type Geofence = {
   latitude: number;
   longitude: number;
 };
+
+export type FrequentRoute = Omit<FrequentRouteRow, "from" | "to"> & {
+  from: string;
+  to: string;
+};
+
+const shownRoutes = 8;
 
 function sinceOf(from: Date | null) {
   return (from ?? new Date(0)).toISOString();
@@ -163,3 +174,26 @@ export const geofenceList = cache(async (): Promise<Geofence[]> => {
     order by name
   `;
 });
+
+export const frequentRoutes = cache(
+  async (
+    carId: number,
+    from: Date | null,
+    timeZone: string,
+  ): Promise<FrequentRoute[]> => {
+    await connection();
+    const [style, kind] = await Promise.all([getPlaceStyle(), getRangeKind()]);
+    const rows = await frequentRoutesQuery(database(), {
+      carId,
+      since: from ?? new Date(0),
+      timeZone,
+      kind,
+      limit: shownRoutes,
+    });
+    return rows.map((row) => ({
+      ...row,
+      from: placeLabel(row.from, style),
+      to: placeLabel(row.to, style),
+    }));
+  },
+);

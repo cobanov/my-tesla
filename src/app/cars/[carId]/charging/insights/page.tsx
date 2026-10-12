@@ -8,15 +8,24 @@ import { PeriodLinks } from "@/components/period-links";
 import { WeekHeatmap } from "@/components/week-heatmap";
 import { requireCar } from "@/lib/car-route";
 import {
+  chargeLevelTimes,
   chargeStarts,
   chargeTypeTotals,
   dcCurves,
   type ChargeTypeTotals,
 } from "@/lib/charge-insights-data";
 import { costPer100Km, costPerKwh, curveRows } from "@/lib/charge-insights";
+import {
+  chargeHistory,
+  chargeLegs,
+  chargeTime,
+  type ChargeLeg,
+  type LevelTime,
+} from "@/lib/charge-time";
 import type { Formatter } from "@/lib/format";
 import { periodStart, readPeriod, weekGrid } from "@/lib/insights";
 import { chargingPlaces } from "@/lib/places-data";
+import { carSnapshot } from "@/lib/queries";
 import { driveTotals } from "@/lib/stats-data";
 import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -59,6 +68,64 @@ function TypeCard({
   );
 }
 
+function ChargeTimes({
+  label,
+  fast,
+  levels,
+  legs,
+  f,
+}: {
+  label: string;
+  fast: boolean;
+  levels: LevelTime[];
+  legs: ChargeLeg[];
+  f: Formatter;
+}) {
+  const history = chargeHistory(levels, fast);
+  if (!history) return null;
+  return (
+    <div className="min-w-0">
+      <h3 className="text-sm font-medium">{label}</h3>
+      <p className="mt-0.5 text-xs text-subtle tabular">
+        {history.sessions} {history.sessions === 1 ? "charge" : "charges"} ·{" "}
+        {history.from}% to {history.to}%
+      </p>
+      <ul className="mt-3 divide-y divide-border">
+        {legs.map((leg) => {
+          const time = chargeTime(levels, fast, leg);
+          return (
+            <li
+              key={`${leg.from}-${leg.to}`}
+              className="flex items-start justify-between gap-4 py-2.5 text-sm tabular"
+            >
+              <span className="whitespace-nowrap">
+                {leg.from}% → {leg.to}%
+                {leg.current && (
+                  <span className="block text-xs text-subtle">
+                    From the level now
+                  </span>
+                )}
+              </span>
+              {time ? (
+                <span className="text-right whitespace-nowrap">
+                  <span className="block font-medium">
+                    {f.duration(time.typicalMin)}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    Slow {f.duration(time.slowMin)}
+                  </span>
+                </span>
+              ) : (
+                <span className="text-subtle">No record</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export default async function ChargingInsightsPage({
   params,
   searchParams,
@@ -75,13 +142,16 @@ export default async function ChargingInsightsPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [types, starts, curves, places, drives] = await Promise.all([
-    chargeTypeTotals(car.id, from),
-    chargeStarts(car.id, from, f.timeZone),
-    dcCurves(car.id, from),
-    chargingPlaces(car.id, from),
-    driveTotals(car.id, from),
-  ]);
+  const [types, starts, curves, places, drives, levelTimes, snapshot] =
+    await Promise.all([
+      chargeTypeTotals(car.id, from),
+      chargeStarts(car.id, from, f.timeZone),
+      dcCurves(car.id, from),
+      chargingPlaces(car.id, from),
+      driveTotals(car.id, from),
+      chargeLevelTimes(car.id),
+      carSnapshot(car.id),
+    ]);
   const ac = types.find((type) => !type.fast);
   const dc = types.find((type) => type.fast);
   const sessions = types.reduce((sum, type) => sum + type.sessions, 0);
@@ -98,6 +168,7 @@ export default async function ChargingInsightsPage({
   const hundred = f.units.distance === "mi" ? 160.9344 : 100;
   const curveData = curveRows(curves);
   const grid = weekGrid(starts);
+  const legs = chargeLegs(snapshot.batteryLevel);
 
   return (
     <PageTransition>
@@ -167,6 +238,41 @@ export default async function ChargingInsightsPage({
                 />
               ) : (
                 <PanelNote>No DC fast charge in this period.</PanelNote>
+              )}
+            </Panel>
+            <Panel
+              title="Charging time"
+              action={
+                <span className="text-xs text-subtle">
+                  Charges of the last 2 years
+                </span>
+              }
+            >
+              {levelTimes.length ? (
+                <>
+                  <div className="grid grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-2">
+                    <ChargeTimes
+                      label="DC fast charging"
+                      fast
+                      levels={levelTimes}
+                      legs={legs}
+                      f={f}
+                    />
+                    <ChargeTimes
+                      label="AC charging"
+                      fast={false}
+                      levels={levelTimes}
+                      legs={legs}
+                      f={f}
+                    />
+                  </div>
+                  <p className="mt-5 text-xs text-subtle">
+                    The time that past charges spent at each battery percent.
+                    The slow time fits a cold battery or a busy charger.
+                  </p>
+                </>
+              ) : (
+                <PanelNote>No record yet.</PanelNote>
               )}
             </Panel>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
