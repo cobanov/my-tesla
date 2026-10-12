@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-12
+
 ### Added
 
 - Charging insights: a Charging time panel. It shows how long a charge takes from one battery level to another, for DC and for AC, with a typical and a slow time. The times come from the time that the charges of the last 2 years spent at each battery percent. [Decision 0014](docs/decisions/0014-charging-time.md) explains the rule.
@@ -119,7 +121,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/woosal1337/my-tesla/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/woosal1337/my-tesla/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/woosal1337/my-tesla/compare/v1.5.3...v1.6.0
 [1.5.3]: https://github.com/woosal1337/my-tesla/compare/v1.5.2...v1.5.3
