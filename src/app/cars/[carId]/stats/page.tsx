@@ -12,6 +12,7 @@ import { PeriodLinks } from "@/components/period-links";
 import { WeekHeatmap } from "@/components/week-heatmap";
 import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import {
   bucketUnit,
   periodStart,
@@ -180,7 +181,7 @@ export default async function StatsPage({
             Stats
           </h1>
         </div>
-        <PeriodLinks base={`/cars/${car.id}/stats`} active={period} />
+        <PeriodLinks base={carPath(car, "/stats")} active={period} />
       </div>
 
       <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
@@ -517,7 +518,7 @@ export default async function StatsPage({
                 {longest.map((drive, index) => (
                   <li key={drive.id}>
                     <Link
-                      href={`/cars/${car.id}/drives/${drive.id}`}
+                      href={carPath(car, `/drives/${drive.id}`)}
                       transitionTypes={["tab-forward"]}
                       className="flex items-center gap-4 rounded px-2 py-2.5 transition-tesla hover:bg-accent"
                     >

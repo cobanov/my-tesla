@@ -33,9 +33,9 @@ export const tabSpring = {
   mass: 0.8,
 } as const;
 
-function useTabs(carId: number, visible: readonly TabId[]) {
+function useTabs(basePath: string, visible: readonly TabId[]) {
   const pathname = usePathname();
-  const current = tabFromPath(pathname, carId);
+  const current = tabFromPath(pathname);
   const shown = tabs.filter(
     (tab) => visible.includes(tab.id) || tab.id === current,
   );
@@ -43,17 +43,17 @@ function useTabs(carId: number, visible: readonly TabId[]) {
     const direction = tabDirection(current, tab.id);
     return {
       ...tab,
-      href: `/cars/${carId}${tab.segment}`,
+      href: `${basePath}${tab.segment}`,
       active: tab.id === current,
       transitionTypes: direction ? [direction] : undefined,
     };
   });
 }
 
-type TabsProps = { carId: number; visible: readonly TabId[] };
+type TabsProps = { basePath: string; visible: readonly TabId[] };
 
-export function TabNav({ carId, visible }: TabsProps) {
-  const items = useTabs(carId, visible);
+export function TabNav({ basePath, visible }: TabsProps) {
+  const items = useTabs(basePath, visible);
   return (
     <nav aria-label="Sections" className="hidden items-center gap-1 md:flex">
       {items.map((tab) => (
@@ -84,8 +84,8 @@ export function TabNav({ carId, visible }: TabsProps) {
   );
 }
 
-export function TabBar({ carId, visible }: TabsProps) {
-  const items = useTabs(carId, visible);
+export function TabBar({ basePath, visible }: TabsProps) {
+  const items = useTabs(basePath, visible);
   return (
     <nav
       aria-label="Sections"

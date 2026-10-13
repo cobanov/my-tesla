@@ -152,9 +152,11 @@ export function tabDirection(
   return toIndex > fromIndex ? "tab-forward" : "tab-back";
 }
 
-export function tabFromPath(pathname: string, carId: number): TabId {
-  const base = `/cars/${carId}`;
-  const rest = pathname.startsWith(base) ? pathname.slice(base.length) : "";
+const carBase = /^\/cars\/[^/]+/;
+
+export function tabFromPath(pathname: string): TabId {
+  const base = carBase.exec(pathname)?.[0];
+  const rest = base ? pathname.slice(base.length) : "";
   const match = tabs.find(
     (tab) =>
       tab.segment &&

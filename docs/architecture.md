@@ -11,7 +11,8 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/health.ts` | Turns one database ping into a health result, with a timeout. No I/O of its own. |
 | `src/app/api/health/route.ts` | `GET /api/health`. Returns 200 or 503 with `Cache-Control: no-store`. |
 | `src/lib/queries.ts` | The read queries: cars, the car snapshot, drives, and charges. Each one calls `connection()`, so every page renders at request time. Server only. |
-| `src/lib/car-route.ts` | Turns the `carId` route parameter into a car, or calls `notFound()`. |
+| `src/lib/car-route.ts` | Turns the `carId` route parameter, a name slug or an id, into a car, or calls `notFound()`. |
+| `src/lib/car-slug.ts` | Pure logic for the car address: the slug of each car name, the path, and the lookup by slug or id. Full test cover. Read [decision 0016](decisions/0016-car-names-in-urls.md). |
 | `src/lib/car-image.ts` | Maps the TeslaMate model, color, wheel, and badge to a Tesla compositor URL. No I/O. |
 | `src/lib/preferences.ts`, `units.ts`, `date-format.ts`, `format.ts` | Pure logic for the settings: the option lists, the parser that drops unknown values, unit conversion, date and clock text, and `createFormatter`, which turns the settings into one formatter for every page and chart. No I/O, full test cover. |
 | `src/lib/preferences-store.ts` | Reads and writes the settings file at `PREFERENCES_FILE`, one entry for each user. Writes go through one queue, to a temporary file, then a rename. Server only. |
@@ -21,7 +22,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/vehicle.ts`, `time-zone.ts` | Pure logic: place labels, efficiency, tab order, and the time zone check. No I/O, full test cover. |
 | `src/app/layout.tsx` | Inter, the viewport, and the splash. |
 | `src/app/loading.tsx` | The first-load T mark. The only route-level loading file. |
-| `src/app/cars/[carId]/layout.tsx` | The header, the car switcher, the tabs, the phone tab bar, and the live refresh. |
+| `src/app/cars/[carId]/layout.tsx` | The header, the car switcher, the tabs, the phone tab bar, the live refresh, and `CanonicalCarPath`, which puts the slug in the address of an id link. |
 | `src/app/cars/[carId]/page.tsx`, `drives/`, `charging/` | Overview, Drives, and Charging. Server components read through `src/lib/queries.ts`. Overview also shows the day strip for today. |
 | `src/app/cars/[carId]/battery/`, `stats/`, `places/` | The three insight tabs. Each one reads the `period` search parameter: 7 days, 30 days, 90 days, 1 year, or all. |
 | `src/app/cars/[carId]/timeline/` | One local day: the 24 h strip, the day totals, and the list of drives, charges, and parked times. Reads the `day` search parameter. |
@@ -70,6 +71,6 @@ The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. 
 
 ## Decisions
 
-Read [the foundation decision](decisions/0001-project-foundation.md), [the UI decision](decisions/0002-ui-stack-and-motion.md), [the demo database decision](decisions/0003-demo-database.md), [the saved settings decision](decisions/0004-saved-settings.md), [the cache decision](decisions/0005-cache-components.md), [the built-in demo decision](decisions/0006-built-in-demo-database.md), [the logo decision](decisions/0007-silver-logo.md), [the live status decision](decisions/0008-mqtt-live-status.md), [the demo analytics decision](decisions/0009-demo-analytics.md), [the Access token decision](decisions/0010-verify-access-token.md), [the charging time decision](decisions/0014-charging-time.md), [the frequent routes decision](decisions/0015-frequent-routes.md), [the stack research](../research/stack.md), and [the UI stack research](../research/ui-stack.md).
+Read [the foundation decision](decisions/0001-project-foundation.md), [the UI decision](decisions/0002-ui-stack-and-motion.md), [the demo database decision](decisions/0003-demo-database.md), [the saved settings decision](decisions/0004-saved-settings.md), [the cache decision](decisions/0005-cache-components.md), [the built-in demo decision](decisions/0006-built-in-demo-database.md), [the logo decision](decisions/0007-silver-logo.md), [the live status decision](decisions/0008-mqtt-live-status.md), [the demo analytics decision](decisions/0009-demo-analytics.md), [the Access token decision](decisions/0010-verify-access-token.md), [the charging time decision](decisions/0014-charging-time.md), [the frequent routes decision](decisions/0015-frequent-routes.md), [the car address decision](decisions/0016-car-names-in-urls.md), [the stack research](../research/stack.md), and [the UI stack research](../research/ui-stack.md).
 Add a decision record when a choice changes a boundary or creates a lasting tradeoff.
 Keep operational steps in [Installation](installation.md) and [Troubleshooting](troubleshooting.md).

@@ -13,6 +13,7 @@ import { DayStrip, DayStripLegend } from "@/components/day-strip";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import {
   buildTimeline,
@@ -36,11 +37,11 @@ const minuteMs = 60_000;
 
 function ItemRow({
   item,
-  carId,
+  basePath,
   f,
 }: {
   item: TimelineItem;
-  carId: number;
+  basePath: string;
   f: Formatter;
 }) {
   const durationOf = (ms: number) => f.duration(ms / minuteMs);
@@ -56,13 +57,13 @@ function ItemRow({
     icon = <Route className="size-4" />;
     title = `Drive to ${item.drive.to}`;
     detail = `${f.distance(item.drive.distanceKm)} · ${durationOf(length)} · from ${item.drive.from}`;
-    href = `/cars/${carId}/drives/${item.drive.id}`;
+    href = `${basePath}/drives/${item.drive.id}`;
     dot = "bg-primary text-primary-foreground";
   } else if (item.kind === "charge") {
     icon = <BatteryCharging className="size-4" />;
     title = `${open ? "Charging" : "Charged"} at ${item.charge.place}`;
     detail = `${open ? ongoingText : `+${f.energy(item.charge.energyAddedKwh)}`} · ${durationOf(length)} · ${item.charge.fast ? "DC" : "AC"}`;
-    href = `/cars/${carId}/charging/${item.charge.id}`;
+    href = `${basePath}/charging/${item.charge.id}`;
     dot = "bg-charge text-primary-foreground";
   } else {
     icon = <Moon className="size-4" />;
@@ -190,13 +191,13 @@ export default async function TimelinePage({
     (total, segment) => total + segment.end.getTime() - segment.start.getTime(),
     0,
   );
-  const base = `/cars/${car.id}/timeline`;
+  const base = carPath(car, "/timeline");
   const label = f.day(window.start, now);
 
   return (
     <PageTransition>
       <div className="pt-6 md:pt-10">
-        <BackLink href={`/cars/${car.id}`} label="Overview" />
+        <BackLink href={carPath(car)} label="Overview" />
         <div className="mt-6 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Timeline</p>
@@ -278,7 +279,7 @@ export default async function TimelinePage({
             <ItemRow
               key={`${item.kind}-${item.start.getTime()}`}
               item={item}
-              carId={car.id}
+              basePath={carPath(car)}
               f={f}
             />
           ))}

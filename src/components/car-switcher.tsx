@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { tabFromPath, tabs } from "@/lib/vehicle";
 
-type CarOption = { id: number; name: string; detail: string };
+type CarOption = { id: number; name: string; detail: string; path: string };
 
 export function CarSwitcher({
   cars,
@@ -23,8 +23,7 @@ export function CarSwitcher({
   const pathname = usePathname();
   const current = cars.find((car) => car.id === currentId);
   const segment =
-    tabs.find((tab) => tab.id === tabFromPath(pathname, currentId))?.segment ??
-    "";
+    tabs.find((tab) => tab.id === tabFromPath(pathname))?.segment ?? "";
 
   if (cars.length < 2) {
     return <span className="text-sm font-medium">{current?.name}</span>;
@@ -42,7 +41,7 @@ export function CarSwitcher({
             key={car.id}
             render={
               <Link
-                href={`/cars/${car.id}${segment}`}
+                href={`${car.path}${segment}`}
                 transitionTypes={
                   car.id === currentId ? undefined : ["car-swap"]
                 }

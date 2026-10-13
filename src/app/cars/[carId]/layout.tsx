@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CanonicalCarPath } from "@/components/canonical-car-path";
 import { CarSwitcher } from "@/components/car-switcher";
 import { DemoBanner } from "@/components/demo-banner";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -9,6 +10,7 @@ import {
 } from "@/components/navigation-pending";
 import { TabBar, TabNav } from "@/components/tab-nav";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { isDemoMode } from "@/lib/demo/mode";
 import { tabKeys } from "@/lib/preferences";
 import { listCars } from "@/lib/queries";
@@ -33,11 +35,13 @@ export default async function CarLayout({
     id: option.id,
     name: option.name,
     detail: variantLine(option),
+    path: carPath(option),
   }));
 
   return (
     <MotionPreference reduced={preferences.motion === "reduced"}>
       <NavigationPendingProvider>
+        <CanonicalCarPath slug={car.slug} />
         {isDemoMode() && <DemoBanner />}
         <header
           style={{ viewTransitionName: "site-header" }}
@@ -46,21 +50,21 @@ export default async function CarLayout({
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5">
             <div className="flex min-w-0 items-center gap-2">
               <Link
-                href={`/cars/${car.id}`}
+                href={carPath(car)}
                 className="grid size-9 place-items-center rounded transition-tesla hover:bg-accent"
               >
                 <HeaderMark />
               </Link>
               <CarSwitcher cars={options} currentId={car.id} />
             </div>
-            <TabNav carId={car.id} visible={visible} />
+            <TabNav basePath={carPath(car)} visible={visible} />
             <div className="hidden w-32 lg:block" />
           </div>
         </header>
         <main className="mx-auto w-full max-w-5xl px-5 pb-32 md:pb-20">
           {children}
         </main>
-        <TabBar carId={car.id} visible={visible} />
+        <TabBar basePath={carPath(car)} visible={visible} />
         {preferences.refresh !== "off" && (
           <LiveRefresh intervalMs={Number(preferences.refresh) * 1000} />
         )}

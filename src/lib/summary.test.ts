@@ -6,6 +6,7 @@ import { carSummary, wantsLocation, type SummaryInput } from "./summary";
 const car: Car = {
   id: 1,
   name: "Nova",
+  slug: "nova",
   model: "Y",
   marketingName: "Long Range",
   exteriorColor: "StealthGrey",

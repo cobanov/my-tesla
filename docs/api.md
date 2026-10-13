@@ -9,7 +9,7 @@ The app has four read-only `GET` endpoints for scripts, widgets, and home automa
 | `/api/cars/{carId}/charges.csv` | All charges as CSV, with the same optional dates. |
 | `/api/cars/{carId}/drives/{driveId}.gpx` | One drive as a GPX track. |
 
-The car id is the number in the dashboard address, such as `2` in `/cars/2`. An unknown car gives status 404.
+The car id is the TeslaMate number of the car. The dashboard address uses the car name, such as `/cars/red-rocket`, and the id address, such as `/cars/2`, opens the same car. The API takes only the id, so a new car name does not break a script. An unknown car gives status 404.
 
 ## Car summary
 

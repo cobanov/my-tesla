@@ -138,9 +138,13 @@ describe("tabs", () => {
     ["/cars/2/places", "places"],
     ["/cars/2/timeline", "overview"],
     ["/cars/2/drivesx", "overview"],
+    ["/cars/rika", "overview"],
+    ["/cars/rika/drives/41", "drives"],
+    ["/cars/red-rocket/places", "places"],
     ["/elsewhere", "overview"],
+    ["/elsewhere/drives", "overview"],
   ] as const)("tabFromPath(%p)", (path, expected) => {
-    expect(tabFromPath(path, 2)).toBe(expected);
+    expect(tabFromPath(path)).toBe(expected);
   });
 });
 

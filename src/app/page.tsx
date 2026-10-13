@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
 import { readAnalyticsConfig } from "@/lib/analytics";
 import { Landing } from "@/components/landing/landing";
+import { carPath } from "@/lib/car-slug";
 import { isDemoMode } from "@/lib/demo/mode";
 import { repositoryStars } from "@/lib/github";
 import { project } from "@/lib/project";
@@ -30,14 +31,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-async function startCarId(): Promise<number | null> {
-  const { defaultCar } = await getPreferences();
-  if (defaultCar !== autoCar) {
-    const cars = await listCars();
-    const chosen = cars.find((car) => String(car.id) === defaultCar);
-    if (chosen) return chosen.id;
-  }
-  return defaultCarId();
+async function startCarPath(): Promise<string | null> {
+  const [{ defaultCar }, cars] = await Promise.all([
+    getPreferences(),
+    listCars(),
+  ]);
+  const chosen =
+    defaultCar === autoCar
+      ? undefined
+      : cars.find((car) => String(car.id) === defaultCar);
+  const id = chosen?.id ?? (await defaultCarId());
+  const car = cars.find((option) => option.id === id);
+  return car ? carPath(car) : null;
 }
 
 export default async function Home() {
@@ -59,8 +64,8 @@ export default async function Home() {
       </>
     );
   }
-  const carId = await startCarId();
-  if (carId !== null) redirect(`/cars/${carId}`);
+  const path = await startCarPath();
+  if (path !== null) redirect(path);
   return (
     <main className="mx-auto grid min-h-dvh max-w-md place-items-center px-5">
       <EmptyState title="No cars yet">

@@ -6,6 +6,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
 import { mapThemeOf } from "@/lib/preferences";
 import {
@@ -111,7 +112,7 @@ export default async function PlacesPage({
             Places
           </h1>
         </div>
-        <PeriodLinks base={`/cars/${car.id}/places`} active={period} />
+        <PeriodLinks base={carPath(car, "/places")} active={period} />
       </div>
 
       <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
@@ -296,14 +297,14 @@ export default async function PlacesPage({
                 </p>
                 <p className="mt-1 flex flex-wrap gap-x-4 text-xs text-subtle tabular">
                   <Link
-                    href={`/cars/${car.id}/drives/${route.fastestId}`}
+                    href={carPath(car, `/drives/${route.fastestId}`)}
                     transitionTypes={["tab-forward"]}
                     className="underline underline-offset-2 transition-tesla hover:text-foreground"
                   >
                     Fastest {f.duration(route.fastestMin)}
                   </Link>
                   <Link
-                    href={`/cars/${car.id}/drives/${route.slowestId}`}
+                    href={carPath(car, `/drives/${route.slowestId}`)}
                     transitionTypes={["tab-forward"]}
                     className="underline underline-offset-2 transition-tesla hover:text-foreground"
                   >

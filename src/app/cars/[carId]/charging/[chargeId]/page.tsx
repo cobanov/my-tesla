@@ -13,6 +13,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { requireCar } from "@/lib/car-route";
 import { assessChargingEfficiency, assessVoltage } from "@/lib/assessment";
+import { carPath } from "@/lib/car-slug";
 import { costBreakdown } from "@/lib/charge-cost";
 import { chargeCurve, findChargeSession } from "@/lib/charge-data";
 import { getLive } from "@/lib/live/live";
@@ -116,7 +117,7 @@ export default async function ChargePage({
     live?.connected && live.view.charging.state === "Charging"
       ? live.view.charging
       : null;
-  const base = `/cars/${car.id}/charging`;
+  const base = carPath(car, "/charging");
 
   const byLevel = new Map<number, { sum: number; count: number }>();
   for (const point of curve) {
@@ -178,7 +179,7 @@ export default async function ChargePage({
     : "Recorded in TeslaMate";
   const settingsLink = (
     <Link
-      href={`/cars/${car.id}/settings#cost`}
+      href={carPath(car, "/settings#cost")}
       className="underline underline-offset-2 transition-tesla hover:text-foreground"
     >
       Settings
