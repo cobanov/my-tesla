@@ -80,6 +80,17 @@ Checked on 2026-10-01 on the demo server, with miles, °F, psi, kPa, km/kWh, the
 4. **Theme.** Each color token uses `light-dark()`. `data-theme` on `html` forces light or dark. The `dark:` variant follows the same attribute and the system setting.
 5. **Reduced motion.** `data-motion="reduced"` stops the view transitions, the CSS transitions, the chart animations, Motion, and NumberFlow.
 
+## Lists and focus
+
+Checked on 2026-10-13 against the Checklist Design checklists for a data table, a table, an empty state, settings, and a tab bar, on the demo at 1440 and 390 px, in dark and light.
+
+1. **Day lists.** Drives, Charging, and Trip group their rows by day. The day heading sticks under the header and lines up with the row content. `DayHeading` and `rowLinkClass` in `src/components/day-list.tsx` hold the shared style.
+2. **Whole values.** A line with several values uses `DotList`, which keeps each value on one line and breaks only between values.
+3. **Focus.** Every control shows a 2 px ring in the ring color on keyboard focus. A list row draws the ring inside its edge, so the sticky day heading does not cover it.
+4. **Tables.** A header cell has the same padding as the cells under it, so a right-aligned header ends where its numbers end.
+5. **Charger badge.** `ChargerBadge` draws the AC or DC label on every page.
+6. **Open.** The lists show the last 50 drives and charges without paging. The subtle text color is under 4.5:1 on the cards. Reset to defaults has no confirmation. Each needs a product decision.
+
 ## Rejected
 
 | Option | Reason |
