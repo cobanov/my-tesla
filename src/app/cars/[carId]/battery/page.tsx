@@ -24,6 +24,7 @@ import {
   toneClass,
 } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import {
   batteryCapacity,
@@ -397,7 +398,7 @@ export default async function BatteryPage({
             {period === "all" ? "All records" : `Last ${periodLabel}`}
           </p>
         </div>
-        <PeriodLinks base={`/cars/${car.id}/battery`} active={period} />
+        <PeriodLinks base={carPath(car, "/battery")} active={period} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4">

@@ -1,6 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { cache } from "react";
+import { carSlugs } from "./car-slug";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import { rangeColumn } from "./range-columns";
@@ -17,6 +18,7 @@ import { getPlaceStyle, getRangeKind } from "./viewer";
 export type Car = {
   id: number;
   name: string;
+  slug: string;
   model: string | null;
   marketingName: string | null;
   exteriorColor: string | null;
@@ -96,7 +98,7 @@ type PlaceColumns = {
 
 export const listCars = cache(async (): Promise<Car[]> => {
   await connection();
-  return database()<Car[]>`
+  const rows = await database()<Omit<Car, "slug">[]>`
     select
       id::int as id,
       coalesce(nullif(name, ''), 'Tesla ' || id) as name,
@@ -109,6 +111,11 @@ export const listCars = cache(async (): Promise<Car[]> => {
     from cars
     order by display_priority nulls last, id
   `;
+  const slugs = carSlugs(rows);
+  return rows.map((row) => ({
+    ...row,
+    slug: slugs.get(row.id) ?? `car-${row.id}`,
+  }));
 });
 
 export const findCar = cache(async (carId: number) => {

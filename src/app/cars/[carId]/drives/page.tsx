@@ -14,6 +14,7 @@ import {
   type Assessment,
 } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { recentDrives } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { getFormatter } from "@/lib/viewer";
@@ -67,7 +68,7 @@ export default async function DrivesPage({
           drives.length > 0 && (
             <div className="flex gap-2">
               <Link
-                href={`/cars/${car.id}/drives/trip`}
+                href={carPath(car, "/drives/trip")}
                 transitionTypes={["tab-forward"]}
                 className="inline-flex h-9 items-center gap-2 rounded bg-card px-3 text-sm font-medium transition-tesla hover:bg-accent"
               >
@@ -97,7 +98,7 @@ export default async function DrivesPage({
                   {group.items.map((drive) => (
                     <li key={drive.id}>
                       <Link
-                        href={`/cars/${car.id}/drives/${drive.id}`}
+                        href={carPath(car, `/drives/${drive.id}`)}
                         transitionTypes={["tab-forward"]}
                         className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 rounded-xl px-4 py-3 transition-tesla hover:bg-card"
                       >

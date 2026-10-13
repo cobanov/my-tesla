@@ -10,6 +10,7 @@ import { PageTransition } from "@/components/page-transition";
 import { Panel } from "@/components/panel";
 import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { mapThemeOf } from "@/lib/preferences";
 import { findDrive } from "@/lib/queries";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -57,7 +58,7 @@ export default async function DrivePage({
       <div className="pt-6 md:pt-10">
         <div className="flex items-center justify-between gap-4">
           <Link
-            href={`/cars/${car.id}/drives`}
+            href={carPath(car, "/drives")}
             transitionTypes={["tab-back"]}
             className="inline-flex items-center gap-1 rounded py-1 pr-2 text-sm text-muted-foreground transition-tesla hover:text-foreground"
           >

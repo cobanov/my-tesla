@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
 import { SectionHeader } from "@/components/section-header";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { recentCharges } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { ongoingText } from "@/lib/vehicle";
@@ -71,7 +72,7 @@ export default async function ChargingPage({
           charges.length > 0 && (
             <div className="flex gap-2">
               <Link
-                href={`/cars/${car.id}/charging/insights`}
+                href={carPath(car, "/charging/insights")}
                 transitionTypes={["tab-forward"]}
                 className="inline-flex h-9 items-center gap-2 rounded bg-card px-3 text-sm font-medium transition-tesla hover:bg-accent"
               >
@@ -101,7 +102,7 @@ export default async function ChargingPage({
                   {group.items.map((charge) => (
                     <li key={charge.id}>
                       <Link
-                        href={`/cars/${car.id}/charging/${charge.id}`}
+                        href={carPath(car, `/charging/${charge.id}`)}
                         transitionTypes={["tab-forward"]}
                         className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 rounded-xl px-4 py-3 transition-tesla hover:bg-card"
                       >

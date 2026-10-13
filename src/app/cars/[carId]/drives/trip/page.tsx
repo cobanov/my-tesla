@@ -8,6 +8,7 @@ import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import { mapThemeOf } from "@/lib/preferences";
 import { exportCharges, exportDrives, tripRoutes } from "@/lib/queries";
@@ -43,7 +44,7 @@ export default async function TripPage({
     searchParams,
   ]);
   const now = new Date();
-  const base = `/cars/${car.id}`;
+  const base = carPath(car);
   const range = tripRange(
     single(query.from),
     single(query.to),

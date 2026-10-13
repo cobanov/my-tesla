@@ -15,6 +15,7 @@ import { PageTransition } from "@/components/page-transition";
 import { assessBatteryLevel, assessTirePressure } from "@/lib/assessment";
 import { carImageUrl } from "@/lib/car-image";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import { buildTimeline, dayWindow, localDayKey } from "@/lib/insights";
 import { getLive } from "@/lib/live/live";
 import { mapThemeOf } from "@/lib/preferences";
@@ -206,7 +207,7 @@ export default async function OverviewPage({
               <header className="flex items-center justify-between gap-4">
                 <h2 className="text-sm text-muted-foreground">Today</h2>
                 <Link
-                  href={`/cars/${car.id}/timeline`}
+                  href={carPath(car, "/timeline")}
                   transitionTypes={["tab-forward"]}
                   className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-tesla hover:text-foreground"
                 >
@@ -302,7 +303,7 @@ export default async function OverviewPage({
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <RecentCard
                 title="Last drive"
-                href={`/cars/${car.id}/drives`}
+                href={carPath(car, "/drives")}
                 linkLabel="All drives"
               >
                 {lastDrive ? (
@@ -323,7 +324,7 @@ export default async function OverviewPage({
               </RecentCard>
               <RecentCard
                 title="Last charge"
-                href={`/cars/${car.id}/charging`}
+                href={carPath(car, "/charging")}
                 linkLabel="All charges"
               >
                 {lastCharge ? (

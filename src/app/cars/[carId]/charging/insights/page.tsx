@@ -7,6 +7,7 @@ import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
 import { WeekHeatmap } from "@/components/week-heatmap";
 import { requireCar } from "@/lib/car-route";
+import { carPath } from "@/lib/car-slug";
 import {
   chargeLevelTimes,
   chargeStarts,
@@ -173,13 +174,13 @@ export default async function ChargingInsightsPage({
   return (
     <PageTransition>
       <div className="pt-6 md:pt-10">
-        <BackLink href={`/cars/${car.id}/charging`} label="Charging" />
+        <BackLink href={carPath(car, "/charging")} label="Charging" />
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <h1 className="text-[40px] leading-[1.2] font-medium">
             Charging insights
           </h1>
           <PeriodLinks
-            base={`/cars/${car.id}/charging/insights`}
+            base={carPath(car, "/charging/insights")}
             active={period}
           />
         </div>
