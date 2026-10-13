@@ -76,6 +76,7 @@ export function Choice<T extends string>({
   onChange: (value: T) => void;
 }) {
   const group = useId();
+  const dense = options.length > 4;
   return (
     <div
       role="radiogroup"
@@ -92,7 +93,8 @@ export function Choice<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.id)}
             className={cn(
-              "relative rounded px-3 py-1.5 whitespace-nowrap transition-tesla focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              "relative rounded py-1.5 whitespace-nowrap transition-tesla focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              dense ? "px-2 sm:px-3" : "px-3",
               active
                 ? "text-background"
                 : "text-muted-foreground hover:text-foreground",

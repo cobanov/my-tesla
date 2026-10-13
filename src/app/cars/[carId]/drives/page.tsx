@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Map as MapIcon } from "lucide-react";
+import { DayHeading, rowLinkClass } from "@/components/day-list";
 import { DownloadLink } from "@/components/download-link";
 import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
@@ -61,7 +62,10 @@ export default async function DrivesPage({
         title="Drives"
         summary={
           drives.length
-            ? `${drives.length} recent drives · ${f.distance(totalKm)}`
+            ? [
+                `${drives.length} recent ${drives.length === 1 ? "drive" : "drives"}`,
+                f.distance(totalKm),
+              ]
             : undefined
         }
         action={
@@ -84,23 +88,27 @@ export default async function DrivesPage({
         }
       />
       {drives.length === 0 ? (
-        <EmptyState title="No record yet." />
+        <EmptyState title="No drives yet">
+          A drive shows here after the car drives. TeslaMate records only from
+          the moment you sign in.
+        </EmptyState>
       ) : (
         <div className="space-y-8">
           {f
             .groupByDay(drives, (drive) => drive.startAt, now)
             .map((group) => (
               <section key={group.label}>
-                <h2 className="mb-2 text-sm text-muted-foreground">
-                  {group.label}
-                </h2>
+                <DayHeading>{group.label}</DayHeading>
                 <ul className="space-y-1">
                   {group.items.map((drive) => (
                     <li key={drive.id}>
                       <Link
                         href={carPath(car, `/drives/${drive.id}`)}
                         transitionTypes={["tab-forward"]}
-                        className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 rounded-xl px-4 py-3 transition-tesla hover:bg-card"
+                        className={cn(
+                          "grid grid-cols-[4.5rem_1fr_auto] sm:grid-cols-[5rem_1fr_auto]",
+                          rowLinkClass,
+                        )}
                       >
                         <div className="tabular">
                           <p className="font-medium">

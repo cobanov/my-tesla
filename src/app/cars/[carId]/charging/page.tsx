@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChartColumn } from "lucide-react";
+import { ChargerBadge } from "@/components/charger-badge";
+import { DayHeading, rowLinkClass } from "@/components/day-list";
+import { DotList } from "@/components/dot-list";
 import { DownloadLink } from "@/components/download-link";
 import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
@@ -25,7 +28,10 @@ function LevelBar({
 }) {
   if (start === null || end === null) return null;
   return (
-    <div className="relative mt-2 h-1 w-full max-w-48 overflow-hidden rounded-full bg-muted">
+    <div
+      aria-hidden
+      className="relative mt-2 h-1 w-full max-w-48 overflow-hidden rounded-full bg-muted"
+    >
       <div
         className="absolute inset-y-0 rounded-full bg-charge"
         style={{ left: `${start}%`, width: `${Math.max(0, end - start)}%` }}
@@ -60,12 +66,10 @@ export default async function ChargingPage({
         summary={
           charges.length
             ? [
-                `${charges.length} recent charges`,
+                `${charges.length} recent ${charges.length === 1 ? "charge" : "charges"}`,
                 `${f.energy(totalKwh)} added`,
                 costs.length ? `${f.cost(totalCost)} spent` : null,
               ]
-                .filter(Boolean)
-                .join(" · ")
             : undefined
         }
         action={
@@ -88,23 +92,27 @@ export default async function ChargingPage({
         }
       />
       {charges.length === 0 ? (
-        <EmptyState title="No record yet." />
+        <EmptyState title="No charges yet">
+          A charge shows here after the car charges. TeslaMate records only from
+          the moment you sign in.
+        </EmptyState>
       ) : (
         <div className="space-y-8">
           {f
             .groupByDay(charges, (charge) => charge.startAt, now)
             .map((group) => (
               <section key={group.label}>
-                <h2 className="mb-2 text-sm text-muted-foreground">
-                  {group.label}
-                </h2>
+                <DayHeading>{group.label}</DayHeading>
                 <ul className="space-y-1">
                   {group.items.map((charge) => (
                     <li key={charge.id}>
                       <Link
                         href={carPath(car, `/charging/${charge.id}`)}
                         transitionTypes={["tab-forward"]}
-                        className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 rounded-xl px-4 py-3 transition-tesla hover:bg-card"
+                        className={cn(
+                          "grid grid-cols-[4.5rem_1fr_auto] sm:grid-cols-[5rem_1fr_auto]",
+                          rowLinkClass,
+                        )}
                       >
                         <div className="tabular">
                           <p className="font-medium">
@@ -119,31 +127,22 @@ export default async function ChargingPage({
                         <div className="min-w-0">
                           <p className="flex items-center gap-2 font-medium">
                             <span className="truncate">{charge.place}</span>
-                            <span
-                              className={cn(
-                                "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                charge.fastCharger
-                                  ? "bg-primary/15 text-primary"
-                                  : "bg-muted text-muted-foreground",
-                              )}
-                            >
-                              {charge.fastCharger ? "DC" : "AC"}
-                            </span>
+                            <ChargerBadge fast={charge.fastCharger} />
                           </p>
                           <p className="text-sm text-muted-foreground tabular">
-                            {[
-                              charge.startLevel !== null &&
-                              charge.endLevel !== null
-                                ? `${charge.startLevel}% → ${charge.endLevel}%`
-                                : charge.endAt
-                                  ? "—"
+                            <DotList
+                              parts={[
+                                charge.startLevel !== null &&
+                                charge.endLevel !== null
+                                  ? `${charge.startLevel}% → ${charge.endLevel}%`
+                                  : charge.endAt
+                                    ? "—"
+                                    : null,
+                                charge.maxPowerKw
+                                  ? `up to ${Math.round(charge.maxPowerKw)} kW`
                                   : null,
-                              charge.maxPowerKw
-                                ? `up to ${Math.round(charge.maxPowerKw)} kW`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ")}
+                              ]}
+                            />
                           </p>
                           <LevelBar
                             start={charge.startLevel}
@@ -153,7 +152,7 @@ export default async function ChargingPage({
                         <div className="text-right tabular">
                           {charge.energyAddedKwh === null && !charge.endAt ? (
                             <p className="flex items-center justify-end gap-1.5 font-medium text-charge">
-                              <span className="size-1.5 animate-pulse rounded-full bg-charge" />
+                              <span className="size-1.5 rounded-full bg-charge motion-safe:animate-pulse" />
                               {ongoingText}
                             </p>
                           ) : (

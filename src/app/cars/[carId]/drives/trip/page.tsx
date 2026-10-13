@@ -2,6 +2,7 @@ import { BatteryCharging, Route } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BackLink } from "@/components/back-link";
+import { DayHeading, rowLinkClass } from "@/components/day-list";
 import { DownloadLink } from "@/components/download-link";
 import { MapsOff, TripMap, type TripStop } from "@/components/maps";
 import { Metric } from "@/components/metric";
@@ -251,9 +252,7 @@ export default async function TripPage({
               .groupByDay(items, (item) => item.at, now)
               .map((group) => (
                 <section key={group.label}>
-                  <h2 className="mb-2 text-sm text-muted-foreground">
-                    {group.label}
-                  </h2>
+                  <DayHeading>{group.label}</DayHeading>
                   <ul className="space-y-1">
                     {group.items.map((item) => (
                       <li key={`${item.kind}-${tripItemId(item)}`}>
@@ -298,7 +297,7 @@ function TripRow({
     <Link
       href={href}
       transitionTypes={["tab-forward"]}
-      className="grid grid-cols-[4rem_auto_1fr] items-center gap-4 rounded-xl px-4 py-3 transition-tesla hover:bg-card"
+      className={cn("grid grid-cols-[4rem_auto_1fr]", rowLinkClass)}
     >
       <span className="text-sm font-medium tabular">{f.clock(item.at)}</span>
       <span

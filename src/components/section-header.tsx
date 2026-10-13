@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DotList } from "@/components/dot-list";
 
 export function SectionHeader({
   title,
@@ -6,16 +7,16 @@ export function SectionHeader({
   action,
 }: {
   title: string;
-  summary?: string;
+  summary?: ReactNode[];
   action?: ReactNode;
 }) {
   return (
     <header className="flex items-end justify-between gap-4 pt-8 pb-8 md:pt-14">
       <div className="min-w-0">
         <h1 className="text-[40px] leading-[1.2] font-medium">{title}</h1>
-        {summary && (
+        {summary && summary.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground tabular">
-            {summary}
+            <DotList parts={summary} />
           </p>
         )}
       </div>

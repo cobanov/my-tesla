@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BackLink } from "@/components/back-link";
+import { ChargerBadge } from "@/components/charger-badge";
 import { SeriesChart } from "@/components/charts/series-chart";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
@@ -28,7 +29,6 @@ import { periodStart, readPeriod, weekGrid } from "@/lib/insights";
 import { chargingPlaces } from "@/lib/places-data";
 import { carSnapshot } from "@/lib/queries";
 import { driveTotals } from "@/lib/stats-data";
-import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
 
 export const instant = false;
@@ -61,7 +61,8 @@ function TypeCard({
         {f.energy(totals?.addedKwh ?? 0)}
       </p>
       <p className="mt-1 text-sm text-subtle tabular">
-        {totals?.sessions ?? 0} sessions
+        {totals?.sessions ?? 0}{" "}
+        {totals?.sessions === 1 ? "session" : "sessions"}
         {totals && totals.cost !== null && ` · ${f.cost(totals.cost)}`}
         {perKwh !== null && ` · ${f.cost(perKwh)} per kWh`}
       </p>
@@ -300,26 +301,18 @@ export default async function ChargingInsightsPage({
                       return (
                         <li
                           key={place.key}
-                          className="flex items-center justify-between gap-4 rounded px-2 py-2.5"
+                          className="flex items-start justify-between gap-4 rounded px-2 py-2.5"
                         >
                           <span className="min-w-0">
                             <span className="flex items-center gap-2">
                               <span className="truncate font-medium">
                                 {place.label}
                               </span>
-                              <span
-                                className={cn(
-                                  "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                  place.fast
-                                    ? "bg-primary/15 text-primary"
-                                    : "bg-muted text-muted-foreground",
-                                )}
-                              >
-                                {place.fast ? "DC" : "AC"}
-                              </span>
+                              <ChargerBadge fast={place.fast} />
                             </span>
                             <span className="block text-sm text-subtle tabular">
-                              {place.sessions} sessions
+                              {place.sessions}{" "}
+                              {place.sessions === 1 ? "session" : "sessions"}
                               {placePerKwh !== null &&
                                 ` · ${f.cost(placePerKwh)} per kWh`}
                             </span>
@@ -328,9 +321,11 @@ export default async function ChargingInsightsPage({
                             <span className="block font-medium">
                               {f.energy(place.addedKwh)}
                             </span>
-                            <span className="block text-sm text-subtle">
-                              {place.cost === null ? "" : f.cost(place.cost)}
-                            </span>
+                            {place.cost !== null && (
+                              <span className="block text-sm text-subtle">
+                                {f.cost(place.cost)}
+                              </span>
+                            )}
                           </span>
                         </li>
                       );

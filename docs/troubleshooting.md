@@ -21,7 +21,7 @@ The `detail` field gives the database error.
 
 ## A page shows "No record yet."
 
-TeslaMate records only from the moment you sign in. Drives, charges, and statistics appear after the car drives and charges. TeslaMate can import older data from TeslaFi exports. Read the TeslaMate documentation for the import.
+The Drives and Charging pages say "No drives yet" and "No charges yet" in this case. TeslaMate records only from the moment you sign in. Drives, charges, and statistics appear after the car drives and charges. TeslaMate can import older data from TeslaFi exports. Read the TeslaMate documentation for the import.
 
 ## Battery health shows a dash
 
