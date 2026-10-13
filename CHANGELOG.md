@@ -18,6 +18,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - Charging insights: "1 sessions" now reads "1 session".
 - Battery: the headers of the idle drain table sat 16 px right of their numbers.
 - Battery: "1 sessions" now reads "1 session".
+- Settings: the Default period choice put "All" on a second line on a phone.
+- Settings: a screen reader now announces "Saving", "Saved", and "Not saved".
 
 ## [1.7.0] - 2026-10-12
 

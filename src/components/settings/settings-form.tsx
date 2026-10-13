@@ -67,8 +67,8 @@ const sections = [
 type Status = "idle" | "saving" | "saved" | "error";
 
 function StatusChip({ status }: { status: Status }) {
-  if (status === "idle") return null;
   const content = {
+    idle: null,
     saving: [
       <LoaderCircle key="i" className="size-3.5 animate-spin" />,
       "Saving",
@@ -77,14 +77,17 @@ function StatusChip({ status }: { status: Status }) {
     error: [<TriangleAlert key="i" className="size-3.5" />, "Not saved"],
   }[status];
   return (
-    <span
-      role="status"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded bg-card px-2.5 py-1 text-xs font-medium",
-        status === "error" ? "text-destructive" : "text-muted-foreground",
+    <span role="status">
+      {content && (
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded bg-card px-2.5 py-1 text-xs font-medium",
+            status === "error" ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {content}
+        </span>
       )}
-    >
-      {content}
     </span>
   );
 }
