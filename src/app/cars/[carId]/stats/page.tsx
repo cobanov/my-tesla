@@ -400,7 +400,10 @@ export default async function StatsPage({
         </Panel>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Panel title="Efficiency and temperature" className="lg:col-span-2">
+          <Panel
+            title={`Efficiency (${f.units.efficiency}) and temperature`}
+            className="lg:col-span-2"
+          >
             {scatter.length > 2 ? (
               <ScatterPoints
                 points={scatter}

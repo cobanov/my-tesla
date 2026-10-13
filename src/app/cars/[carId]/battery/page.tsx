@@ -135,7 +135,7 @@ function IdleRow({
   const power = assessIdlePower(watts, f);
   return (
     <tr className="border-t border-border">
-      <td className="py-3 pr-4">
+      <th scope="row" className="py-3 pr-4 text-left font-normal">
         <span className="block">
           {f.day(period.start, now)}{" "}
           <span className="text-muted-foreground">{f.clock(period.start)}</span>
@@ -144,7 +144,7 @@ function IdleRow({
           {f.duration(period.durationS / 60)} ·{" "}
           {Math.round(period.standby * 100)}% asleep
         </span>
-      </td>
+      </th>
       <td className="hidden py-3 pr-4 text-right text-muted-foreground sm:table-cell">
         {f.duration(period.durationS / 60)}
       </td>
@@ -293,7 +293,7 @@ export default async function BatteryPage({
 
       <div className="mt-12 grid grid-cols-1 gap-4">
         <Panel
-          title="Capacity"
+          title="Capacity (kWh)"
           action={
             <span className="text-xs text-subtle">
               Estimated after each long charge
@@ -325,7 +325,7 @@ export default async function BatteryPage({
         </Panel>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Panel title="Range at 100%">
+          <Panel title={`Range at 100% (${f.units.distance})`}>
             {capacitySeries.length > 1 ? (
               <SeriesChart
                 data={capacitySeries}
@@ -354,7 +354,7 @@ export default async function BatteryPage({
                     label="Added"
                     value={f.number(totals.addedKwh)}
                     unit="kWh"
-                    detail={`${totals.sessions} sessions`}
+                    detail={`${totals.sessions} ${totals.sessions === 1 ? "session" : "sessions"}`}
                   />
                   <Metric
                     label="Efficiency"
@@ -503,15 +503,30 @@ export default async function BatteryPage({
               <table className="mt-8 w-full text-sm tabular">
                 <thead>
                   <tr className="text-left text-xs text-subtle">
-                    <th className="pb-2 font-normal">Parked</th>
-                    <th className="hidden pb-2 text-right font-normal sm:table-cell">
+                    <th scope="col" className="pr-4 pb-2 font-normal">
+                      Parked
+                    </th>
+                    <th
+                      scope="col"
+                      className="hidden pr-4 pb-2 text-right font-normal sm:table-cell"
+                    >
                       Duration
                     </th>
-                    <th className="hidden pb-2 text-right font-normal sm:table-cell">
+                    <th
+                      scope="col"
+                      className="hidden pr-4 pb-2 text-right font-normal sm:table-cell"
+                    >
                       Asleep
                     </th>
-                    <th className="pb-2 text-right font-normal">Range lost</th>
-                    <th className="pb-2 text-right font-normal">Power</th>
+                    <th
+                      scope="col"
+                      className="pr-4 pb-2 text-right font-normal"
+                    >
+                      Range lost
+                    </th>
+                    <th scope="col" className="pb-2 text-right font-normal">
+                      Power
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

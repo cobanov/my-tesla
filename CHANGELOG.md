@@ -9,11 +9,14 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - Drives, Charging, and Trip: the day heading stays under the header while you scroll a long list, and it lines up with the rows. On a phone, the rows use less side space, so a place name shows more of its letters.
 - Drives and Charging: a car without a record shows "No drives yet" or "No charges yet", with a short explanation.
 - The AC and DC label looks the same on every page.
+- Battery, Stats, and a charge page: the chart titles name their unit, like the other charts.
 
 ### Fixed
 
 - Drives and Charging: the summary under the title and the levels of a charge broke inside a value on a phone, such as "1,105" and "km" on two lines. A line now breaks only between values.
 - Charging insights: "1 sessions" now reads "1 session".
+- Battery: the headers of the idle drain table sat 16 px right of their numbers.
+- Battery: "1 sessions" now reads "1 session".
 
 ## [1.7.0] - 2026-10-12
 
