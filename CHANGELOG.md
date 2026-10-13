@@ -10,6 +10,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - Drives and Charging: a car without a record shows "No drives yet" or "No charges yet", with a short explanation.
 - The AC and DC label looks the same on every page.
 - Battery, Stats, and a charge page: the chart titles name their unit, like the other charts.
+- Every control shows a clear 2 px focus ring when you move with the keyboard.
 
 ### Fixed
 
