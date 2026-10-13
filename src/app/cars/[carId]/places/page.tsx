@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChargerBadge } from "@/components/charger-badge";
 import { MapsOff, PlacesMap, type MapPlace } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
@@ -231,16 +232,7 @@ export default async function PlacesPage({
               {charging.map((place) => (
                 <li key={place.key} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "rounded px-1.5 py-0.5 text-[11px] font-medium",
-                        place.fast
-                          ? "bg-primary/15 text-primary"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {place.fast ? "DC" : "AC"}
-                    </span>
+                    <ChargerBadge fast={place.fast} />
                     <span className="truncate text-sm font-medium">
                       {place.label}
                     </span>
