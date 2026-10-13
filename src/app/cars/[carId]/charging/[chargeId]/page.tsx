@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { ChargeCountdown } from "@/components/charge-countdown";
+import { ChargerBadge } from "@/components/charger-badge";
 import { niceDomain } from "@/components/charts/nice-domain";
 import { SeriesChart } from "@/components/charts/series-chart";
 import { LiveStream } from "@/components/live-stream";
@@ -205,16 +206,7 @@ export default async function ChargePage({
           </div>
         </div>
         <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-          <span
-            className={cn(
-              "rounded px-1.5 py-0.5 text-[11px] font-medium",
-              session.fast
-                ? "bg-primary/15 text-primary"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
-            {session.fast ? "DC" : "AC"}
-          </span>
+          <ChargerBadge fast={session.fast} />
           {kind}
         </p>
         <h1 className="mt-2 text-[32px] leading-[1.2] font-medium md:text-[40px]">
@@ -397,7 +389,7 @@ export default async function ChargePage({
             )}
           </Panel>
         )}
-        <Panel title="Power by battery level">
+        <Panel title="Power by battery level (kW)">
           {powerByLevel.length > 1 ? (
             <SeriesChart
               data={powerByLevel}

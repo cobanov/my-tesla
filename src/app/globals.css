@@ -106,6 +106,10 @@
     @apply border-border outline-ring/50;
   }
 
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
   html {
     @apply font-sans antialiased;
     -webkit-tap-highlight-color: transparent;
