@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-14
+
 ### Added
 
 - A page for each trip at `/cars/{car}/drives/trip/{tripId}`: the route of all legs on one map with the stops, the total, driving, and stopped time, the consumption, the battery at the start and at the end, the energy and the cost of the charges on the way, the average speed, and the list of legs and stops.
@@ -155,7 +157,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/woosal1337/my-tesla/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/woosal1337/my-tesla/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/woosal1337/my-tesla/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/woosal1337/my-tesla/compare/v1.6.0...v1.6.1
