@@ -4,6 +4,20 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Added
+
+- A page for each trip at `/cars/{car}/drives/trip/{tripId}`: the route of all legs on one map with the stops, the total, driving, and stopped time, the consumption, the battery at the start and at the end, the energy and the cost of the charges on the way, the average speed, and the list of legs and stops.
+
+### Changed
+
+- Report at `/cars/{car}/drives/trip`, before called Trip: the list now shows trips, not single drives. A trip joins the drives of one journey: a stop of up to 30 minutes keeps the trip together, and so does a stop of up to 2 hours with a charge in it. This is the rule of the trip tools in teslamate-mcp. A stop under 2 minutes is a pause: the drives around it show as one leg, and a drive under 50 m does not show. A charge during a stop belongs to its trip, and the other charges stay in the list. The newest day comes first. [Decision 0017](docs/decisions/0017-trips-from-drives.md) explains the rule.
+- Drives lists the trips of the last 50 drives, not the single drives. A row shows where the trip ends and starts, the stops, the distance, and the consumption. Under a trip with stops, a bar shows the drives, the stops, and the charging stops in time order. A trip of one drive opens the drive page. Any other trip opens its trip page, and the trip page goes back to Drives. [Decision 0019](docs/decisions/0019-drives-list-trips.md) explains the choice.
+
+### Fixed
+
+- Overview: many cars showed no car image. The image now shows for a 2017-2023 Model 3, for the wheel names of a 2024 Model 3 such as `Photon18` and `Helix19`, for a 2020-2024 Model Y in Quicksilver, Stealth Grey, Ultra Red, or Midnight Cherry Red, for the Model Y wheels `Apollo19`, `Apollo19MetallicShadow`, and `Photon18`, for the colors `BlackDiamond`, Glacier Blue, and Marine Blue, and for a wheel name with an ending such as `Pinwheel18CapKit`. A car with an unknown wheel shows its usual wheels when the color fits one generation.
+- Drives, a drive page, the drives CSV, and Report: a drive that TeslaMate left open was missing. This happens when TeslaMate restarts during a drive. The app now fills such a drive from its positions, so a trip no longer splits at it. The drive page shows a note. [Decision 0018](docs/decisions/0018-drives-left-open.md) explains the rule.
+
 ## [1.8.0] - 2026-10-13
 
 ### Changed
@@ -94,7 +108,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ### Added
 
-- Trip view at `/cars/{carId}/drives/trip`: a date range with presets, the totals for distance, driving and charging time, energy, and cost, every route on one map with the charge stops, and a list of drives and charges. CSV buttons for the range.
+- Trip view at `/cars/{car}/drives/trip`: a date range with presets, the totals for distance, driving and charging time, energy, and cost, every route on one map with the charge stops, and a list of drives and charges. CSV buttons for the range.
 - Charging insights at `/cars/{carId}/charging/insights`: sessions, energy, cost per kWh, and cost per 100 km for a period, AC and DC compared, the curves of the last six DC sessions, a heatmap of charge starts, and the top charging places.
 - Stats: consumption by speed band, with the share of driving time in each band, in km/h or mph.
 - Slow-leak warning: when one tire loses at least 0.1 bar against the median of the other three over the last 14 days, the Overview tire card and the Stats tire panel show a warning.

@@ -4,6 +4,7 @@ import { cache } from "react";
 import { carSlugs } from "./car-slug";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
+import { driveSessionsRelation } from "./drive-sessions-sql";
 import { rangeColumn } from "./range-columns";
 import { sampleRoute, type LngLat } from "./route";
 import {
@@ -69,6 +70,7 @@ export type Drive = {
   outsideTempAvg: number | null;
   startLevel: number | null;
   endLevel: number | null;
+  leftOpen: boolean;
 };
 
 export type Charge = {
@@ -246,6 +248,7 @@ type DriveRow = {
   outsideTempAvg: number | null;
   startLevel: number | null;
   endLevel: number | null;
+  leftOpen: boolean;
   start: PlaceColumns;
   end: PlaceColumns;
 };
@@ -256,16 +259,21 @@ const exportLimit = 100_000;
 
 async function queryDrives(
   car: Car,
-  options: { limit: number; driveId?: number; range?: DateRange | null },
+  options: { limit: number; driveIds?: number[]; range?: DateRange | null },
 ): Promise<Drive[]> {
   await connection();
   const sql = database();
   const [kind, style] = await Promise.all([getRangeKind(), getPlaceStyle()]);
-  const onlyDrive =
-    options.driveId === undefined ? sql`` : sql`and d.id = ${options.driveId}`;
+  const onlyDrives =
+    options.driveIds === undefined
+      ? sql``
+      : sql`and d.id = any(${options.driveIds}::int[])`;
   const inRange = options.range
     ? sql`and d.start_date >= (${options.range.start.toISOString()}::timestamptz at time zone 'UTC') and d.start_date < (${options.range.end.toISOString()}::timestamptz at time zone 'UTC')`
     : sql``;
+  const picked = sql`${onlyDrives} ${inRange}
+    order by d.start_date desc
+    limit ${options.limit}`;
   const rows = await sql<DriveRow[]>`
     select
       d.id::int as id,
@@ -283,6 +291,7 @@ async function queryDrives(
       d.outside_temp_avg::float8 as "outsideTempAvg",
       sp.battery_level::int as "startLevel",
       ep.battery_level::int as "endLevel",
+      d.left_open as "leftOpen",
       json_build_object(
         'geofence', sg.name, 'name', sa.name, 'road', sa.road,
         'houseNumber', sa.house_number, 'city', sa.city
@@ -291,16 +300,14 @@ async function queryDrives(
         'geofence', eg.name, 'name', ea.name, 'road', ea.road,
         'houseNumber', ea.house_number, 'city', ea.city
       ) as "end"
-    from drives d
+    from ${driveSessionsRelation(sql, car.id, picked)} d
     left join addresses sa on sa.id = d.start_address_id
     left join addresses ea on ea.id = d.end_address_id
     left join geofences sg on sg.id = d.start_geofence_id
     left join geofences eg on eg.id = d.end_geofence_id
     left join positions sp on sp.id = d.start_position_id
     left join positions ep on ep.id = d.end_position_id
-    where d.car_id = ${car.id} and d.end_date is not null ${onlyDrive} ${inRange}
     order by d.start_date desc
-    limit ${options.limit}
   `;
   return rows.map((row) => ({
     id: row.id,
@@ -318,6 +325,7 @@ async function queryDrives(
     outsideTempAvg: row.outsideTempAvg,
     startLevel: row.startLevel,
     endLevel: row.endLevel,
+    leftOpen: row.leftOpen,
     efficiencyWhPerKm: driveEfficiency({
       startRangeKm: row.startRangeKm,
       endRangeKm: row.endRangeKm,
@@ -371,6 +379,14 @@ export function exportDrives(
   return queryDrives(car, { limit: exportLimit, range });
 }
 
+export async function drivesById(
+  car: Car,
+  driveIds: number[],
+): Promise<Drive[]> {
+  if (driveIds.length === 0) return [];
+  return queryDrives(car, { limit: exportLimit, driveIds });
+}
+
 export type DrivePositionRow = DrivePoint & { lng: number; lat: number };
 
 export async function drivePositions(
@@ -397,7 +413,7 @@ export async function findDriveRecord(
   car: Car,
   driveId: number,
 ): Promise<Drive | null> {
-  const [drive] = await queryDrives(car, { limit: 1, driveId });
+  const [drive] = await queryDrives(car, { limit: 1, driveIds: [driveId] });
   return drive ?? null;
 }
 
