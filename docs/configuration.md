@@ -24,6 +24,8 @@ The server reads environment variables at the first request. The browser never s
 | `MQTT_PASSWORD` | No | Empty | The password of that user. Set `MQTT_USERNAME` with it. |
 | `MQTT_NAMESPACE` | No | Empty | The same value as `MQTT_NAMESPACE` in TeslaMate, if you set one there |
 | `EXPO_ACCESS_TOKEN` | No | Empty | The access token for enhanced push security in Expo. Set it only when that setting is on. Read [Mobile app](mobile.md#push-alerts). |
+| `MOBILE_ACCESS_CLIENT_ID` | No | Empty | The Client ID of the Cloudflare Access service token of the app. With `MOBILE_ACCESS_CLIENT_SECRET`, the QR code in Settings holds the token. Read [Mobile app](mobile.md#connect-with-a-qr-code). |
+| `MOBILE_ACCESS_CLIENT_SECRET` | No | Empty | The Client Secret of the same token. Set both values or neither. |
 | `DEMO_MODE` | No | Empty | `1` runs the public demo: a built-in demo database, the landing page, and Settings in a cookie. Read [Demo site](demo-site.md). Never set it together with real data. |
 | `ALLOWED_DEV_ORIGINS` | No | Empty | Development only. A comma-separated list of extra host names for `next dev`. |
 

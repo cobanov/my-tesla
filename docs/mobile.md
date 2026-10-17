@@ -6,7 +6,7 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 
 | Screen | Content |
 |---|---|
-| Connect | The server address, and an optional Cloudflare Access service token. "Open the demo" connects to the public demo. |
+| Connect | "Scan the code" reads the QR code from Settings on the web, connects, and opens its car. The server address and an optional Cloudflare Access service token can also be typed in. "Open the demo" connects to the public demo. |
 | Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
 | Drives | The trips by day. A trip opens its legs and stops, and a drive opens its figures and its speed, power, elevation, and battery charts. |
 | Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. Older and Newer step through the charges. |
@@ -81,6 +81,15 @@ The server sits behind an authenticating proxy. Read [Protect the dashboard](aut
 | Other proxies | The app sends no browser login. Use a path that the proxy lets through for the phone, such as a VPN. |
 
 Give the app its own service token, so that you can stop it without the scripts.
+
+## Connect with a QR code
+
+1. Behind Cloudflare Access, make a service token for the app as in [API](api.md#call-the-api-through-cloudflare-access), and set `MOBILE_ACCESS_CLIENT_ID` and `MOBILE_ACCESS_CLIENT_SECRET` on the server. On a private network, skip this step.
+2. Set `SITE_URL` to the address that the phone uses. Without it, the code holds the address in the browser.
+3. On the web, open Settings for the car, then Mobile app, and press "Show the code".
+4. In the app, press "Scan the code" on the Connect screen. To switch servers, press Disconnect in the Settings tab first.
+
+The code holds the address, the car, and the service token when the server has one. Anyone who scans or photographs it can open the dashboard, so show it only to yourself. It hides after 2 minutes. To stop the phones, delete the service token in Cloudflare and set a new one. [Decision 0021](decisions/0021-connect-the-app-with-a-qr-code.md) explains the design.
 
 ## Push alerts
 

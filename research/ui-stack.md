@@ -40,6 +40,7 @@ Universal Sans is Tesla's own typeface and has no public licence. Inter is the n
 | Icons | Lucide, the shadcn default | Not needed | 1.49.0 |
 | Charts | shadcn charts on Recharts | shadcn/ui, S | Recharts 3.8.0 |
 | Maps | mapcn on MapLibre GL | S | MapLibre GL 6.11.2 |
+| QR code | `uqr` encodes on the server, and the page draws the path of the dark modules | Not listed | 0.1.3 |
 
 ## Patterns
 
@@ -79,6 +80,7 @@ Checked on 2026-10-01 on the demo server, with miles, °F, psi, kPa, km/kWh, the
 3. **Controls.** A segmented control with a sliding pill for two to five choices, a native select for long lists, and a switch for on and off. Switch rows stay on one line on a phone.
 4. **Theme.** Each color token uses `light-dark()`. `data-theme` on `html` forces light or dark. The `dark:` variant follows the same attribute and the system setting.
 5. **Reduced motion.** `data-motion="reduced"` stops the view transitions, the CSS transitions, the chart animations, Motion, and NumberFlow.
+6. **Mobile app code.** The QR code comes from a server action on a button press, so the page HTML never holds the service token. It is black on white with a quiet zone of 4 modules in both themes, because the QR standard asks for 4 modules and dark on light is the safe case for phone scanners. It hides after 2 minutes. Sources: [uqr](https://github.com/unjs/uqr), [quiet zone](https://2dtg.com/faq/quiet-zone), [QR design rules](https://www.qr-code-generator.com/blog/qr-code-design-rules/).
 
 ## Lists and focus
 

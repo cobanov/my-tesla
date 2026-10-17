@@ -43,6 +43,7 @@ import {
   SettingsSection,
   Toggle,
 } from "./controls";
+import { PairingCodePanel } from "./pairing-code";
 
 const sections = [
   { id: "units", label: "Units" },
@@ -53,6 +54,7 @@ const sections = [
   { id: "display", label: "Display" },
   { id: "tabs", label: "Tabs" },
   { id: "overview", label: "Overview" },
+  { id: "mobile", label: "Mobile app" },
 ];
 
 type Status = "idle" | "saving" | "saved" | "error";
@@ -86,6 +88,7 @@ function StatusChip({ status }: { status: Status }) {
 export function SettingsForm({
   initial,
   defaults,
+  car,
   cars,
   timeZones,
   serverTimeZone,
@@ -93,6 +96,7 @@ export function SettingsForm({
 }: {
   initial: Preferences;
   defaults: Preferences;
+  car: { id: number; name: string };
   cars: { id: number; name: string }[];
   timeZones: string[];
   serverTimeZone: string;
@@ -566,6 +570,14 @@ export function SettingsForm({
                 }
               />
             ))}
+          </SettingsSection>
+
+          <SettingsSection
+            id="mobile"
+            title="Mobile app"
+            description="Connect the My Tesla app on a phone."
+          >
+            <PairingCodePanel carId={car.id} carName={car.name} />
           </SettingsSection>
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-8">
