@@ -7,11 +7,11 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 | Screen | Content |
 |---|---|
 | Connect | "Scan the code" reads the QR code from Settings on the web, connects, and opens its car. The server address and an optional Cloudflare Access service token can also be typed in. "Open the demo" connects to the public demo. |
-| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
-| Drives | The trips by day. A trip opens its legs and stops, and a drive opens its figures and its speed, power, elevation, and battery charts. |
-| Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. Older and Newer step through the charges. |
-| Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. A longest drive or a frequent route opens its drive. |
-| Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location, and the Overview cards), the alerts that this phone gets with a test alert, and the server with Disconnect |
+| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location on a map with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
+| Drives | The trips by day. A trip opens its route on a map with its start, stops, and end, and its legs. A drive opens its route on a map, its figures, and its speed, power, elevation, and battery charts. |
+| Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. The place of the charge shows on a map. Older and Newer step through the charges. |
+| Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. Places starts with a map of the visited and charging places. A longest drive or a frequent route opens its drive. |
+| Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location with the maps and their theme, and the Overview cards), the alerts that this phone gets with a test alert, and the server with Disconnect |
 
 The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the car list, the last Settings, and the theme, so the Settings tab opens at once and without a network. Read [API](api.md#app-api).
 

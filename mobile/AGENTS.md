@@ -88,6 +88,7 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `Chart` | An `AppChart` from the server. It draws areas, lines, and bars on one or two axes, and a scrubbing tooltip. |
 | `Block` | One block of an insight panel: stats, chart, shares, table, records, heatmap, progress, notice, or note. It takes the tab stack, so a record opens its target in the same tab. |
 | `Records`, `Heatmap` | A ranked list with a bar, a badge, links, and a target, and the drive starts by weekday and hour |
+| `LocationMap`, `RouteMap`, `PlacesMap` | The maps of the web: the car, a route with its markers, and the places sized by visits, on the CARTO styles |
 | `Notice` | A warning line with an icon, for a server notice |
 | `EmptyState`, `Problem` | A list without records, and an error with a retry button |
 | `TripStrip`, `LevelBar`, `ChargerBadge`, `DayStrip`, `Battery`, `LivePanel` | The small parts of the dashboard, drawn the same way as on the web |
@@ -139,7 +140,7 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 1. Lists use a ScrollView, because native tabs scroll it to the top and pop the stack when the active tab is pressed again. The server sends at most 50 rows. Measure first, then switch a list to `@shopify/flash-list` 2 (bundled by SDK 58) only if it scrolls badly.
 2. Charts take the `AppChart` that the server builds with `buildChart` in `src/lib/app/chart.ts`. Add a chart kind on the server first, then draw it in `Chart`. Do not add a chart library.
 3. Show a remote image with `Image` from `expo-image` and `cachePolicy="memory-disk"`, never the React Native `Image`. The car image server sends `max-age=60`.
-4. Maps are not built yet. Read the map section of `research/mobile-ui.md` before you add one.
+4. Draw a map with `LocationMap`, `RouteMap`, or `PlacesMap` from `src/components/map.tsx`. The server sends the positions, and `null` when maps are off. Draw routes and dots as style layers on a GeoJSON source, not as views. Keep the CARTO style URLs of the web, and keep panning off inside a scrolling screen. [Decision 0022](../docs/decisions/0022-maps-in-the-mobile-app.md) explains why.
 
 ## Push alerts
 
@@ -163,7 +164,7 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 3. A package with native code needs a new development build: `APP_VARIANT=development bun run ios`.
 4. Keep `mobile/bun.lock` in the format of Bun 1.3.14, the version in `packageManager`. A newer Bun rewrites it to a format that CI cannot read: run `npx bun@1.3.14 install` in this folder to write it again.
 5. Keep ESLint on version 9. ESLint 10 breaks the React plugin inside `eslint-config-expo` 58.
-6. Do not add NativeWind, Unistyles, a chart library, a map library, or `@expo/ui` without a decision record. `research/mobile-ui.md` says why.
+6. Do not add NativeWind, Unistyles, a chart library, another map library, or `@expo/ui` without a decision record. `research/mobile-ui.md` says why.
 
 ## Checks
 

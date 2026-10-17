@@ -6,6 +6,7 @@ import { useCar } from "@/car/car-provider";
 import { Icon } from "@/components/icon";
 import { icons } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
+import { RouteMap } from "@/components/map";
 import { QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
 import { StatGrid } from "@/components/stat";
@@ -56,6 +57,14 @@ export function TripScreen({ tripId }: { tripId: string }) {
             <View style={styles.stats}>
               <StatGrid stats={detail.stats} />
             </View>
+            {detail.routes?.length ? (
+              <RouteMap
+                routes={detail.routes}
+                markers={detail.markers ?? []}
+                label={`Map of the trip to ${detail.title}`}
+                width={3}
+              />
+            ) : null}
             <View style={styles.steps}>
               {detail.steps.map((step) => {
                 const target = step.target;

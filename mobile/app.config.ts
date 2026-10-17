@@ -43,6 +43,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         backgroundColor: "#111215",
       },
     ],
+    "@maplibre/maplibre-react-native",
     [
       "expo-camera",
       {

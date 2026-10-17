@@ -30,6 +30,7 @@ Research date: 2026-10-17. The versions come from `expo-template-default@58.0.23
 | Push | `expo-notifications` 58.1.5 and the Expo push service | One token for iOS and Android, and no Apple or Google key on the server |
 | Scanner | `expo-camera` 58.0.10, `launchScanner` only | The system QR scanner on iOS and Android, with no camera screen of the app's own |
 | Secrets | `expo-secure-store` 58.0.2 | The service token stays in the Keychain or the Android Keystore |
+| Maps | `@maplibre/maplibre-react-native` 11.5.0, pinned | The engine of the web maps, with the same CARTO styles. New architecture only, with an Expo config plugin. |
 | Font | `@expo-google-fonts/inter` 0.4.2, 400 and 500 | The two weights of the web |
 | Language | TypeScript 6.0.3 | The SDK template pins it. The root keeps TypeScript 5 for the source gate. |
 | Lint | ESLint 9 with `eslint-config-expo` 58.0.4 | ESLint 10 breaks `eslint-plugin-react` in that config, and the root also uses ESLint 9. |

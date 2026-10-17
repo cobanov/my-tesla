@@ -10,6 +10,7 @@ import { Button } from "@/components/button";
 import { DayStrip } from "@/components/day-strip";
 import { ListRow } from "@/components/list-row";
 import { LivePanel } from "@/components/live-tiles";
+import { LocationMap } from "@/components/map";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
 import { EmptyState, QueryView } from "@/components/query-view";
@@ -101,6 +102,11 @@ function Location({ page }: { page: OverviewPage }) {
   if (!location) return null;
   return (
     <Panel title="Location">
+      <LocationMap
+        latitude={location.latitude}
+        longitude={location.longitude}
+        label={`Map of where ${page.car.name} is`}
+      />
       <Text variant="label" tone="subtle">
         {location.lastSeen}
       </Text>

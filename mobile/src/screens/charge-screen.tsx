@@ -5,6 +5,7 @@ import { useCar } from "@/car/car-provider";
 import { Button } from "@/components/button";
 import { Chart } from "@/components/chart";
 import { ChargerBadge } from "@/components/charger-badge";
+import { LocationMap } from "@/components/map";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
 import { QueryView } from "@/components/query-view";
@@ -81,6 +82,16 @@ export function ChargeScreen({ chargeId }: { chargeId: string }) {
                   <Chart chart={chart} />
                 </Panel>
               ))}
+              {detail.location ? (
+                <Panel title="Location">
+                  <LocationMap
+                    latitude={detail.location.latitude}
+                    longitude={detail.location.longitude}
+                    label={`Map of the charge at ${detail.title}`}
+                    height={240}
+                  />
+                </Panel>
+              ) : null}
               <View style={styles.steps}>
                 <View style={styles.step}>
                   <Button

@@ -6,6 +6,7 @@ import { usePalette } from "@/theme/use-palette";
 import type { TabStack } from "@/navigation/targets";
 import { Chart } from "./chart";
 import { Heatmap } from "./heatmap";
+import { PlacesMap } from "./map";
 import { Notice } from "./notice";
 import { Records } from "./records";
 import { StatGrid } from "./stat";
@@ -153,6 +154,8 @@ export function Block({ block, stack }: { block: AppBlock; stack: TabStack }) {
       return <Heatmap block={block} />;
     case "notice":
       return <Notice text={block.text} />;
+    case "map":
+      return <PlacesMap places={block.places} />;
     case "note":
       return (
         <Text variant="label" tone="subtle" style={styles.note}>

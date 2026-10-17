@@ -57,12 +57,13 @@ The server sends each chart as points in the user's units, the axis domains, the
 
 ## Maps
 
-Not built yet. The choice is `@maplibre/maplibre-react-native` 11, the same map engine as the web, with the CARTO styles. Only CARTO sees the tile requests. With `expo-maps` or `react-native-maps`, Apple or Google would see them, and Android needs a Google key.
-
-Two open points:
-
-1. Nobody has confirmed MapLibre React Native 11 on React Native 0.88 yet. Build a development app before you depend on it.
-2. CARTO now asks for a free API key. Raster tiles without a key show only a watermark. The vector styles that the web uses still answer without a key, and CARTO says that they are next.
+| Topic | Decision | Reason |
+|---|---|---|
+| Engine | `@maplibre/maplibre-react-native` 11.5.0 with the CARTO Positron and Dark Matter styles | The engine and the styles of the web, so the maps look the same. Only CARTO sees the tile requests. `expo-maps` and `react-native-maps` would send them to Apple or Google, and Android would need a Google key. Version 11 runs on the new architecture only and has an Expo config plugin. Checked on React Native 0.88 in a development build on the iOS 27 simulator on 2026-10-18. |
+| Gestures | No pan, rotate, or tilt inside a scrolling screen. Pinch and double tap zoom. | One finger always scrolls the screen, as the cooperative gestures of the web do. |
+| Markers | Routes and dots are `Layer`s on a `GeoJSONSource`. The car is a `Marker` view that pulses, and it stops with Reduce Motion. | Style layers keep a map with many places fast. The dot colors and sizes copy the web: circle radius plus stroke equals the web size. |
+| Ornaments | The attribution stays, at the bottom right. No logo and no compass. | OpenStreetMap and CARTO need the attribution. The compass has no use without rotation. |
+| CARTO key | None | The vector styles of the web answer without a key on 2026-10-18. CARTO asks for a free key for raster tiles, and says that vector tiles come next. |
 
 ## Package versions
 
@@ -72,6 +73,7 @@ Two open points:
 | expo-router | 58.0.23 | Native tabs from `expo-router/native-tabs` |
 | expo-symbols | 58.0.4 | Android tab icons need it. It is an optional peer of expo-router. |
 | react-native-svg | 15.16.0 | |
+| @maplibre/maplibre-react-native | 11.5.0 | Pinned. Not in `bundledNativeModules.json`, so check it at each SDK upgrade. |
 | react-native-gesture-handler | 3.3.0 | Pinned. Bun had installed 3.4.0 as a peer, one day after its release. |
 | react-native-reanimated, react-native-worklets | 4.7.1, 0.13.0 | Peers of expo-router, pinned to the SDK versions |
 | @tanstack/react-query | 5.104 | `subscribed` and `keepPreviousData` |
@@ -90,4 +92,4 @@ Two open points:
 - [React Native Appearance](https://reactnative.dev/docs/appearance), [Expo storage guide](https://docs.expo.dev/develop/user-interface/store-data/), [Expo SQLite kv-store](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/), [expo-image](https://docs.expo.dev/versions/v58.0.0/sdk/image/), [expo-camera](https://docs.expo.dev/versions/v58.0.0/sdk/camera/), [React Native image cache control](https://reactnative.dev/docs/images#cache-control-ios-only), [Expo Router stack search bar](https://docs.expo.dev/versions/v58.0.0/sdk/router/stack/)
 - [Nielsen Norman Group: skeleton screens](https://www.nngroup.com/articles/skeleton-screens/)
 - [victory-native releases](https://github.com/FormidableLabs/victory-native-xl/releases), [gifted-charts issue 789](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/issues/789), [Skia bundle size](https://github.com/wcandillon/react-native-skia/blob/2.x/apps/docs/docs/getting-started/bundle-size.md)
-- [MapLibre React Native 11](https://github.com/maplibre/maplibre-react-native/releases/tag/v11.0.0), [its Expo setup](https://github.com/maplibre/maplibre-react-native/blob/main/docs/content/setup/expo.md), [CARTO basemap keys](https://www.carto.com/basemaps/apikey/)
+- [MapLibre React Native releases](https://github.com/maplibre/maplibre-react-native/releases), [v11 migration](https://maplibre.org/maplibre-react-native/docs/setup/migrations/v11), [its Expo setup](https://maplibre.org/maplibre-react-native/docs/setup/expo), [CARTO basemap keys](https://www.carto.com/basemaps/apikey/)
