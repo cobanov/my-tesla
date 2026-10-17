@@ -91,10 +91,10 @@ describe("pairingOf", () => {
       carId: 2,
     });
     expect(
-      pairingOf("mytesla://connect?url=http%3A%2F%2F192.168.68.103%3A3919"),
+      pairingOf("mytesla://connect?url=http%3A%2F%2F192.168.1.20%3A3000"),
     ).toEqual({
       connection: {
-        url: "http://192.168.68.103:3919",
+        url: "http://192.168.1.20:3000",
         clientId: null,
         clientSecret: null,
       },

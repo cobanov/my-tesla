@@ -22,8 +22,8 @@ const car: Car = {
 
 const snapshot: CarSnapshot = {
   positionAt: new Date("2026-10-17T14:55:00Z"),
-  latitude: 40.76,
-  longitude: 29.92,
+  latitude: 33.42,
+  longitude: -111.94,
   batteryAt: null,
   batteryLevel: 62,
   usableBatteryLevel: 62,

@@ -13,7 +13,7 @@ describe("boundsOf", () => {
   });
 
   test("widens a single point to a street view and has no bounds for none", () => {
-    const [west, south, east, north] = boundsOf([[29.92, 40.76]]) ?? [];
+    const [west, south, east, north] = boundsOf([[-111.94, 33.42]]) ?? [];
     expect(east! - west!).toBeCloseTo(0.004);
     expect(north! - south!).toBeCloseTo(0.004);
     expect(boundsOf([])).toBeNull();
@@ -46,8 +46,8 @@ describe("places", () => {
         key: "g1",
         label: "Home",
         detail: "20 visits",
-        latitude: 40.76,
-        longitude: 29.92,
+        latitude: 33.42,
+        longitude: -111.94,
         weight: 20,
         kind: "both",
       },

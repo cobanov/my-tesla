@@ -119,7 +119,7 @@ describe("placesPage", () => {
       {
         key: "g1",
         label: "Home",
-        city: "Izmit",
+        city: "Tempe",
         geofenceId: 1,
         visits: 20,
         parkedS: 72_000,
@@ -182,7 +182,7 @@ describe("placesPage", () => {
     const placed: PlacesInput = {
       ...input,
       visited: [
-        { ...input.visited[0]!, latitude: 40.76, longitude: 29.92 },
+        { ...input.visited[0]!, latitude: 33.42, longitude: -111.94 },
         { ...input.visited[0]!, key: "g2", label: "Office", latitude: null },
       ],
       charging: [
@@ -209,8 +209,8 @@ describe("placesPage", () => {
             key: "g1",
             label: "Home",
             detail: "20 visits",
-            latitude: 40.76,
-            longitude: 29.92,
+            latitude: 33.42,
+            longitude: -111.94,
             weight: 20,
             kind: "visit",
           },
