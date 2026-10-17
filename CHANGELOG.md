@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Fixed
+
+- A drive page said "1 points used". It now says "1 point used".
+
 ## [1.9.0] - 2026-10-14
 
 ### Added

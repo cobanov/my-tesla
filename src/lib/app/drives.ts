@@ -12,6 +12,7 @@ import {
   tripSummary,
   type Trip,
 } from "../trip";
+import { levelsUsedText } from "../vehicle";
 import { buildChart } from "./chart";
 import type {
   AppChart,
@@ -178,10 +179,7 @@ export function driveDetail(
         ),
       }),
       appStat("Battery", levelsText(drive.startLevel, drive.endLevel), {
-        detail:
-          drive.startLevel !== null && drive.endLevel !== null
-            ? `${drive.startLevel - drive.endLevel} points used`
-            : null,
+        detail: levelsUsedText(drive.startLevel, drive.endLevel),
       }),
       appStat("Top speed", f.speed(drive.speedMaxKmh)),
       appStat(

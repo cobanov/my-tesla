@@ -66,14 +66,17 @@ function axis(
   format: AxisFormat,
   style: ChartStyle,
 ): AppAxis {
-  const domain = domainOf(values, mode);
-  return {
-    domain,
-    ticks: evenTicks(domain).map((value) => ({
+  const ticksOf = (domain: [number, number]) =>
+    evenTicks(domain).map((value) => ({
       value,
       label: formatAxis(value, format, style),
-    })),
-  };
+    }));
+  const domain = domainOf(values, mode);
+  const ticks = ticksOf(domain);
+  const labels = new Set(ticks.map((tick) => tick.label));
+  if (labels.size === ticks.length) return { domain, ticks };
+  const whole: [number, number] = [Math.floor(domain[0]), Math.ceil(domain[1])];
+  return { domain: whole, ticks: ticksOf(whole) };
 }
 
 function localOffsetMs(at: number, timeZone: string): number {

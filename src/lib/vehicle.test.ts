@@ -7,6 +7,7 @@ import {
   liveActivity,
   colorName,
   driveEfficiency,
+  levelsUsedText,
   modelName,
   placeLabel,
   tabDirection,
@@ -222,5 +223,13 @@ describe("batteryCaption", () => {
     expect(
       batteryCaption({ level: null, usableLevel: null, charging: false }),
     ).toBe("Rated range");
+  });
+});
+
+describe("levelsUsedText", () => {
+  test("counts the battery points of a drive", () => {
+    expect(levelsUsedText(61, 60)).toBe("1 point used");
+    expect(levelsUsedText(90, 55)).toBe("35 points used");
+    expect(levelsUsedText(null, 55)).toBeNull();
   });
 });

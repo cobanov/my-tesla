@@ -98,6 +98,15 @@ export function batteryTone(
   return "normal";
 }
 
+export function levelsUsedText(
+  start: number | null,
+  end: number | null,
+): string | null {
+  if (start === null || end === null) return null;
+  const used = start - end;
+  return `${used} ${Math.abs(used) === 1 ? "point" : "points"} used`;
+}
+
 const coldBatteryGap = 3;
 
 export function batteryCaption(input: {

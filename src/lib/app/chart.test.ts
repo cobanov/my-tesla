@@ -152,4 +152,24 @@ describe("buildChart", () => {
     ]);
     expect(chart?.right?.domain).toEqual([0, 200]);
   });
+
+  test("keeps percent ticks on whole numbers so no label repeats", () => {
+    const chart = buildChart({
+      title: "Battery (%)",
+      rows: [61, 61, 60].map((battery, index) => ({
+        at: start + index * 60_000,
+        battery,
+      })),
+      xKey: "at",
+      xFormat: "clock",
+      style,
+      leftFormat: "percent",
+      series: [
+        { key: "battery", label: "Battery", unit: "%", color: "chart2" },
+      ],
+    });
+    const labels = chart?.left.ticks.map((tick) => tick.label) ?? [];
+    expect(new Set(labels).size).toBe(labels.length);
+    expect(labels).toEqual(["59%", "60%", "61%", "62%"]);
+  });
 });

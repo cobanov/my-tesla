@@ -13,6 +13,7 @@ import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { mapThemeOf } from "@/lib/preferences";
 import { findDrive } from "@/lib/queries";
+import { levelsUsedText } from "@/lib/vehicle";
 import { getFormatter, getPreferences } from "@/lib/viewer";
 
 export const instant = false;
@@ -115,11 +116,7 @@ export default async function DrivePage({
         </Stat>
         <Stat
           label="Battery"
-          detail={
-            drive.startLevel !== null && drive.endLevel !== null
-              ? `${drive.startLevel - drive.endLevel} points used`
-              : undefined
-          }
+          detail={levelsUsedText(drive.startLevel, drive.endLevel) ?? undefined}
         >
           {drive.startLevel ?? "—"}% → {drive.endLevel ?? "—"}%
         </Stat>
