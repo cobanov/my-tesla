@@ -316,3 +316,15 @@ export type SettingsPage = {
   preview: AppStat[];
   groups: { title: string; note: string | null; items: SettingItem[] }[];
 };
+
+export type AppUser = { name: string; email: string; role: "admin" | "member" };
+
+export type PairClaim = {
+  token: string;
+  status: "pending";
+  user: { name: string };
+};
+
+export type PairStatus = { status: "pending" | "active"; user: AppUser };
+
+export type AppMe = { user: AppUser; device: { name: string | null } };

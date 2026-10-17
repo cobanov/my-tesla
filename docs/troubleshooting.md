@@ -44,15 +44,19 @@ The new TeslaMate version can change a table. Read [Upgrading](upgrading.md).
 | Cause | Fix |
 |---|---|
 | The server cannot write `PREFERENCES_FILE`. | Mount a writable volume at `/data`. The image runs as uid 1001. |
-| The proxy changes the host name. | Forward the original `Host` or `X-Forwarded-Host` header. Read [Protect the dashboard](authentication.md). |
+| The proxy changes the host name. | Forward the original `Host` or `X-Forwarded-Host` header. Read [Accounts and sign-in](authentication.md#server-actions-and-the-host-name). |
 
 ## Settings reset after each deploy
 
 `PREFERENCES_FILE` is not on a persistent volume. Mount a volume at `/data`.
 
-## Every user sees the same Settings
+## No setup link, or a lost password
 
-The app does not get an email header. Set `IDENTITY_HEADER` for your proxy. Read [Protect the dashboard](authentication.md).
+The setup link is in the server log of the first start without an account: `docker logs my-tesla 2>&1 | grep "setup?token"`. Each restart before the setup prints a new one. For a lost password, read [Accounts and sign-in](authentication.md#a-lost-password).
+
+## Sign-in does not stay
+
+Over plain HTTP, a browser drops a `Secure` cookie, so the app uses a plain cookie there. Behind a proxy, forward `X-Forwarded-Proto: https`, so the app sets the secure cookie. Read [Accounts and sign-in](authentication.md).
 
 ## The map stays empty
 

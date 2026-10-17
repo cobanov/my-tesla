@@ -90,6 +90,7 @@ export function SettingsForm({
   defaults,
   car,
   cars,
+  demo,
   timeZones,
   serverTimeZone,
   viewer,
@@ -98,6 +99,7 @@ export function SettingsForm({
   defaults: Preferences;
   car: { id: number; name: string };
   cars: { id: number; name: string }[];
+  demo: boolean;
   timeZones: string[];
   serverTimeZone: string;
   viewer: string | null;
@@ -577,7 +579,14 @@ export function SettingsForm({
             title="Mobile app"
             description="Connect the My Tesla app on a phone."
           >
-            <PairingCodePanel carId={car.id} carName={car.name} />
+            {demo ? (
+              <p className="py-5 text-sm text-muted-foreground">
+                The demo needs no pairing. In the My Tesla app, press Open the
+                demo.
+              </p>
+            ) : (
+              <PairingCodePanel carId={car.id} carName={car.name} />
+            )}
           </SettingsSection>
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-8">

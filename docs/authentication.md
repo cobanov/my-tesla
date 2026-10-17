@@ -1,70 +1,69 @@
-# Protect the dashboard
+# Accounts and sign-in
 
-The dashboard has no login. It shows a location history: where the car parks, where it charges, and every route. Put an authenticating proxy in front of it, and never publish port 3000 to the internet.
+My Tesla signs people in itself. It shows a location history: where the car parks, where it charges, and every route. Every page and every API call needs an account, except the public demo. [Decision 0023](decisions/0023-native-accounts.md) explains the design, and [the research](../research/auth.md) gives the reasons and the sources.
 
 ## The rules
 
-1. Bind the container port to `127.0.0.1`, or keep it on a private Docker network. The examples in [Installation](installation.md) do this.
-2. Let only the proxy reach the app.
-3. Make the proxy remove any identity header that the client sends. The app trusts the identity header that it receives.
+1. Serve the dashboard over HTTPS. The session cookie is `Secure` and uses the `__Host-` prefix only over HTTPS. On a plain HTTP address in your home network the cookie still works, without `Secure`.
+2. Keep the data volume private. `auth.sqlite` holds the password hashes and the session hashes, next to the Settings file, with mode 0600. Treat its backups as secret.
+3. Bind the container port to `127.0.0.1`, or keep it on a private Docker network, and let your reverse proxy or tunnel reach it. The examples in [Installation](installation.md) do this.
 
-## Identity and saved settings
+## The first start
 
-The app saves Settings for each user. It reads the user's email from one request header:
+A new install has no account. Every page then opens the setup page, and the API answers 503.
 
-| Proxy | Header | `IDENTITY_HEADER` value |
-|---|---|---|
-| Cloudflare Access | `Cf-Access-Authenticated-User-Email` | Default, no setting needed |
-| Authelia, Authentik (forward auth) | `Remote-Email` | `remote-email` |
-| oauth2-proxy | `X-Forwarded-Email` | `x-forwarded-email` |
-| Tailscale Serve | `Tailscale-User-Login` | `tailscale-user-login` |
+1. Start the container.
+2. Read its log:
 
-Without a valid email in the header, all users share one set of settings, saved under the key `owner`. This is fine for a dashboard that only you use.
+   ```bash
+   docker logs my-tesla 2>&1 | grep "setup?token"
+   ```
 
-## Cloudflare Access with a Cloudflare Tunnel
+   The line reads: `My Tesla has no account yet. Open https://tesla.example.com/setup?token=… to create the admin account.` The address comes from `SITE_URL`, or is `http://localhost:3000`.
+3. Open the link, and type your name, your email, and a password of 15 characters or more. A few words in a row work well.
 
-1. Run `cloudflared` on the host, and route a host name such as `tesla.example.com` to `http://127.0.0.1:3000`, or to `http://dashboard:3000` on the Docker network.
-2. In Cloudflare Zero Trust, add a self-hosted application for the same host name.
-3. Add a policy that allows only your email address.
-4. Open the host name. Cloudflare asks for the login first, then sends the request with the email header.
+This first account is the admin. The setup token closes the race in which a stranger reaches a new install first. Each restart before the setup prints a new link. After the setup, `/setup` goes to the sign-in page.
 
-The app needs no setting for this proxy. To close every other path to the app, also set the token check below.
+## Sign in
+
+The sign-in page asks for the email and the password. A wrong email and a wrong password give the same message. After 5 failures for one email, each try waits longer, from 1 second up to 15 minutes. One network address gets 100 tries a day.
+
+A session lasts 30 days and renews while you use it. **Account**, the round button with your initial in the header, shows every browser, phone, and script token with its last use and address. Each can be signed out there. A new password signs out every other session.
+
+## Phones
+
+The mobile app signs in from Settings on the web:
+
+1. Open Settings for a car, then **Mobile app**, and press **Pair a phone**.
+2. In the app, press **Scan the code**.
+3. The page asks whether to allow the phone, with its name, system, and address. Press **Allow** only if you just scanned the code yourself.
+
+The code holds the server address, the car, and a single-use code that lasts 90 seconds. The page shows a new code every minute and hides it after 3 minutes. The phone gets its own token, which lasts 90 days after its last use and shows under **Account**. [Mobile app](mobile.md) has the details.
+
+## Scripts
+
+A script or a home automation reads the API with a token. Make one under **Account**, **Tokens for scripts**, and copy it: it shows only once. Send it as a header:
+
+```bash
+curl -fsS -H "Authorization: Bearer $MY_TESLA_TOKEN" \
+  https://tesla.example.com/api/cars/2/summary.json
+```
+
+## Behind Cloudflare, Tailscale, or another proxy
+
+A tunnel or a reverse proxy only carries the traffic now. The app does the sign-in.
+
+- **Cloudflare Tunnel**: route the host name to `http://127.0.0.1:3000`, or to the container on the Docker network. Cloudflare Access is no longer needed. If you keep it, the phones and the scripts must pass it too, so add a Bypass policy for them or remove the Access application.
+- **Tailscale**: `tailscale serve --bg 3000` keeps the dashboard on your tailnet. Do not use `tailscale funnel`, which publishes it.
 
 ### Verify the Cloudflare Access token
 
-A second path to the app can skip Cloudflare. For example, the reverse proxy on your server can also answer on your LAN or your tailnet. A request on that path reaches the app without a login, and it can set any email header.
+The check of [decision 0010](decisions/0010-verify-access-token.md) stays as an option for a dashboard that keeps Cloudflare Access in front. Set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`, and the app answers 403 to a request without a valid Access token, before its own sign-in. `/api/health` stays open for the container health check.
 
-Set two variables, and the app checks the signed token that Cloudflare Access adds to each request:
+## A lost password
 
-| Name | Value |
-|---|---|
-| `CF_ACCESS_TEAM_DOMAIN` | Your team domain, such as `myteam.cloudflareaccess.com` |
-| `CF_ACCESS_AUD` | The Application Audience (AUD) tag of the Access application. Find it in Zero Trust, Access, Applications, the application, Overview. |
-
-The app then answers 403 to a request without a valid token, and it takes the email from the token, not from the header. `/api/health` stays open for the container health check, and it shows no car data. [Decision 0010](decisions/0010-verify-access-token.md) explains the check.
-
-## Tailscale
-
-For a dashboard that stays on your tailnet:
-
-1. Run the app on `127.0.0.1:3000`.
-2. Publish it on the tailnet only:
-
-   ```bash
-   tailscale serve --bg 3000
-   ```
-
-3. Set `IDENTITY_HEADER=tailscale-user-login` so that each tailnet user gets their own settings.
-
-Do not use `tailscale funnel`. It publishes the app to the internet.
-
-## Forward authentication (Authelia, Authentik, oauth2-proxy)
-
-1. Configure the reverse proxy (Caddy, Traefik, or nginx) to ask the authentication server before each request.
-2. Forward the email header from the authentication server to the app.
-3. Remove the same header from the client request.
-4. Set `IDENTITY_HEADER` to the header name from the table above.
+The app sends no email, so it cannot reset a password. To start over, stop the container, delete `auth.sqlite` from the data volume, and start it again. The log then prints a new setup link. The Settings stay in their file.
 
 ## Server actions and the host name
 
-The Settings page saves through Next.js server actions. Next.js accepts an action only when the `Origin` header matches the `Host` header, or `X-Forwarded-Host`. Most proxies send the correct headers. If a save fails with "Not saved", make the proxy forward the original host.
+The pages save through Next.js server actions. Next.js accepts an action only when the `Origin` header matches the `Host` header, or `X-Forwarded-Host`. Most proxies send the right headers. If a save fails, make the proxy forward the original host. An API call with a session cookie and a method other than GET also needs a same-origin request.

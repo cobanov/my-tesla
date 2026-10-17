@@ -6,6 +6,7 @@ The dashboard shows a location history. This page lists every place that data go
 
 - The server reads the database and renders the pages. The browser gets HTML and chart data for the pages that you open.
 - The saved Settings stay in `PREFERENCES_FILE` on your server.
+- The accounts stay in `auth.sqlite` next to it: name, email, and an Argon2id hash of the password. For each session, phone, and script token it keeps a hash of the token, the phone name and system, the network address of the sign-in, and the time of the last use. Signed-out sessions are deleted.
 - With [Live status](live-status.md), the server keeps the last MQTT values in memory only. It saves no history and never publishes to the broker.
 - With push alerts, the server keeps the push token and the chosen events of each phone in `push-devices.json`, next to the Settings file.
 - A normal install sends no analytics and no telemetry. Only demo mode can load an analytics script, and only when its operator sets `OPEN_ANALYTICS_URL` and `OPEN_ANALYTICS_KEY`. The container image also sets `NEXT_TELEMETRY_DISABLED=1`, which turns off the build telemetry of Next.js.

@@ -1,20 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { appAccessToken, pairingLink, qrPath, requestOrigin } from "./pairing";
-
-describe("appAccessToken", () => {
-  test("needs both values or none", () => {
-    expect(appAccessToken({})).toBeNull();
-    expect(
-      appAccessToken({
-        MOBILE_ACCESS_CLIENT_ID: " id.access ",
-        MOBILE_ACCESS_CLIENT_SECRET: "secret",
-      }),
-    ).toEqual({ clientId: "id.access", clientSecret: "secret" });
-    expect(() => appAccessToken({ MOBILE_ACCESS_CLIENT_ID: "id" })).toThrow(
-      "Set both",
-    );
-  });
-});
+import { pairingLink, qrPath, requestOrigin } from "./pairing";
 
 describe("requestOrigin", () => {
   test("uses the forwarded host and scheme of the proxy", () => {
@@ -35,17 +20,9 @@ describe("requestOrigin", () => {
 });
 
 describe("pairingLink", () => {
-  test("adds the service token only when the server has one", () => {
-    expect(pairingLink("https://tesla.example.com", 2, null)).toBe(
-      "mytesla://connect?url=https%3A%2F%2Ftesla.example.com&car=2",
-    );
-    expect(
-      pairingLink("https://tesla.example.com", 2, {
-        clientId: "id.access",
-        clientSecret: "a+b/c",
-      }),
-    ).toBe(
-      "mytesla://connect?url=https%3A%2F%2Ftesla.example.com&car=2&id=id.access&secret=a%2Bb%2Fc",
+  test("holds the address, the car, and the one-time code", () => {
+    expect(pairingLink("https://tesla.example.com", 2, "a+b/c")).toBe(
+      "mytesla://connect?url=https%3A%2F%2Ftesla.example.com&car=2&code=a%2Bb%2Fc",
     );
   });
 });

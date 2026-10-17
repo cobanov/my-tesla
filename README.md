@@ -113,8 +113,8 @@ You need a running TeslaMate stack with Docker Compose.
    Add `dashboard-data:` under the `volumes:` key at the end of the file.
 
 3. Start it with `docker compose up -d dashboard`.
-4. Put an authenticating proxy in front of port 3000. The app has no login of its own. Read [Protect the dashboard](docs/authentication.md).
-5. Open the dashboard through the proxy.
+4. Serve port 3000 over HTTPS through your reverse proxy or tunnel. Read [Accounts and sign-in](docs/authentication.md).
+5. Open the setup link from `docker logs`, and create the admin account.
 
 The full guide is [Installation](docs/installation.md).
 
@@ -124,7 +124,7 @@ The full guide is [Installation](docs/installation.md).
 |---|---|
 | Install with Docker, Docker Compose, Coolify, or from source | [Installation](docs/installation.md) |
 | Create the read-only role and reach the database | [Connect to the TeslaMate database](docs/teslamate-database.md) |
-| Put a login in front of the app | [Protect the dashboard](docs/authentication.md) |
+| Accounts, sign-in, phones, and script tokens | [Accounts and sign-in](docs/authentication.md) |
 | Environment variables and user settings | [Configuration](docs/configuration.md) |
 | Show live locks, charging, and navigation from MQTT | [Live status](docs/live-status.md) |
 | Get the car status as JSON, and the CSV and GPX exports | [API](docs/api.md) |

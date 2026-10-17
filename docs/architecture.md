@@ -16,7 +16,9 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/car-image.ts` | Maps the TeslaMate model, color, wheel, and badge to a Tesla compositor URL. No I/O. |
 | `src/lib/preferences.ts`, `units.ts`, `date-format.ts`, `format.ts` | Pure logic for the settings: the option lists, the parser that drops unknown values, unit conversion, date and clock text, and `createFormatter`, which turns the settings into one formatter for every page and chart. No I/O, full test cover. |
 | `src/lib/preferences-store.ts` | Reads and writes the settings file at `PREFERENCES_FILE`, one entry for each user. Writes go through one queue, to a temporary file, then a rename. Server only. |
-| `src/lib/viewer.ts`, `identity.ts` | The user key from the identity header (`IDENTITY_HEADER`, Cloudflare Access by default), or `owner`. Merges the TeslaMate settings table and the saved settings, both through `"use cache"` with tags, and gives `getPreferences()` and `getFormatter()` for each request. Server only. Read [decision 0005](decisions/0005-cache-components.md). |
+| `src/lib/auth/` | The accounts: `store.ts` keeps users, sessions, phones, and pairing codes in `auth.sqlite` through `node:sqlite`; `password.ts` hashes with Argon2id; `tokens.ts`, `paths.ts`, and `limits.ts` hold the token, request, and rate-limit rules. All of them are pure or take the store, with tests. `session.ts` reads the session cookie or the bearer token for one request, and `actions.ts` holds the server actions for setup, sign-in, the account, and pairing. Read [decision 0023](decisions/0023-native-accounts.md). |
+| `src/app/login/`, `setup/`, `account/` | The sign-in page, the first-run setup page, and the account page with the sessions, the password, and the script tokens. |
+| `src/lib/viewer.ts` | The Settings key: the email of the signed-in account, or `owner`. Merges the TeslaMate settings table and the saved settings, both through `"use cache"` with tags, and gives `getPreferences()` and `getFormatter()` for each request. Server only. Read [decision 0005](decisions/0005-cache-components.md). |
 | `src/lib/range-columns.ts` | Picks the rated or the ideal range column for a query, from the Range setting. Server only. |
 | `src/app/cars/[carId]/settings/` | The Settings page and its two server actions, `savePreferences` and `resetPreferences`. Each action parses the input again on the server. |
 | `src/lib/vehicle.ts`, `time-zone.ts` | Pure logic: place labels, efficiency, tab order, and the time zone check. No I/O, full test cover. |
@@ -34,7 +36,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/live/` | The optional MQTT feed. `topics.ts`, `view.ts`, and `config.ts` are pure, with tests. `subscriber.ts` holds one read-only MQTT.js connection for each server process. `live.ts` gives `getLive()` and `watchLive()`, with demo values in demo mode. Read [decision 0008](decisions/0008-mqtt-live-status.md). |
 | `src/app/api/cars/[carId]/live/route.ts` | `GET` server-sent events: a change signal for the open Overview, with no car values. 204 without a feed. |
 | `src/lib/site.ts`, `src/app/manifest.ts`, `robots.ts`, `sitemap.ts`, `opengraph-image.jpg` | The public address from `SITE_URL`, the link preview metadata, the JSON-LD data, the manifest, and the crawler rules. Read [Link previews and icons](demo-site.md#link-previews-and-icons). |
-| `src/proxy.ts`, `src/lib/access.ts` | With `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`, checks the Cloudflare Access token before every route, and sets the email header from it. Read [decision 0010](decisions/0010-verify-access-token.md). |
+| `src/proxy.ts`, `src/lib/access.ts` | Checks the session of every request: no account goes to `/setup`, no session goes to `/login` or gets 401, and a cookie write from another site gets 403. It renews the session cookie. With `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`, it also checks the Cloudflare Access token first. Read [decision 0010](decisions/0010-verify-access-token.md). |
 | `src/lib/analytics.ts` | The Open Analytics settings for demo mode, the event names, `eventProps()` for click attributes, and `trackEvent()`. Pure, with tests. Read [decision 0009](decisions/0009-demo-analytics.md). |
 | `tools/layout/audit.ts` | The layout check: it opens every page in WebKit and Chrome at five widths and reports wrapped, cut, or overflowing values. Read [Quality](quality.md#layout-check). |
 | `tools/brand/render.ts` | Builds the preview images and icons from the T mark with headless Chrome and `sips`. |
@@ -69,7 +71,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 
 ## Data flow
 
-TeslaMate writes car data into PostgreSQL. A request reaches this app through an authenticating proxy. A server component or route handler calls a `src/lib/` module. The module runs a read-only query as `teslamate_ro` and returns typed rows. The page renders the rows on the server.
+TeslaMate writes car data into PostgreSQL. A request reaches this app, and `src/proxy.ts` checks its session. A server component or route handler calls a `src/lib/` module. The module runs a read-only query as `teslamate_ro` and returns typed rows. The page renders the rows on the server.
 
 With `MQTT_URL` set, the server also reads the TeslaMate MQTT feed. It keeps the last values in memory, and a change sends a signal to the open Overview, which renders again on the server. Read [Live status](live-status.md).
 
@@ -79,7 +81,7 @@ The settings change how the server renders, not what it reads. The root layout a
 
 ## Runtime and deployment
 
-The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings in `/data`, and checks `/api/health`. The container joins the Docker network of the TeslaMate database. An authenticating proxy sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
+The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings and `auth.sqlite` in `/data`, and checks `/api/health`. The container joins the Docker network of the TeslaMate database. An authenticating proxy sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
 
 ## Decisions
 

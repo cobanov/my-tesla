@@ -1,6 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { cache } from "react";
 import type { ChargePrices } from "./charge-cost";
@@ -11,7 +11,7 @@ import {
   preferencesCookieName,
   readPreferencesCookie,
 } from "./demo/preferences-cookie";
-import { identityHeader, viewerKey } from "./identity";
+import { currentSession } from "./auth/session";
 import {
   parsePreferences,
   resolveTimeZone,
@@ -27,9 +27,9 @@ import {
 import { readTimeZone } from "./time-zone";
 import type { PlaceStyle } from "./vehicle";
 
-export const currentViewer = cache(async (): Promise<string> => {
-  const list = await headers();
-  return viewerKey(list.get(identityHeader()));
+export const currentViewer = cache(async (): Promise<string | null> => {
+  const signedIn = await currentSession();
+  return signedIn?.user.email.toLowerCase() ?? null;
 });
 
 async function cachedTeslamateSettings(): Promise<TeslaMateSettings | null> {
@@ -69,7 +69,12 @@ async function storedPreferences(): Promise<unknown> {
     return readPreferencesCookie(jar.get(preferencesCookieName)?.value);
   }
   const viewer = await currentViewer();
-  return cachedUserPreferences(viewer).catch(() => null);
+  if (!viewer) return null;
+  for (const key of [viewer, "owner"]) {
+    const stored = await cachedUserPreferences(key).catch(() => null);
+    if (stored !== null) return stored;
+  }
+  return null;
 }
 
 export const getPreferences = cache(async (): Promise<Preferences> => {

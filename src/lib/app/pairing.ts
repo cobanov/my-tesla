@@ -1,23 +1,3 @@
-type Environment = Record<string, string | undefined>;
-
-export type AccessToken = { clientId: string; clientSecret: string };
-
-class AccessTokenError extends Error {
-  name = "AccessTokenError";
-}
-
-export function appAccessToken(environment: Environment): AccessToken | null {
-  const clientId = environment.MOBILE_ACCESS_CLIENT_ID?.trim() ?? "";
-  const clientSecret = environment.MOBILE_ACCESS_CLIENT_SECRET?.trim() ?? "";
-  if (!clientId && !clientSecret) return null;
-  if (!clientId || !clientSecret) {
-    throw new AccessTokenError(
-      "Set both MOBILE_ACCESS_CLIENT_ID and MOBILE_ACCESS_CLIENT_SECRET, or neither.",
-    );
-  }
-  return { clientId, clientSecret };
-}
-
 export function requestOrigin(headers: Headers): string | null {
   const host = headers.get("x-forwarded-host") ?? headers.get("host");
   if (!host || !/^[a-z0-9.-]+(:\d{1,5})?$/i.test(host)) return null;
@@ -25,16 +5,8 @@ export function requestOrigin(headers: Headers): string | null {
   return `${scheme === "https" ? "https" : "http"}://${host}`;
 }
 
-export function pairingLink(
-  url: string,
-  carId: number,
-  token: AccessToken | null,
-): string {
-  const params = new URLSearchParams({ url, car: String(carId) });
-  if (token) {
-    params.set("id", token.clientId);
-    params.set("secret", token.clientSecret);
-  }
+export function pairingLink(url: string, carId: number, code: string): string {
+  const params = new URLSearchParams({ url, car: String(carId), code });
   return `mytesla://connect?${params}`;
 }
 

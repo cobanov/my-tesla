@@ -2,7 +2,7 @@
 
 Date: 2026-10-01
 
-Status: Accepted.
+Status: Accepted. Since [decision 0023](0023-native-accounts.md) the key is the email of the signed-in account instead of a proxy header.
 
 ## Context
 

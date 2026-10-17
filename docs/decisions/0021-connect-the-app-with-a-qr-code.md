@@ -2,7 +2,7 @@
 
 Date: 2026-10-18
 
-Status: Accepted.
+Status: Superseded by [decision 0023](0023-native-accounts.md). The QR code now holds a single-use pairing code, not a Cloudflare Access service token.
 
 ## Context
 

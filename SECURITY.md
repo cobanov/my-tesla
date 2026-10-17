@@ -16,9 +16,10 @@ Only the latest release gets security fixes.
 
 ## Security model
 
-- The app has no login. It must run behind an authenticating proxy. Read [Protect the dashboard](docs/authentication.md).
-- The app trusts the identity header that the proxy sets. The proxy must remove that header from client requests.
-- Behind Cloudflare Access, set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`. The app then checks the signed Access token on each request, and a path that skips Cloudflare gets 403.
+- Every page and API call needs an account. A new install prints a one-time setup link in its log, and the first account is the admin. Read [Accounts and sign-in](docs/authentication.md) and [decision 0023](docs/decisions/0023-native-accounts.md).
+- Passwords are hashed with Argon2id. Sessions, phone tokens, and script tokens are random, and the server keeps only their SHA-256 hash in `auth.sqlite`. Each one can be revoked.
+- Sign-in, setup, and phone pairing are rate limited. A phone works only after the person allows it on the web.
+- Behind Cloudflare Access, `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` add a check of the signed Access token before the app's own sign-in.
 - The app connects to the database with a read-only role. It refuses the TeslaMate superuser. Every session is read-only and has a statement timeout.
 - The app never sends database values to the browser outside the rendered pages.
 - The container runs as an unprivileged user.
