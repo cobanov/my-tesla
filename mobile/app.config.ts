@@ -4,13 +4,14 @@ const variant =
   process.env.APP_VARIANT === "development" ? "development" : "production";
 const development = variant === "development";
 const identifier = development ? "bi.chele.mytesla.dev" : "bi.chele.mytesla";
-const projectId = process.env.EAS_PROJECT_ID;
+const projectId =
+  process.env.EAS_PROJECT_ID ?? "37562718-8edd-45f9-9936-cac5d6900f30";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: development ? "My Tesla Dev" : "My Tesla",
   slug: "my-tesla",
-  owner: process.env.EAS_OWNER,
+  owner: process.env.EAS_OWNER ?? "woosal",
   version: "0.1.0",
   scheme: development ? "mytesla-dev" : "mytesla",
   orientation: "portrait",
@@ -52,5 +53,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   experiments: { typedRoutes: true, reactCompiler: true },
-  extra: projectId ? { eas: { projectId } } : undefined,
+  extra: { eas: { projectId } },
 });

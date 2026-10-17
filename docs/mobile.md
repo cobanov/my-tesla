@@ -99,7 +99,7 @@ The server watches the TeslaMate MQTT feed and sends an alert when an event happ
 
 ### Set up push for your own build
 
-1. Make an Expo account, and run `eas init` in `mobile/`. Put the project ID in the environment of every build:
+1. The repository is linked to the EAS project `@woosal/my-tesla`. `app.config.ts` holds its project ID and owner. For a build of your own, make an Expo account, run `eas init` in `mobile/`, and set the new values in the environment of every build:
 
    ```bash
    export EAS_PROJECT_ID=<the project id>
