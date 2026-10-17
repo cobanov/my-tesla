@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: space.md,
     minHeight: 64,
+    marginHorizontal: -space.md,
     paddingHorizontal: space.md,
     paddingVertical: space.md,
     borderRadius: radius.card,

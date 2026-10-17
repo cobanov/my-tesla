@@ -15,5 +15,9 @@ export function SectionHeading({ title }: { title: string }) {
 }
 
 const styles = StyleSheet.create({
-  heading: { paddingVertical: space.sm, paddingHorizontal: space.md },
+  heading: {
+    marginHorizontal: -space.md,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+  },
 });
