@@ -62,7 +62,7 @@ mobile/src/
    - keeps the server address in the query key, so two servers never share a cache.
 2. Poll (`refetchInterval: 30_000`) only screens that show live values: Overview and a charge. Lists refresh when the tab comes back into focus or the app returns to the foreground.
 3. A screen with a filter, such as the period, sets `keepPrevious: true`, so the old panels stay while the next ones load.
-4. A query that must show without a network sets `stored: <key>` in `useAppQuery`. The answer goes to `expo-sqlite/kv-store`, comes back as `initialData` through the same shape check, and is fetched again at once. Only the Settings use it: live values from a stored answer would mislead.
+4. A query that must show without a network sets `stored: <key>` in `useAppQuery`. The answer goes to `expo-sqlite/kv-store`, comes back as `initialData` through the same shape check, and is fetched again at once. Only the car list and the Settings use it: the tabs need the car list to open, and live values from a stored answer would mislead. Disconnect removes both with `forgetStored()`.
 5. Change a server setting with `useSettingChange()`. It shows the new value at once, puts the old one back when the server refuses, and refetches the other screens, because their units change.
 6. Pull to refresh uses `useRefresh(query)`. Never pass `isRefetching` to a `RefreshControl`.
 7. Render a query through `<QueryView query={…}>{(data) => …}</QueryView>`. It shows nothing for 400 ms, then a spinner. It shows the error with a retry button when there is no data, and a notice above the old data when a refresh fails.

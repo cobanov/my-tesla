@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { forgetAlerts, useAlertChoices } from "@/alerts/use-alerts";
 import {
-  forgetSettings,
+  forgetStored,
   usePushCatalog,
   useSettingChange,
   useSettings,
@@ -238,7 +238,7 @@ function ServerPanel() {
         kind="secondary"
         onPress={async () => {
           await forgetAlerts(connection);
-          forgetSettings(connection);
+          forgetStored(connection);
           await forget();
           queryClient.clear();
         }}

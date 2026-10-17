@@ -13,7 +13,7 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 | Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. A longest drive or a frequent route opens its drive. |
 | Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location, and the Overview cards), the alerts that this phone gets with a test alert, and the server with Disconnect |
 
-The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the last Settings and the theme, so the tab opens at once and without a network. Read [API](api.md#app-api).
+The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the car list, the last Settings, and the theme, so the Settings tab opens at once and without a network. Read [API](api.md#app-api).
 
 Every list refreshes when you pull it down. The Overview and a charge also refresh every 30 s while they are on screen. A value in green or red explains itself when you press it.
 

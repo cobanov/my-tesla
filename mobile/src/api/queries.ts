@@ -38,6 +38,21 @@ type AppQuery<T> = {
   stored?: string;
 };
 
+const storedAnswers = ["cars", "settings"] as const;
+
+function storageKey(
+  connection: Connection,
+  name: (typeof storedAnswers)[number],
+): string {
+  return `${name}:${connection.url}`;
+}
+
+export function forgetStored(connection: Connection): void {
+  for (const name of storedAnswers) {
+    Storage.removeItemSync(storageKey(connection, name));
+  }
+}
+
 function readStored<T>(
   key: string,
   read: (value: unknown) => T | null,
@@ -74,7 +89,13 @@ function useAppQuery<T>(query: AppQuery<T>) {
 }
 
 export function useCars() {
-  return useAppQuery({ key: ["cars"], path: "/api/cars.json", read: carList });
+  const connection = useConnection();
+  return useAppQuery({
+    key: ["cars"],
+    path: "/api/cars.json",
+    read: carList,
+    stored: storageKey(connection, "cars"),
+  });
 }
 
 export function usePushCatalog() {
@@ -146,21 +167,13 @@ export function useInsight(
 
 const settingsMutation = ["settings"];
 
-function settingsStorageKey(connection: Connection): string {
-  return `settings:${connection.url}`;
-}
-
-export function forgetSettings(connection: Connection): void {
-  Storage.removeItemSync(settingsStorageKey(connection));
-}
-
 export function useSettings() {
   const connection = useConnection();
   return useAppQuery({
     key: ["settings"],
     path: "/api/app/settings",
     read: settingsPage,
-    stored: settingsStorageKey(connection),
+    stored: storageKey(connection, "settings"),
   });
 }
 
@@ -216,7 +229,10 @@ export function useSettingChange() {
     },
     onSuccess: (page) => {
       queryClient.setQueryData(key, page);
-      Storage.setItemSync(settingsStorageKey(connection), JSON.stringify(page));
+      Storage.setItemSync(
+        storageKey(connection, "settings"),
+        JSON.stringify(page),
+      );
       return queryClient.invalidateQueries({
         queryKey: [connection.url],
         predicate: (query) => query.queryKey[1] !== "settings",
