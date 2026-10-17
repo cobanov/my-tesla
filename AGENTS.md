@@ -24,6 +24,27 @@ Do not add inline or block prose comments to authored source, tests, or configur
 Keep required tool directives and generated files in the explicit exception list in `docs/quality.md`.
 Do not use an exception to hide authored comments.
 
+## App API
+
+The mobile app reads `/api/app/cars/{carId}/…`. Each answer is formatted on the server with the Settings of the person who asks.
+
+1. Define every answer in `src/lib/app/contract.ts`. It imports nothing, so the mobile app can import its types.
+2. Build each answer in a pure module in `src/lib/app/` with a test. It takes the query results and the formatter, and it calls the same helpers as the page.
+3. When a page computes a value inline that the app also needs, move the computation into a shared module and use it in both. Compare the page text before and after.
+4. Route handlers call `appContext()`, then the queries, then the builder, and answer with `appJson()`. Give the user's map setting to every location value.
+5. Describe each endpoint in `docs/api.md`.
+
+## Mobile app
+
+`mobile/` holds the Expo app. `mobile/AGENTS.md` owns its rules, and agents read it when they work in that folder. Read it before any change to the app.
+
+## Research before a shared change
+
+Before you add or change a shared component, the navigation, a control, a list pattern, a chart, or a dependency, on the web or in the app:
+
+1. Search the current guidance: the platform guidelines (Apple, Material Design 3), WCAG 2.2, and the docs of the framework version in use.
+2. Record the decision, the reason, and the source links in `research/ui-stack.md` for the web or in `research/mobile-ui.md` for the app, in the same change.
+
 ## Work
 
 `PROJECT.json` names the maintainers' task board and the quality commands. Record each lasting decision in `docs/decisions/`. Keep heavy data and personal paths outside Git.

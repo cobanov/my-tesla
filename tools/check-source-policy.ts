@@ -39,7 +39,7 @@ const assetExtensions = new Set([
   ".woff",
   ".woff2",
 ]);
-const generatedFiles = new Set(["bun.lock"]);
+const generatedFiles = new Set(["bun.lock", "mobile/bun.lock"]);
 const legalFiles = new Set(["LICENSE"]);
 const vendoredFiles = new Set(["src/components/ui/map.tsx"]);
 

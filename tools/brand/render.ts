@@ -51,6 +51,13 @@ function tile(id: string): string {
 </svg>`;
 }
 
+function glyph(fill: string, inset: number): string {
+  const scale = (160 - 2 * inset) / 24;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <g transform="translate(${inset} ${inset}) scale(${scale})"><path fill="${fill}" d="${teslaMarkPath}"/></g>
+</svg>`;
+}
+
 const card = `<!doctype html>
 <html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=block" rel="stylesheet">
@@ -202,6 +209,42 @@ icon(
   512,
   "public/icons/icon-maskable-512.png",
 );
+icon(
+  "mobile-icon",
+  mark("mobile-icon", 1024, 34),
+  1024,
+  "mobile/assets/icon.png",
+);
+icon(
+  "mobile-adaptive",
+  mark("mobile-adaptive", 1024, 44),
+  1024,
+  "mobile/assets/adaptive-icon.png",
+);
+icon(
+  "mobile-monochrome",
+  glyph("#ffffff", 44),
+  1024,
+  "mobile/assets/monochrome-icon.png",
+);
+icon(
+  "mobile-splash",
+  glyph("#171a20", 0),
+  512,
+  "mobile/assets/splash-icon.png",
+);
+icon(
+  "mobile-splash-dark",
+  glyph("#f4f4f4", 0),
+  512,
+  "mobile/assets/splash-icon-dark.png",
+);
+icon(
+  "mobile-notification",
+  glyph("#ffffff", 20),
+  96,
+  "mobile/assets/notification-icon.png",
+);
 
 rmSync(work, { recursive: true, force: true });
 for (const file of [
@@ -213,6 +256,12 @@ for (const file of [
   "public/icons/icon-512.png",
   "public/icons/icon-maskable-512.png",
   "docs/images/social-preview.png",
+  "mobile/assets/icon.png",
+  "mobile/assets/adaptive-icon.png",
+  "mobile/assets/monochrome-icon.png",
+  "mobile/assets/splash-icon.png",
+  "mobile/assets/splash-icon-dark.png",
+  "mobile/assets/notification-icon.png",
 ]) {
   console.log(
     `${file} ${Math.round(statSync(path.join(root, file)).size / 1024)} KB`,

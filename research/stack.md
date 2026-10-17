@@ -17,6 +17,24 @@ Research date: 2026-09-30
 Choose compatible stable versions. Do not choose each component's newest version independently.
 Record a version constraint when the framework controls a runtime or peer dependency.
 
+## Mobile app
+
+Research date: 2026-10-17. The versions come from `expo-template-default@58.0.23` and `bun x expo install`, which picks the version that fits the SDK.
+
+| Component | Selection | Reason |
+|---|---|---|
+| Framework | Expo SDK 58.0.14, React Native 0.88.0, React 19.3.0 | The current SDK. Expo builds, push, and the native modules come from one release. |
+| Navigation | Expo Router 58.0.23 with `expo-router/native-tabs` | File routes like the web app, native tab bars, typed routes, and `Stack.Protected` for the Connect screen |
+| Server data | TanStack Query 5.104.3 | Cache, refetch on focus and at an interval, and mutations for the alert settings |
+| Push | `expo-notifications` 58.1.5 and the Expo push service | One token for iOS and Android, and no Apple or Google key on the server |
+| Secrets | `expo-secure-store` 58.0.2 | The service token stays in the Keychain or the Android Keystore |
+| Font | `@expo-google-fonts/inter` 0.4.2, 400 and 500 | The two weights of the web |
+| Language | TypeScript 6.0.3 | The SDK template pins it. The root keeps TypeScript 5 for the source gate. |
+| Lint | ESLint 9 with `eslint-config-expo` 58.0.4 | ESLint 10 breaks `eslint-plugin-react` in that config, and the root also uses ESLint 9. |
+| Tests | `bun test` | The same runner as the web. The tests cover the pure modules only. |
+
+The app turns on the React Compiler and typed routes, as the SDK template does.
+
 ## Framework conventions
 
 1. Next.js 16 removed `next lint`. Run the ESLint CLI with `eslint-config-next`.

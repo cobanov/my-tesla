@@ -38,6 +38,8 @@ Then point `DATABASE_URL` in `.env.local` at a database:
 | `bun run format` | Formats every file with Prettier |
 | `bun run seed:demo` | Fills the demo database. Read [Demo data](demo-data.md). |
 
+The gates also check the mobile app. Run `bun install --cwd mobile --frozen-lockfile` once after the clone. [Mobile app](mobile.md) gives the app commands.
+
 ## Use your own TeslaMate database
 
 The TeslaMate database has no published port. Open an SSH tunnel to the database container:
