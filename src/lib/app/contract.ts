@@ -1,0 +1,257 @@
+export type AppTone = "good" | "bad";
+
+export type AppValue = {
+  text: string;
+  tone: AppTone | null;
+  note: string | null;
+};
+
+export type AppStat = {
+  label: string;
+  value: AppValue;
+  detail: string | null;
+};
+
+export type ChartColor =
+  "chart1" | "chart2" | "chart3" | "chart4" | "chart5" | "charge";
+
+export type AppChartSeries = {
+  key: string;
+  label: string;
+  unit: string;
+  color: ChartColor;
+  kind: "area" | "line" | "bar";
+  axis: "left" | "right";
+  digits: number;
+};
+
+export type AppTick = { value: number; label: string };
+
+export type AppAxis = { domain: [number, number]; ticks: AppTick[] };
+
+export type AppChart = {
+  title: string;
+  locale: string;
+  series: AppChartSeries[];
+  points: { x: number; label: string; values: (number | null)[] }[];
+  x: AppAxis;
+  left: AppAxis;
+  right: AppAxis | null;
+};
+
+export type LngLat = [number, number];
+
+export type AppTarget =
+  | { kind: "drive"; id: number }
+  | { kind: "trip"; id: number }
+  | { kind: "charge"; id: number };
+
+export type CarIdentity = {
+  id: number;
+  name: string;
+  model: string;
+  trim: string | null;
+};
+
+export type CarList = { cars: CarIdentity[]; defaultCarId: number | null };
+
+export type PushEvent = { id: string; title: string; description: string };
+
+export type PushCatalog = { enabled: boolean; events: readonly PushEvent[] };
+
+export type DriveRow = {
+  key: string;
+  target: AppTarget;
+  clock: string;
+  duration: string;
+  title: string;
+  subtitle: string;
+  segments: { kind: "drive" | "stop" | "charge"; share: number }[];
+  distance: string;
+  consumption: AppValue;
+};
+
+export type DriveList = {
+  summary: string[];
+  sections: { title: string; rows: DriveRow[] }[];
+};
+
+export type DriveDetail = {
+  title: string;
+  subtitle: string;
+  notice: string | null;
+  stats: AppStat[];
+  charts: AppChart[];
+  route: LngLat[] | null;
+  gpxPath: string;
+};
+
+export type TripStepRow = {
+  key: string;
+  kind: "drive" | "charge" | "stop";
+  clock: string;
+  title: string;
+  detail: string;
+  target: AppTarget | null;
+};
+
+export type TripDetail = {
+  title: string;
+  subtitle: string;
+  stats: AppStat[];
+  steps: TripStepRow[];
+  routes: LngLat[][] | null;
+};
+
+export type LevelRange = { start: number; end: number };
+
+export type ChargeRow = {
+  key: string;
+  id: number;
+  clock: string;
+  duration: string;
+  place: string;
+  fast: boolean;
+  detail: string;
+  levels: LevelRange | null;
+  energy: string | null;
+  cost: string | null;
+};
+
+export type ChargeList = {
+  summary: string[];
+  sections: { title: string; rows: ChargeRow[] }[];
+};
+
+export type ChargeDetail = {
+  title: string;
+  kind: string;
+  fast: boolean;
+  subtitle: string;
+  fullAt: string | null;
+  notice: string | null;
+  hero: AppStat[];
+  levels: LevelRange | null;
+  stats: AppStat[];
+  cost: { source: string; stats: AppStat[]; note: string | null } | null;
+  charts: AppChart[];
+  location: { latitude: number; longitude: number } | null;
+  previousId: number | null;
+  nextId: number | null;
+};
+
+export type PeriodId = "7d" | "30d" | "90d" | "1y" | "all";
+
+export type ShareColor = "primary" | "charge";
+
+export type AppBlock =
+  | { kind: "stats"; stats: AppStat[] }
+  | { kind: "chart"; chart: AppChart }
+  | {
+      kind: "shares";
+      rows: {
+        label: string;
+        share: number;
+        detail: string | null;
+        color: ShareColor;
+      }[];
+    }
+  | {
+      kind: "table";
+      columns: string[];
+      rows: { key: string; cells: AppValue[] }[];
+    }
+  | { kind: "progress"; share: number; start: string; end: string }
+  | { kind: "note"; text: string };
+
+export type AppPanel = {
+  title: string;
+  note: string | null;
+  blocks: AppBlock[];
+};
+
+export type AppSection = {
+  title: string | null;
+  subtitle: string | null;
+  period: boolean;
+  panels: AppPanel[];
+};
+
+export type InsightPage = {
+  title: string;
+  period: PeriodId;
+  periods: { id: PeriodId; label: string }[];
+  hero: AppStat[];
+  heroBlocks: AppBlock[];
+  sections: AppSection[];
+};
+
+export type LiveIcon =
+  | "lock"
+  | "lock-open"
+  | "door-closed"
+  | "door-open"
+  | "plug"
+  | "plug-zap"
+  | "unplug"
+  | "fan"
+  | "badge-check"
+  | "download"
+  | "gauge"
+  | "navigation";
+
+export type LiveTone = "normal" | "active" | "charge" | "warning";
+
+export type ActivityTone = "active" | "charge" | "quiet";
+
+export type DayKind = "drive" | "charge" | "online" | "asleep" | "offline";
+
+export type RecentRecord = {
+  title: string;
+  detail: string;
+  target: AppTarget;
+};
+
+export type OverviewPage = {
+  car: { id: number; name: string; variant: string; image: string | null };
+  activity: { label: string; tone: ActivityTone; updated: string };
+  empty: string | null;
+  battery: {
+    level: number | null;
+    usable: number | null;
+    value: AppValue;
+    range: string;
+    caption: string;
+    tone: "charge" | "low" | "normal";
+    fullAt: string | null;
+  } | null;
+  stats: AppStat[];
+  live: {
+    connected: boolean;
+    tiles: {
+      key: string;
+      icon: LiveIcon;
+      title: string;
+      detail: string | null;
+      tone: LiveTone;
+      fullAt: string | null;
+    }[];
+    notices: string[];
+    empty: string | null;
+  } | null;
+  today: {
+    segments: { kind: DayKind; start: number; end: number }[];
+    now: number;
+    hours: string[];
+  } | null;
+  tires: {
+    frontLeft: AppValue;
+    frontRight: AppValue;
+    rearLeft: AppValue;
+    rearRight: AppValue;
+    warnings: string[];
+  } | null;
+  location: { latitude: number; longitude: number; lastSeen: string } | null;
+  lastDrive: RecentRecord | null;
+  lastCharge: RecentRecord | null;
+};

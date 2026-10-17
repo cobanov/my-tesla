@@ -53,6 +53,7 @@ Exceptions:
 6. `src/app/icon.svg` is an asset. It holds a CSS media query for the dark theme and no comment.
 7. `src/components/ui/` holds files from the shadcn CLI. The source gate checks them. The unused-code gate skips only their unused exports, through `ignoreIssues` in `knip.json`.
 8. `src/components/ui/map.tsx` is the mapcn registry file, 2,696 lines of third-party code with its own comments. The source gate skips this one file so that `shadcn add @mapcn/map --overwrite` stays a clean update. The only local change is the MapLibre worker URL. It points at `/maplibre/<version>/maplibre-gl-worker.mjs`, which the app serves from `node_modules`, not at unpkg. ESLint also skips it, because the React Compiler rules flag 13 ref reads in the upstream code.
+9. `src/lib/app/contract.ts` holds the types of the app API. The mobile app imports them through the `@contract` path, so the unused-code gate skips only its unused exported types, through `ignoreIssues` in `knip.json`.
 
 ## Product validation
 
