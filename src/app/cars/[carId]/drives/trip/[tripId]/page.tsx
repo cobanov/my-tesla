@@ -14,6 +14,7 @@ import { mapThemeOf } from "@/lib/preferences";
 import { tripRoutes } from "@/lib/queries";
 import type { LngLat } from "@/lib/route";
 import {
+  stopDetail,
   stopsText,
   tripDestination,
   tripOrigin,
@@ -21,7 +22,6 @@ import {
   tripSummary,
   type Trip,
   type TripStep,
-  type TripStop,
 } from "@/lib/trip";
 import { findTrip } from "@/lib/trip-data";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -32,30 +32,6 @@ export const metadata: Metadata = { title: "Trip" };
 
 function parseTripId(value: string): number | null {
   return /^\d{1,9}$/.test(value) ? Number(value) : null;
-}
-
-function stopDetail(stop: TripStop, f: Formatter): string {
-  if (!stop.charged) return `Stop · ${f.duration(stop.durationMin)}`;
-  const [first] = stop.charges;
-  const last = stop.charges.at(-1);
-  const added = stop.charges.reduce(
-    (sum, charge) => sum + (charge.energyAddedKwh ?? 0),
-    0,
-  );
-  const cost = stop.charges.reduce<number | null>(
-    (sum, charge) => (charge.cost === null ? sum : (sum ?? 0) + charge.cost),
-    null,
-  );
-  return [
-    `Charging stop · ${f.duration(stop.durationMin)}`,
-    first ? `+${f.energy(added)}` : null,
-    first && last && first.startLevel !== null && last.endLevel !== null
-      ? `${first.startLevel}% → ${last.endLevel}%`
-      : null,
-    cost === null ? null : f.cost(cost),
-  ]
-    .filter((text) => text !== null)
-    .join(" · ");
 }
 
 function markerAt(

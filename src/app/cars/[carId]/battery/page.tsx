@@ -27,12 +27,15 @@ import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import {
-  batteryCapacity,
+  batteryFigures,
+  idleWatts,
+  levelChargeHistogram,
+  missingChargesText,
+} from "@/lib/battery-figures";
+import {
   drainRate,
   healthCharges,
-  levelHistogram,
   levelShares,
-  median,
   periodStart,
   periods,
   readPeriod,
@@ -79,18 +82,6 @@ function HealthBar({
   );
 }
 
-function missingChargesText(
-  missing: number,
-  minimumKwh: number | null,
-  f: Formatter,
-): string {
-  const count = missing < healthCharges ? `${missing} more` : `${missing}`;
-  const charges = missing === 1 ? "charge" : "charges";
-  return minimumKwh === null
-    ? `Needs ${count} long ${charges}`
-    : `Needs ${count} ${charges} of ${f.number(Math.ceil(minimumKwh))} kWh or more`;
-}
-
 function ShareRow({
   label,
   share,
@@ -130,9 +121,7 @@ function IdleRow({
   f: Formatter;
   now: Date;
 }) {
-  const hours = period.durationS / 3600;
-  const watts =
-    period.energyKwh === null ? null : (period.energyKwh / hours) * 1000;
+  const watts = idleWatts(period);
   const power = assessIdlePower(watts, f);
   return (
     <tr className="border-t border-border">
@@ -197,27 +186,20 @@ export default async function BatteryPage({
       longChargeKwh(car.id),
     ]);
 
-  const estimate = batteryCapacity(capacity);
-  const health = estimate?.healthPercent ?? null;
-  const bestRange = capacity.length
-    ? Math.max(...capacity.map((point) => point.rangeKm))
-    : null;
-  const rangeNow =
-    median(capacity.slice(-5).map((point) => point.rangeKm)) ??
-    latest.rangeAt100Km;
-  const cycles = estimate ? totals.addedKwh / estimate.bestKwh : null;
-  const efficiency = totals.usedKwh ? totals.addedKwh / totals.usedKwh : null;
+  const {
+    estimate,
+    health,
+    bestRange,
+    rangeNow,
+    cycles,
+    efficiency,
+    totalCharged,
+  } = batteryFigures(capacity, latest, totals);
   const shares = levelShares(
     levels.map((row) => ({ level: row.level, weightMs: row.seconds * 1000 })),
   );
   const trackedHours = levels.reduce((sum, row) => sum + row.seconds, 0) / 3600;
-  const startBuckets = levelHistogram(charges.map((row) => row.startLevel));
-  const endBuckets = levelHistogram(charges.map((row) => row.endLevel));
-  const histogram = startBuckets.map((bucket, index) => ({
-    level: bucket.level,
-    start: bucket.count,
-    end: endBuckets[index].count,
-  }));
+  const histogram = levelChargeHistogram(charges);
   const drain = drainRate(idle);
   const capacitySeries = capacity.map((point) => ({
     at: point.at.getTime(),
@@ -226,7 +208,6 @@ export default async function BatteryPage({
   }));
   const periodLabel =
     periods.find((candidate) => candidate.id === period)?.label ?? "";
-  const totalCharged = totals.acKwh + totals.dcKwh;
 
   return (
     <PageTransition>
