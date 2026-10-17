@@ -138,7 +138,8 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 
 1. Lists use a ScrollView, because native tabs scroll it to the top and pop the stack when the active tab is pressed again. The server sends at most 50 rows. Measure first, then switch a list to `@shopify/flash-list` 2 (bundled by SDK 58) only if it scrolls badly.
 2. Charts take the `AppChart` that the server builds with `buildChart` in `src/lib/app/chart.ts`. Add a chart kind on the server first, then draw it in `Chart`. Do not add a chart library.
-3. Maps are not built yet. Read the map section of `research/mobile-ui.md` before you add one.
+3. Show a remote image with `Image` from `expo-image` and `cachePolicy="memory-disk"`, never the React Native `Image`. The car image server sends `max-age=60`.
+4. Maps are not built yet. Read the map section of `research/mobile-ui.md` before you add one.
 
 ## Push alerts
 

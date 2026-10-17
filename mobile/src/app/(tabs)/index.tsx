@@ -1,7 +1,8 @@
 import type { AppStat, OverviewPage, RecentRecord } from "@contract";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Linking, Platform, StyleSheet, View } from "react-native";
+import { Linking, Platform, StyleSheet, View } from "react-native";
 import { useOverview } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Battery } from "@/components/battery";
@@ -18,17 +19,23 @@ import { StatGrid } from "@/components/stat";
 import { Text } from "@/components/text";
 import { useRefresh } from "@/hooks/use-refresh";
 import { targetHref, type TabStack } from "@/navigation/targets";
-import { space } from "@/theme/tokens";
+import { motion, space } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
+import { useReducedMotion } from "@/theme/use-reduced-motion";
 
 function CarImage({ uri, name }: { uri: string; name: string }) {
   const [failed, setFailed] = useState(false);
+  const reduced = useReducedMotion();
   if (failed) return null;
   return (
     <Image
-      source={{ uri }}
+      source={uri}
       accessibilityLabel={name}
-      resizeMode="cover"
+      contentFit="cover"
+      cachePolicy="memory-disk"
+      transition={
+        reduced ? null : { duration: motion.durationMs, skipOnCacheHit: "all" }
+      }
       onError={() => setFailed(true)}
       style={styles.image}
     />
