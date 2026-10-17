@@ -5,12 +5,18 @@ const parameters = { memory: 19_456, passes: 2, parallelism: 1 } as const;
 const saltBytes = 16;
 const hashBytes = 32;
 const maxRunning = 2;
+const maxWaiting = 32;
+
+export class PasswordBusyError extends Error {
+  name = "PasswordBusyError";
+}
 
 let running = 0;
 const waiting: (() => void)[] = [];
 
 async function withSlot<T>(work: () => Promise<T>): Promise<T> {
   if (running >= maxRunning) {
+    if (waiting.length >= maxWaiting) throw new PasswordBusyError();
     await new Promise<void>((resolve) => waiting.push(resolve));
   }
   running += 1;

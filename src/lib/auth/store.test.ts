@@ -106,7 +106,9 @@ describe("pairing", () => {
     expect(store.deviceStatus(token, t0 + 7000)?.session.status).toBe(
       "pending",
     );
-    expect(store.pendingDevices(user.id, t0 + 7000)).toHaveLength(1);
+    const [waiting] = store.pendingDevices(user.id, t0 + 7000);
+    expect(waiting?.check).toBe(claimed?.check ?? "none");
+    expect(waiting?.check).toMatch(/^\d{4}$/);
     expect(store.approveDevice(user.id, claimed!.session.id, t0 + 8000)).toBe(
       true,
     );

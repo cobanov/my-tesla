@@ -10,6 +10,7 @@ import {
   exportRange,
 } from "@/lib/trip-log";
 import { getFormatter, getPreferences } from "@/lib/viewer";
+import { apiUnauthorized } from "@/lib/auth/session";
 
 const kinds = { "drives.csv": "drives", "charges.csv": "charges" } as const;
 
@@ -18,6 +19,8 @@ export async function GET(
   context: RouteContext<"/api/cars/[carId]/[file]">,
 ) {
   await connection();
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   const { carId, file } = await context.params;
   const kind = Object.hasOwn(kinds, file)
     ? kinds[file as keyof typeof kinds]

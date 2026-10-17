@@ -6,6 +6,7 @@ import type { Preferences } from "@/lib/preferences";
 import { storePreferences } from "@/lib/preferences-save";
 import { readTimeZone } from "@/lib/time-zone";
 import { baseline, getPreferences } from "@/lib/viewer";
+import { apiUnauthorized } from "@/lib/auth/session";
 
 function page(preferences: Preferences): Response {
   return appJson(
@@ -19,10 +20,14 @@ function page(preferences: Preferences): Response {
 
 export async function GET() {
   await connection();
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   return page(await getPreferences());
 }
 
 export async function PUT(request: Request) {
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   const body = await readJsonBody(request);
   const { key, value } = (body ?? {}) as { key?: unknown; value?: unknown };
   if (typeof key !== "string") {

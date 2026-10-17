@@ -5,8 +5,9 @@ import { dirname } from "node:path";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { isDemoMode } from "../demo/mode";
-import { authDatabasePath, bearerToken } from "./paths";
-import { Backoff, DailyCap } from "./limits";
+import { siteUrl } from "../site";
+import { authDatabasePath, bearerToken, trustedAddress } from "./paths";
+import { Backoff, FailureCap } from "./limits";
 import { AuthStore, lifetimes, type Session, type User } from "./store";
 
 export const cookieNames = {
@@ -35,8 +36,9 @@ export function authStore(): AuthStore {
 }
 
 export const limits = {
-  account: () => shared("limit-account", () => new Backoff()),
-  address: () => shared("limit-address", () => new DailyCap(100)),
+  attempt: () => shared("limit-attempt", () => new Backoff()),
+  account: () => shared("limit-account", () => new Backoff(50)),
+  address: () => shared("limit-address", () => new FailureCap(100)),
 };
 
 export type SignedIn = { session: Session; user: User };
@@ -48,8 +50,9 @@ export function readSession(
 ): SignedIn | null {
   const bearer = bearerToken(list.get("authorization"));
   if (bearer) return authStore().validate(bearer, "device", now);
-  const token =
-    cookieValue(cookieNames.secure) ?? cookieValue(cookieNames.plain);
+  const token = cookieValue(
+    isSecureRequest(list) ? cookieNames.secure : cookieNames.plain,
+  );
   return token ? authStore().validate(token, "web", now) : null;
 }
 
@@ -59,7 +62,17 @@ export const currentSession = cache(async (): Promise<SignedIn | null> => {
   return readSession(list, (name) => jar.get(name)?.value, Date.now());
 });
 
+export async function apiUnauthorized(): Promise<Response | null> {
+  if (isDemoMode() || (await currentSession())) return null;
+  return Response.json(
+    { error: "Sign in to My Tesla." },
+    { status: 401, headers: { "Cache-Control": "no-store" } },
+  );
+}
+
 export function isSecureRequest(list: { get(name: string): string | null }) {
+  const site = siteUrl(process.env);
+  if (site) return site.protocol === "https:";
   const scheme = list.get("x-forwarded-proto")?.split(",")[0]?.trim();
   return scheme === "https";
 }
@@ -78,17 +91,22 @@ export async function setSessionCookie(token: string): Promise<void> {
 
 export async function clearSessionCookie(): Promise<void> {
   const jar = await cookies();
-  jar.delete(cookieNames.secure);
-  jar.delete(cookieNames.plain);
+  for (const [name, secure] of [
+    [cookieNames.secure, true],
+    [cookieNames.plain, false],
+  ] as const) {
+    jar.set(name, "", {
+      httpOnly: true,
+      secure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+  }
 }
 
 export function clientAddress(list: { get(name: string): string | null }) {
-  return (
-    list.get("cf-connecting-ip") ??
-    list.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    list.get("x-real-ip") ??
-    null
-  );
+  return trustedAddress(list, process.env.TRUSTED_IP_HEADER);
 }
 
 const setup = () =>

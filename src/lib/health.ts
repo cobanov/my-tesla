@@ -17,12 +17,13 @@ export async function checkHealth(
     await withTimeout(ping(), timeoutMs);
     return { httpStatus: 200, body: { status: "ok", database: "ok" } };
   } catch (error) {
+    console.error("Health check:", error);
     return {
       httpStatus: 503,
       body: {
         status: "degraded",
         database: "unreachable",
-        detail: error instanceof Error ? error.message : "Unknown error.",
+        detail: "The database did not answer. The server log has the reason.",
       },
     };
   }

@@ -34,6 +34,12 @@ export type Session = {
 
 export type Device = { name: string; platform: string; ip: string | null };
 
+function checkDigits(hash: Uint8Array): string {
+  const [a = 0, b = 0, c = 0, d = 0] = hash;
+  const value = ((a << 24) | (b << 16) | (c << 8) | d) >>> 0;
+  return String(value % 10_000).padStart(4, "0");
+}
+
 const minute = 60_000;
 const day = 24 * 60 * minute;
 
@@ -332,7 +338,7 @@ export class AuthStore {
     code: string,
     device: Device,
     now: number,
-  ): { session: Session; token: string; user: User } | null {
+  ): { session: Session; token: string; user: User; check: string } | null {
     if (!/^[A-Za-z0-9_-]{43}$/.test(code)) return null;
     return this.transaction(() => {
       const row = this.db
@@ -353,14 +359,22 @@ export class AuthStore {
         },
         now,
       );
-      return { ...created, user };
+      const secret = created.token.split(".")[1] ?? "";
+      return { ...created, user, check: checkDigits(hashSecret(secret)) };
     });
   }
 
-  pendingDevices(userId: string, now: number): Session[] {
-    return this.listSessions(userId, now).filter(
-      (session) => session.kind === "device" && session.status === "pending",
-    );
+  pendingDevices(userId: string, now: number): (Session & { check: string })[] {
+    return (
+      this.db
+        .prepare(
+          "select * from sessions where user_id = ? and kind = 'device' and status = 'pending' and expires_at > ? order by created_at",
+        )
+        .all(userId, now) as Row[]
+    ).map((row) => ({
+      ...sessionOf(row),
+      check: checkDigits(row.secret_hash as Uint8Array),
+    }));
   }
 
   approveDevice(userId: string, sessionId: string, now: number): boolean {

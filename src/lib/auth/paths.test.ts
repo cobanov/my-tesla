@@ -5,6 +5,7 @@ import {
   isPublicPath,
   safeNext,
   sameSiteWrite,
+  trustedAddress,
 } from "./paths";
 
 describe("authDatabasePath", () => {
@@ -63,5 +64,33 @@ describe("sameSiteWrite", () => {
       false,
     );
     expect(sameSiteWrite(new Headers(), "a.b")).toBe(false);
+  });
+});
+
+describe("trustedAddress", () => {
+  test("reads only the header that the operator names", () => {
+    const list = new Headers({
+      "cf-connecting-ip": "203.0.113.5",
+      "x-forwarded-for": "198.51.100.9, 192.0.2.1",
+    });
+    expect(trustedAddress(list, undefined)).toBeNull();
+    expect(trustedAddress(list, "CF-Connecting-IP")).toBe("203.0.113.5");
+    expect(trustedAddress(list, "x-forwarded-for")).toBe("192.0.2.1");
+    expect(trustedAddress(list, "x-real-ip")).toBeNull();
+  });
+
+  test("refuses a value that is not an address", () => {
+    expect(
+      trustedAddress(
+        new Headers({ "x-real-ip": "a".repeat(100) }),
+        "x-real-ip",
+      ),
+    ).toBeNull();
+    expect(
+      trustedAddress(new Headers({ "x-real-ip": "<script>" }), "x-real-ip"),
+    ).toBeNull();
+    expect(
+      trustedAddress(new Headers({ "x-real-ip": "2001:db8::1" }), "x-real-ip"),
+    ).toBe("2001:db8::1");
   });
 });

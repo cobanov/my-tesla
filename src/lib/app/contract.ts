@@ -321,6 +321,7 @@ export type AppUser = { name: string; email: string; role: "admin" | "member" };
 
 export type PairClaim = {
   token: string;
+  check: string;
   status: "pending";
   user: { name: string };
 };

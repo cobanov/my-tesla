@@ -163,6 +163,8 @@ export const pairClaim = (value: unknown) =>
     value,
     (shape) =>
       typeof shape.token === "string" &&
+      typeof shape.check === "string" &&
+      /^\d{4}$/.test(shape.check) &&
       shape.status === "pending" &&
       isRecord(shape.user) &&
       typeof shape.user.name === "string",

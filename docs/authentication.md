@@ -4,7 +4,7 @@ My Tesla signs people in itself. It shows a location history: where the car park
 
 ## The rules
 
-1. Serve the dashboard over HTTPS. The session cookie is `Secure` and uses the `__Host-` prefix only over HTTPS. On a plain HTTP address in your home network the cookie still works, without `Secure`.
+1. Serve the dashboard over HTTPS, and set `SITE_URL` to the `https://` address. The session cookie is then `Secure` and uses the `__Host-` prefix, and the app accepts no other cookie name. On a plain HTTP address in your home network the cookie still works, without `Secure`.
 2. Keep the data volume private. `auth.sqlite` holds the password hashes and the session hashes, next to the Settings file, with mode 0600. Treat its backups as secret.
 3. Bind the container port to `127.0.0.1`, or keep it on a private Docker network, and let your reverse proxy or tunnel reach it. The examples in [Installation](installation.md) do this.
 
@@ -26,7 +26,7 @@ This first account is the admin. The setup token closes the race in which a stra
 
 ## Sign in
 
-The sign-in page asks for the email and the password. A wrong email and a wrong password give the same message. After 5 failures for one email, each try waits longer, from 1 second up to 15 minutes. One network address gets 100 tries a day.
+The sign-in page asks for the email and the password. A wrong email and a wrong password give the same message. After 5 failures for one email from one network, each try waits longer, from 1 second up to 15 minutes, and after 50 failures for one email from anywhere. One network gets 100 failures a day. The app knows the network only from the header that `TRUSTED_IP_HEADER` names: set it to `cf-connecting-ip` behind Cloudflare. Without it, the failures count for each email only.
 
 A session lasts 30 days and renews while you use it. **Account**, the round button with your initial in the header, shows every browser, phone, and script token with its last use and address. Each can be signed out there. A new password signs out every other session.
 
@@ -36,7 +36,7 @@ The mobile app signs in from Settings on the web:
 
 1. Open Settings for a car, then **Mobile app**, and press **Pair a phone**.
 2. In the app, press **Scan the code**.
-3. The page asks whether to allow the phone, with its name, system, and address. Press **Allow** only if you just scanned the code yourself.
+3. The page asks whether to allow the phone, with its name, system, address, and a 4-digit number. The phone shows its own number. Press **Allow** only if you just scanned the code yourself and the two numbers match. If someone else saw the code and used it first, your phone says that the code does not work: press **Deny** on the page.
 
 The code holds the server address, the car, and a single-use code that lasts 90 seconds. The page shows a new code every minute and hides it after 3 minutes. The phone gets its own token, which lasts 90 days after its last use and shows under **Account**. [Mobile app](mobile.md) has the details.
 

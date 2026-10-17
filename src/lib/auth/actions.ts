@@ -10,6 +10,7 @@ import { siteUrl } from "../site";
 import { waitText } from "./limits";
 import {
   hashPassword,
+  PasswordBusyError,
   passwordProblem,
   verifyNobody,
   verifyPassword,
@@ -38,18 +39,43 @@ function text(form: FormData, name: string): string {
   return typeof value === "string" ? value : "";
 }
 
-async function address(): Promise<string> {
-  return clientAddress(await headers()) ?? "unknown";
+async function address(): Promise<string | null> {
+  return clientAddress(await headers());
 }
 
-async function guard(key: string): Promise<string | null> {
+type Attempt = { account: string; address: string | null };
+
+function attemptKey({ account, address: from }: Attempt): string {
+  return `${account}|${from ?? "?"}`;
+}
+
+function blocked(attempt: Attempt): string | null {
   const now = Date.now();
-  if (!limits.address().take(await address(), now)) {
-    return "Too many attempts from this network today. Try again tomorrow.";
+  if (attempt.address && limits.address().blocked(attempt.address, now)) {
+    return "Too many failed tries from this network today. Try again tomorrow.";
   }
-  const wait = limits.account().waitMs(key, now);
+  const wait = Math.max(
+    limits.attempt().waitMs(attemptKey(attempt), now),
+    limits.account().waitMs(attempt.account, now),
+  );
   return wait > 0 ? `Wait ${waitText(wait)} before you try again.` : null;
 }
+
+function failed(attempt: Attempt): void {
+  const now = Date.now();
+  if (attempt.address) limits.address().fail(attempt.address, now);
+  limits.attempt().fail(attemptKey(attempt), now);
+  limits.account().fail(attempt.account, now);
+}
+
+function succeeded(attempt: Attempt): void {
+  limits.attempt().succeed(attemptKey(attempt));
+  limits.account().succeed(attempt.account);
+}
+
+const busy = {
+  error: "Too many sign-ins at once. Try again in a moment.",
+};
 
 export async function signIn(
   _previous: FormResult,
@@ -58,24 +84,31 @@ export async function signIn(
   const email = text(form, "email").trim().toLowerCase();
   const password = text(form, "password");
   const values = { email };
-  const blocked = await guard(`login:${email}`);
-  if (blocked) return { error: blocked, values };
+  const attempt = { account: `login:${email}`, address: await address() };
+  const stop = blocked(attempt);
+  if (stop) return { error: stop, values };
   const found = authStore().credentialsByEmail(email);
-  const valid = found
-    ? await verifyPassword(found.passwordHash, password)
-    : await verifyNobody(password);
+  let valid: boolean;
+  try {
+    valid = found
+      ? await verifyPassword(found.passwordHash, password)
+      : await verifyNobody(password);
+  } catch (error) {
+    if (error instanceof PasswordBusyError) return { ...busy, values };
+    throw error;
+  }
   if (!found || !valid) {
-    limits.account().fail(`login:${email}`, Date.now());
+    failed(attempt);
     return { error: "The email or the password is wrong.", values };
   }
-  limits.account().succeed(`login:${email}`);
+  succeeded(attempt);
   authStore().prune(Date.now());
   const { token } = authStore().createSession(
     {
       userId: found.user.id,
       kind: "web",
       status: "active",
-      ip: await address(),
+      ip: attempt.address,
     },
     Date.now(),
   );
@@ -88,10 +121,15 @@ export async function setUp(
   form: FormData,
 ): Promise<FormResult> {
   if (authStore().userCount() > 0) notFound();
-  const blocked = await guard("setup");
-  if (blocked) return { error: blocked };
+  const from = await address();
+  if (from && limits.address().blocked(from, Date.now())) {
+    return {
+      error:
+        "Too many failed tries from this network today. Try again tomorrow.",
+    };
+  }
   if (!isSetupToken(text(form, "token").trim())) {
-    limits.account().fail("setup", Date.now());
+    if (from) limits.address().fail(from, Date.now());
     return {
       error:
         "The setup code is wrong. Copy the setup link from the server log again.",
@@ -115,10 +153,9 @@ export async function setUp(
     Date.now(),
   );
   if (!user) return { error: "An admin account exists already. Sign in." };
-  limits.account().succeed("setup");
   console.info(`My Tesla: the admin account for ${email} is ready.`);
   const { token } = authStore().createSession(
-    { userId: user.id, kind: "web", status: "active", ip: await address() },
+    { userId: user.id, kind: "web", status: "active", ip: from },
     Date.now(),
   );
   await setSessionCookie(token);
@@ -143,11 +180,21 @@ export async function changePassword(
   form: FormData,
 ): Promise<FormResult> {
   const { user, session } = await requireWeb();
-  const blocked = await guard(`password:${user.id}`);
-  if (blocked) return { error: blocked };
+  const attempt = { account: `password:${user.id}`, address: await address() };
+  const stop = blocked(attempt);
+  if (stop) return { error: stop };
   const stored = authStore().passwordHash(user.id);
-  if (!stored || !(await verifyPassword(stored, text(form, "current")))) {
-    limits.account().fail(`password:${user.id}`, Date.now());
+  let valid: boolean;
+  try {
+    valid =
+      Boolean(stored) &&
+      (await verifyPassword(stored ?? "", text(form, "current")));
+  } catch (error) {
+    if (error instanceof PasswordBusyError) return busy;
+    throw error;
+  }
+  if (!valid) {
+    failed(attempt);
     return { error: "The current password is wrong." };
   }
   const next = text(form, "password");
@@ -156,7 +203,7 @@ export async function changePassword(
   if (next !== text(form, "confirm")) {
     return { error: "The two new passwords differ." };
   }
-  limits.account().succeed(`password:${user.id}`);
+  succeeded(attempt);
   authStore().setPassword(user.id, await hashPassword(next), Date.now());
   authStore().deleteOtherSessions(user.id, session.id);
   refresh();
@@ -239,16 +286,14 @@ export async function pairingCode(carId: unknown): Promise<PairingCode> {
     });
     return { ok: true, path: qrPath(data), size, url, expiresAt };
   } catch (error) {
-    return {
-      ok: false,
-      message:
-        error instanceof Error ? error.message : "The server made no code.",
-    };
+    console.error("Pairing code:", error);
+    return { ok: false, message: "The server made no code. Try again." };
   }
 }
 
 export type PairingRequest = {
   id: string;
+  check: string;
   name: string;
   platform: string;
   ip: string | null;
@@ -261,6 +306,7 @@ export async function pairingRequests(): Promise<PairingRequest[]> {
     .pendingDevices(user.id, Date.now())
     .map((device) => ({
       id: device.id,
+      check: device.check,
       name: device.name ?? "A phone",
       platform: device.platform ?? "",
       ip: device.ip,

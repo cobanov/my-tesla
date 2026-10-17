@@ -45,3 +45,18 @@ export function sameSiteWrite(headers: Headers, host: string): boolean {
     return false;
   }
 }
+
+const addressPattern = /^[0-9A-Fa-f:.]{2,45}$/;
+
+export function trustedAddress(
+  list: { get(name: string): string | null },
+  header: string | undefined,
+): string | null {
+  const name = header?.trim().toLowerCase();
+  if (!name) return null;
+  const raw = list.get(name);
+  if (!raw) return null;
+  const value =
+    name === "x-forwarded-for" ? raw.split(",").at(-1)?.trim() : raw.trim();
+  return value && addressPattern.test(value) ? value : null;
+}

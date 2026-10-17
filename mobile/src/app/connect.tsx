@@ -21,6 +21,7 @@ const pollMs = 2_000;
 type Waiting = {
   url: string;
   token: string;
+  check: string;
   carId: number | null;
   account: string;
 };
@@ -40,10 +41,17 @@ function WaitingPanel({
     <Panel title="Allow this phone on the web">
       <View style={styles.waiting}>
         <TeslaMark size={36} kind="breathe" />
+        <Text
+          variant="display"
+          accessibilityLabel={`Check number ${waiting.check.split("").join(" ")}`}
+          style={styles.check}
+        >
+          {waiting.check}
+        </Text>
       </View>
       <Text>
         The page with the code now asks whether to allow this phone. Press Allow
-        there to sign in as {waiting.account}.
+        there only if it shows {waiting.check}, to sign in as {waiting.account}.
       </Text>
       <Text variant="caption">{hostOf(waiting.url)}</Text>
       <Button label="Cancel" kind="secondary" onPress={onCancel} />
@@ -74,6 +82,7 @@ export default function ConnectScreen() {
       return {
         url: pairing.url,
         token: answer.token,
+        check: answer.check,
         carId: pairing.carId,
         account: answer.user.name,
       };
@@ -208,5 +217,6 @@ export default function ConnectScreen() {
 
 const styles = StyleSheet.create({
   heading: { gap: space.sm, marginTop: space.xxl, marginBottom: space.lg },
-  waiting: { alignItems: "center", paddingVertical: space.md },
+  waiting: { alignItems: "center", gap: space.md, paddingVertical: space.md },
+  check: { fontVariant: ["tabular-nums"], letterSpacing: 4 },
 });

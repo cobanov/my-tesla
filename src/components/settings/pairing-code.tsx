@@ -59,7 +59,11 @@ function Request({
               .filter(Boolean)
               .join(" · ")}
             . Allow it only if you scanned the code with your own phone just
-            now.
+            now, and the phone shows{" "}
+            <span className="font-medium text-foreground tabular">
+              {request.check}
+            </span>
+            .
           </p>
         </div>
       </div>

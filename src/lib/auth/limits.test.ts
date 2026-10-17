@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Backoff, DailyCap, waitText } from "./limits";
+import { Backoff, FailureCap, waitText } from "./limits";
 
 describe("Backoff", () => {
   test("allows five failures, then doubles the wait up to the cap", () => {
@@ -10,7 +10,7 @@ describe("Backoff", () => {
     expect(backoff.waitMs("a", 0)).toBe(1000);
     backoff.fail("a", 0);
     expect(backoff.waitMs("a", 500)).toBe(1500);
-    for (let i = 0; i < 5; i += 1) backoff.fail("a", 0);
+    for (let i = 0; i < 40; i += 1) backoff.fail("a", 0);
     expect(backoff.waitMs("a", 0)).toBe(8000);
     expect(backoff.waitMs("b", 0)).toBe(0);
   });
@@ -25,17 +25,24 @@ describe("Backoff", () => {
     backoff.fail("b", 0);
     expect(backoff.waitMs("b", 20_000)).toBe(0);
   });
+
+  test("keeps at most ten thousand keys", () => {
+    const backoff = new Backoff(0, 1000, 8000);
+    for (let i = 0; i < 10_050; i += 1) backoff.fail(`k${i}`, 0);
+    expect(backoff.waitMs("k0", 0)).toBe(0);
+    expect(backoff.waitMs("k10049", 0)).toBe(1000);
+  });
 });
 
-describe("DailyCap", () => {
-  test("counts each key for one day", () => {
-    const cap = new DailyCap(2);
-    expect([cap.take("ip", 0), cap.take("ip", 1), cap.take("ip", 2)]).toEqual([
-      true,
-      true,
-      false,
-    ]);
-    expect(cap.take("ip", 24 * 3_600_000)).toBe(true);
+describe("FailureCap", () => {
+  test("counts failures only, for one day", () => {
+    const cap = new FailureCap(2);
+    expect(cap.blocked("ip", 0)).toBe(false);
+    cap.fail("ip", 0);
+    expect(cap.blocked("ip", 1)).toBe(false);
+    cap.fail("ip", 1);
+    expect(cap.blocked("ip", 2)).toBe(true);
+    expect(cap.blocked("ip", 24 * 3_600_000)).toBe(false);
   });
 });
 

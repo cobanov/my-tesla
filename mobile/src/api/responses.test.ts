@@ -101,8 +101,16 @@ describe("screen shapes", () => {
   test("check the sign-in answers of pairing", () => {
     const user = { name: "Ege", email: "ege@example.com", role: "admin" };
     expect(
-      pairClaim({ token: "t", status: "pending", user: { name: "Ege" } }),
+      pairClaim({
+        token: "t",
+        check: "0421",
+        status: "pending",
+        user: { name: "Ege" },
+      }),
     ).not.toBeNull();
+    expect(
+      pairClaim({ token: "t", status: "pending", user: { name: "Ege" } }),
+    ).toBeNull();
     expect(pairClaim({ token: "t", status: "active", user: {} })).toBeNull();
     expect(pairStatus({ status: "active", user })).not.toBeNull();
     expect(pairStatus({ status: "pending" })).not.toBeNull();

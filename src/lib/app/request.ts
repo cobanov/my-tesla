@@ -2,6 +2,7 @@ import "server-only";
 import { connection } from "next/server";
 import { findCar } from "../queries";
 import { getFormatter, getPreferences } from "../viewer";
+import { apiUnauthorized } from "../auth/session";
 
 const recordId = /^\d{1,9}$/;
 const maxBodyLength = 4_096;
@@ -23,6 +24,7 @@ export function parseId(value: string): number | null {
 
 export async function appContext(params: Promise<{ carId: string }>) {
   await connection();
+  if (await apiUnauthorized()) return null;
   const { carId } = await params;
   const id = parseId(carId);
   const [car, f, preferences] = await Promise.all([

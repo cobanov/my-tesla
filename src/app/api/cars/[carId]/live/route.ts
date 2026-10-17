@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { watchLive } from "@/lib/live/live";
+import { apiUnauthorized } from "@/lib/auth/session";
 
 const coalesceMs = 1_000;
 const heartbeatMs = 25_000;
@@ -9,6 +10,8 @@ export async function GET(
   context: RouteContext<"/api/cars/[carId]/live">,
 ) {
   await connection();
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   const carId = Number((await context.params).carId);
   if (!Number.isInteger(carId) || carId <= 0) {
     return new Response(null, { status: 404 });
