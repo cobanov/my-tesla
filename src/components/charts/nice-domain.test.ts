@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { niceDomain } from "./nice-domain";
+import { evenTicks, niceDomain, niceZeroDomain } from "./nice-domain";
 
 describe("niceDomain", () => {
   test("puts five even ticks around the values", () => {
@@ -23,5 +23,29 @@ describe("niceDomain", () => {
 
   test("gives no domain without values", () => {
     expect(niceDomain([])).toBeUndefined();
+  });
+});
+
+describe("niceZeroDomain", () => {
+  test("starts at zero and ends close above the largest value", () => {
+    expect(niceZeroDomain([0, 118])).toEqual([0, 125]);
+    expect(niceZeroDomain([12, 76])).toEqual([0, 80]);
+    expect(niceZeroDomain([0.4])).toEqual([0, 0.5]);
+  });
+
+  test("falls back to the even domain for negative values", () => {
+    expect(niceZeroDomain([-40, 120])).toEqual(niceDomain([-40, 120]));
+  });
+
+  test("gives no domain without values", () => {
+    expect(niceZeroDomain([])).toBeUndefined();
+  });
+});
+
+describe("evenTicks", () => {
+  test("splits a domain into even steps", () => {
+    expect(evenTicks([0, 125])).toEqual([0, 25, 50, 75, 100, 125]);
+    expect(evenTicks([0, 80])).toEqual([0, 20, 40, 60, 80]);
+    expect(evenTicks([59.5, 61.5])).toEqual([59.5, 60, 60.5, 61, 61.5]);
   });
 });

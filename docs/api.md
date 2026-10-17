@@ -68,6 +68,19 @@ The example shows some of the fields. Each response has the header `Cache-Contro
 
 `enabled` is `false` without `MQTT_URL` and in demo mode, and `PUT` and `POST` then answer 409. An unknown event or a token in another form gives 400.
 
+## App API
+
+The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. Unlike the endpoints above, these answers are formatted for the person who asks: the server applies the units, the number style, the date and clock format, the currency, the time zone, the place names, and the map setting from Settings, as it does for the pages. A request with a service token uses the Settings of the shared `owner` user.
+
+| Endpoint | Screen |
+|---|---|
+| `overview` | The Overview: battery, stats, the Live card, Today, tires, location, the last drive and charge |
+| `drives`, `drives/{driveId}`, `trips/{tripId}` | The trip list, a drive with its charts, and a trip with its legs and stops |
+| `charges`, `charges/{chargeId}` | The charge list, and a charge with its figures, cost breakdown, and charts |
+| `battery?period=30d` | The Battery page in panels. `period` is `7d`, `30d`, `90d`, `1y`, or `all`. |
+
+`src/lib/app/contract.ts` defines every answer. A chart comes with its points in the user's units, the axis ticks, and the tooltip labels, so the app only draws it. The shape follows the app and can change in any release, so scripts should use `summary.json` and the exports.
+
 ## Call the API through Cloudflare Access
 
 A script cannot do the login in a browser. Give it a Cloudflare Access service token:
