@@ -15,6 +15,10 @@ type CarState = {
 
 const CarContext = createContext<CarState | null>(null);
 
+export async function rememberCar(carId: number): Promise<void> {
+  await SecureStore.setItemAsync(storageKey, String(carId));
+}
+
 export function CarProvider({ children }: { children: ReactNode }) {
   const cars = useCars();
   const [chosen, setChosen] = useState<number | null>(null);

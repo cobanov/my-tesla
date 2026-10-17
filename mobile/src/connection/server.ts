@@ -55,6 +55,23 @@ export function parseConnection(stored: string | null): Connection | null {
   }
 }
 
+export type Pairing = { connection: Connection; carId: number | null };
+
+const pairingPrefix = "mytesla://connect?";
+
+export function pairingOf(text: string): Pairing | null {
+  if (!text.startsWith(pairingPrefix)) return null;
+  const params = new URLSearchParams(text.slice(pairingPrefix.length));
+  const connection = connectionOf({
+    url: params.get("url") ?? "",
+    clientId: params.get("id") ?? undefined,
+    clientSecret: params.get("secret") ?? undefined,
+  });
+  if (!connection) return null;
+  const car = params.get("car") ?? "";
+  return { connection, carId: /^\d{1,9}$/.test(car) ? Number(car) : null };
+}
+
 export function accessHeaders(connection: Connection): Record<string, string> {
   return connection.clientId && connection.clientSecret
     ? {

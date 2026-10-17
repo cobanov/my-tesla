@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   accessHeaders,
   connectionOf,
+  pairingOf,
   parseConnection,
   serverUrl,
 } from "./server";
@@ -72,5 +73,40 @@ describe("accessHeaders", () => {
         clientSecret: null,
       }),
     ).toEqual({});
+  });
+});
+
+describe("pairingOf", () => {
+  test("reads the code from Settings on the web", () => {
+    expect(
+      pairingOf(
+        "mytesla://connect?url=https%3A%2F%2Ftesla.example.com&car=2&id=id.access&secret=a%2Bb%2Fc",
+      ),
+    ).toEqual({
+      connection: {
+        url: "https://tesla.example.com",
+        clientId: "id.access",
+        clientSecret: "a+b/c",
+      },
+      carId: 2,
+    });
+    expect(
+      pairingOf("mytesla://connect?url=http%3A%2F%2F192.168.68.103%3A3919"),
+    ).toEqual({
+      connection: {
+        url: "http://192.168.68.103:3919",
+        clientId: null,
+        clientSecret: null,
+      },
+      carId: null,
+    });
+  });
+
+  test("refuses another code, a missing address, and half a token", () => {
+    expect(pairingOf("https://tesla.example.com")).toBeNull();
+    expect(pairingOf("mytesla://connect?car=2")).toBeNull();
+    expect(
+      pairingOf("mytesla://connect?url=tesla.example.com&id=only-id"),
+    ).toBeNull();
   });
 });

@@ -44,6 +44,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      "expo-camera",
+      {
+        cameraPermission:
+          "My Tesla scans the code in Settings on the web to connect to your server.",
+        microphonePermission: false,
+        recordAudioAndroid: false,
+      },
+    ],
+    [
       "expo-notifications",
       { icon: "./assets/notification-icon.png", color: "#3e6ae1" },
     ],
