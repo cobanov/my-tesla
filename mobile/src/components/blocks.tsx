@@ -3,7 +3,11 @@ import { StyleSheet, View } from "react-native";
 import { space } from "@/theme/tokens";
 import { toneColor } from "@/theme/tones";
 import { usePalette } from "@/theme/use-palette";
+import type { TabStack } from "@/navigation/targets";
 import { Chart } from "./chart";
+import { Heatmap } from "./heatmap";
+import { Notice } from "./notice";
+import { Records } from "./records";
 import { StatGrid } from "./stat";
 import { Text } from "./text";
 
@@ -15,42 +19,34 @@ function Shares({
   const palette = usePalette();
   return (
     <View style={styles.shares}>
-      {rows.map((row) => {
-        const percent = `${Math.round(row.share * 100)}%`;
-        return (
-          <View
-            key={row.label}
-            accessible
-            accessibilityLabel={[row.label, row.detail, percent]
-              .filter(Boolean)
-              .join(", ")}
-          >
-            <View style={styles.shareText}>
-              <Text variant="label" tone="foreground">
-                {row.label}
-              </Text>
-              <Text variant="label" style={styles.tabular}>
-                {row.detail ? `${row.detail} · ` : ""}
-                {percent}
-              </Text>
-            </View>
-            <View
-              style={[styles.shareTrack, { backgroundColor: palette.muted }]}
-            >
-              <View
-                style={[
-                  styles.shareFill,
-                  {
-                    width: `${row.share * 100}%`,
-                    backgroundColor:
-                      row.color === "charge" ? palette.charge : palette.primary,
-                  },
-                ]}
-              />
-            </View>
+      {rows.map((row) => (
+        <View
+          key={row.label}
+          accessible
+          accessibilityLabel={`${row.label}, ${row.text}`}
+        >
+          <View style={styles.shareText}>
+            <Text variant="label" tone="foreground">
+              {row.label}
+            </Text>
+            <Text variant="label" style={styles.tabular}>
+              {row.text}
+            </Text>
           </View>
-        );
-      })}
+          <View style={[styles.shareTrack, { backgroundColor: palette.muted }]}>
+            <View
+              style={[
+                styles.shareFill,
+                {
+                  width: `${row.share * 100}%`,
+                  backgroundColor:
+                    row.color === "charge" ? palette.charge : palette.primary,
+                },
+              ]}
+            />
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
@@ -139,7 +135,7 @@ function Progress({
   );
 }
 
-export function Block({ block }: { block: AppBlock }) {
+export function Block({ block, stack }: { block: AppBlock; stack: TabStack }) {
   switch (block.kind) {
     case "stats":
       return <StatGrid stats={block.stats} />;
@@ -151,6 +147,12 @@ export function Block({ block }: { block: AppBlock }) {
       return <Table block={block} />;
     case "progress":
       return <Progress block={block} />;
+    case "records":
+      return <Records rows={block.rows} stack={stack} />;
+    case "heatmap":
+      return <Heatmap block={block} />;
+    case "notice":
+      return <Notice text={block.text} />;
     case "note":
       return (
         <Text variant="label" tone="subtle" style={styles.note}>

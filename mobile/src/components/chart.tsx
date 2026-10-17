@@ -1,7 +1,7 @@
 import type { AppChart, AppChartSeries } from "@contract";
 import { useState } from "react";
 import { StyleSheet, View, type GestureResponderEvent } from "react-native";
-import Svg, { G, Line, Path, Rect } from "react-native-svg";
+import Svg, { Circle, G, Line, Path, Rect } from "react-native-svg";
 import { space } from "@/theme/tokens";
 import { chartColor } from "@/theme/tones";
 import { usePalette } from "@/theme/use-palette";
@@ -155,6 +155,24 @@ export function Chart({
                         rx={2}
                         fill={color}
                         opacity={active === null || active === index ? 1 : 0.5}
+                      />
+                    );
+                  });
+                }
+                if (series.kind === "dot") {
+                  return chart.points.map((entry, index) => {
+                    const value = entry.values[seriesIndex];
+                    if (value === null || value === undefined) return null;
+                    return (
+                      <Circle
+                        key={`${series.key}-${index}`}
+                        cx={xs[index]}
+                        cy={yOf(value, series.axis)}
+                        r={active === index ? 5 : 3}
+                        fill={color}
+                        opacity={
+                          active === null || active === index ? 0.75 : 0.35
+                        }
                       />
                     );
                   });

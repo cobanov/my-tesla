@@ -20,7 +20,7 @@ export type AppChartSeries = {
   label: string;
   unit: string;
   color: ChartColor;
-  kind: "area" | "line" | "bar";
+  kind: "area" | "line" | "bar" | "dot";
   axis: "left" | "right";
   digits: number;
 };
@@ -144,6 +144,19 @@ export type PeriodId = "7d" | "30d" | "90d" | "1y" | "all";
 
 export type ShareColor = "primary" | "charge";
 
+export type AppRecord = {
+  key: string;
+  rank: number | null;
+  title: string;
+  badge: "AC" | "DC" | null;
+  value: string | null;
+  detail: string | null;
+  note: string | null;
+  bar: { share: number; color: ShareColor } | null;
+  target: AppTarget | null;
+  links: { label: string; target: AppTarget }[];
+};
+
 export type AppBlock =
   | { kind: "stats"; stats: AppStat[] }
   | { kind: "chart"; chart: AppChart }
@@ -152,10 +165,19 @@ export type AppBlock =
       rows: {
         label: string;
         share: number;
-        detail: string | null;
+        text: string;
         color: ShareColor;
       }[];
     }
+  | { kind: "records"; rows: AppRecord[] }
+  | {
+      kind: "heatmap";
+      rows: { label: string; values: number[] }[];
+      hours: string[];
+      max: number;
+      unit: string;
+    }
+  | { kind: "notice"; text: string }
   | {
       kind: "table";
       columns: string[];
@@ -179,6 +201,7 @@ export type AppSection = {
 
 export type InsightPage = {
   title: string;
+  subtitle: string | null;
   period: PeriodId;
   periods: { id: PeriodId; label: string }[];
   hero: AppStat[];

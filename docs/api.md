@@ -77,7 +77,7 @@ The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. 
 | `overview` | The Overview: battery, stats, the Live card, Today, tires, location, the last drive and charge |
 | `drives`, `drives/{driveId}`, `trips/{tripId}` | The trip list, a drive with its charts, and a trip with its legs and stops |
 | `charges`, `charges/{chargeId}` | The charge list, and a charge with its figures, cost breakdown, and charts |
-| `battery?period=30d` | The Battery page in panels. `period` is `7d`, `30d`, `90d`, `1y`, or `all`. |
+| `battery`, `stats`, `places` | The Battery, Stats, and Places pages in panels. Add `?period=` with `7d`, `30d`, `90d`, `1y`, or `all`. Without it, the user's default period applies. |
 
 `src/lib/app/contract.ts` defines every answer. A chart comes with its points in the user's units, the axis ticks, and the tooltip labels, so the app only draws it. The shape follows the app and can change in any release, so scripts should use `summary.json` and the exports.
 

@@ -25,7 +25,7 @@ import {
   type PeriodId,
 } from "../insights";
 import { buildChart } from "./chart";
-import type { InsightPage } from "./contract";
+import type { InsightPage, ShareColor } from "./contract";
 import { chartBlock, panel, periodChoices, periodLabel } from "./panels";
 import { appStat, appValue } from "./values";
 
@@ -40,6 +40,26 @@ export type BatteryInput = {
 };
 
 const idleRows = 8;
+
+function percentText(share: number): string {
+  return `${Math.round(share * 100)}%`;
+}
+
+function kwhShare(
+  label: string,
+  kwh: number,
+  total: number,
+  color: ShareColor,
+  f: Formatter,
+) {
+  const share = total ? kwh / total : 0;
+  return {
+    label,
+    share,
+    text: `${f.number(kwh)} kWh · ${percentText(share)}`,
+    color,
+  };
+}
 
 export function batteryPage(
   input: BatteryInput,
@@ -63,6 +83,7 @@ export function batteryPage(
   const style = f.chartStyle;
   return {
     title: "Battery",
+    subtitle: null,
     period,
     periods: periodChoices(),
     hero: [
@@ -194,18 +215,14 @@ export function batteryPage(
                   {
                     kind: "shares",
                     rows: [
-                      {
-                        label: "AC",
-                        share: totalCharged ? totals.acKwh / totalCharged : 0,
-                        detail: `${f.number(totals.acKwh)} kWh`,
-                        color: "charge",
-                      },
-                      {
-                        label: "DC fast",
-                        share: totalCharged ? totals.dcKwh / totalCharged : 0,
-                        detail: `${f.number(totals.dcKwh)} kWh`,
-                        color: "primary",
-                      },
+                      kwhShare("AC", totals.acKwh, totalCharged, "charge", f),
+                      kwhShare(
+                        "DC fast",
+                        totals.dcKwh,
+                        totalCharged,
+                        "primary",
+                        f,
+                      ),
                     ],
                   },
                 ]
@@ -227,7 +244,7 @@ export function batteryPage(
                     rows: [...shares].reverse().map((band) => ({
                       label: band.label,
                       share: band.share,
-                      detail: null,
+                      text: percentText(band.share),
                       color: "primary" as const,
                     })),
                   },

@@ -172,4 +172,31 @@ describe("buildChart", () => {
     expect(new Set(labels).size).toBe(labels.length);
     expect(labels).toEqual(["59%", "60%", "61%", "62%"]);
   });
+
+  test("puts the ticks of a bar chart on its buckets", () => {
+    const chart = buildChart({
+      title: "Charge levels",
+      rows: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map((level) => ({
+        level,
+        start: 1,
+      })),
+      xKey: "level",
+      xFormat: "percent",
+      style,
+      left: "zero",
+      series: [
+        {
+          key: "start",
+          label: "Start",
+          unit: "",
+          color: "chart3",
+          kind: "bar",
+        },
+      ],
+    });
+    const levels = chart?.points.map((point) => point.x) ?? [];
+    expect(chart?.x.ticks.every((tick) => levels.includes(tick.value))).toBe(
+      true,
+    );
+  });
 });

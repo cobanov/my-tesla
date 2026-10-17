@@ -18,7 +18,7 @@ type ChartSeriesInput = {
   label: string;
   unit: string;
   color: ChartColor;
-  kind?: "area" | "line" | "bar";
+  kind?: "area" | "line" | "bar" | "dot";
   axis?: "left" | "right";
   digits?: number;
 };
@@ -37,6 +37,7 @@ export type ChartInput = {
   left?: AxisMode;
   right?: AxisMode;
   leftFormat?: AxisFormat;
+  xUnit?: string;
 };
 
 const minuteMs = 60_000;
@@ -132,7 +133,9 @@ function xTicks(
   domain: [number, number],
   format: AxisFormat,
   style: ChartStyle,
+  bars: boolean,
 ): AppTick[] {
+  if (bars) return indexTicks(xs, format, style);
   if (format === "clock") return clockTicks(domain, style);
   if (format === "percent" || format === "number") {
     return stepTicks(domain, format, style);
@@ -162,7 +165,9 @@ export function buildChart(input: ChartInput): AppChart | null {
     return [
       {
         x,
-        label: formatTooltipLabel(x, input.xFormat, style),
+        label: input.xUnit
+          ? `${formatTooltipLabel(x, input.xFormat, style)} ${input.xUnit}`
+          : formatTooltipLabel(x, input.xFormat, style),
         values: input.series.map((series) => row[series.key] ?? null),
       },
     ];
@@ -186,7 +191,13 @@ export function buildChart(input: ChartInput): AppChart | null {
     points,
     x: {
       domain: xDomain,
-      ticks: xTicks(xs, xDomain, input.xFormat, style),
+      ticks: xTicks(
+        xs,
+        xDomain,
+        input.xFormat,
+        style,
+        series.some((entry) => entry.kind === "bar"),
+      ),
     },
     left: axis(
       finiteValues(rows, keysOn("left")),

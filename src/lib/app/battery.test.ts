@@ -65,8 +65,18 @@ describe("batteryPage", () => {
     expect(energy?.blocks[1]).toMatchObject({
       kind: "shares",
       rows: [
-        { label: "AC", share: 0.75, color: "charge" },
-        { label: "DC fast", share: 0.25, color: "primary" },
+        {
+          label: "AC",
+          share: 0.75,
+          text: "75 kWh · 75%",
+          color: "charge",
+        },
+        {
+          label: "DC fast",
+          share: 0.25,
+          text: "25 kWh · 25%",
+          color: "primary",
+        },
       ],
     });
     expect(page.sections[1]?.subtitle).toBe("All records");
