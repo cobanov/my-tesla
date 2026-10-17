@@ -16,6 +16,7 @@ import {
   geofenceList,
   visitedPlaces,
 } from "@/lib/places-data";
+import { placesFigures } from "@/lib/places-figures";
 import { toElevation } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -47,24 +48,18 @@ export default async function PlacesPage({
     frequentRoutes(car.id, from, f.timeZone),
   ]);
 
-  const top = visited.slice(0, 10);
-  const mostVisits = Math.max(1, ...top.map((place) => place.visits));
-  const longest = [...visited].sort((a, b) => b.parkedS - a.parkedS)[0];
-  const parkedTotal = visited.reduce((sum, place) => sum + place.parkedS, 0);
-  const chargingKeys = new Set(charging.map((place) => place.key));
+  const {
+    top,
+    mostVisits,
+    longest,
+    parkedTotal,
+    arrivals,
+    chargingKeys,
+    chargedTotal,
+    visitsByFence,
+    chargesByFence,
+  } = placesFigures(visited, charging);
   const visitKeys = new Set(visited.map((place) => place.key));
-  const chargedTotal = charging.reduce((sum, place) => sum + place.addedKwh, 0);
-  const visitsByFence = new Map(
-    visited
-      .filter((place) => place.geofenceId !== null)
-      .map((place) => [place.geofenceId, place]),
-  );
-  const chargesByFence = new Map(
-    charging
-      .filter((place) => place.geofenceId !== null)
-      .map((place) => [place.geofenceId, place]),
-  );
-
   const mapPlaces: MapPlace[] = [
     ...visited.slice(0, 40).flatMap((place): MapPlace[] =>
       place.latitude === null || place.longitude === null
@@ -121,7 +116,7 @@ export default async function PlacesPage({
           size="lg"
           label="Places"
           value={visited.length}
-          detail={`${visited.reduce((sum, place) => sum + place.visits, 0)} arrivals`}
+          detail={`${arrivals} arrivals`}
         />
         <Metric
           size="lg"
