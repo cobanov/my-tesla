@@ -23,6 +23,12 @@ describe("settingsPage", () => {
         label: "Automatic (Europe/Berlin)",
       });
     }
+    expect(page.groups[4]?.items.map((item) => item.key)).toEqual([
+      "placeNames",
+      "addressDetail",
+      "maps",
+      "mapTheme",
+    ]);
     expect(page.groups[5]?.items[1]).toEqual({
       key: "overview.render",
       kind: "switch",

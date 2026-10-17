@@ -147,7 +147,7 @@ describe("placesPage", () => {
   };
 
   test("ranks the places and marks a place with charges", () => {
-    const page = placesPage(input, defaultPreferences, "30d", f, now);
+    const page = placesPage(input, defaultPreferences, "30d", f, now, true);
     expect(page.hero[1]?.value.text).toBe("100%");
     const [visited] = blocksOf(page, "Most visited");
     expect(visited).toMatchObject({
@@ -169,12 +169,74 @@ describe("placesPage", () => {
   });
 
   test("explains an empty route list and an empty geofence list", () => {
-    const page = placesPage(input, defaultPreferences, "30d", f, now);
+    const page = placesPage(input, defaultPreferences, "30d", f, now, true);
     expect(blocksOf(page, "Frequent routes")).toEqual([
       { kind: "note", text: "No route with 3 drives or more in this period." },
     ]);
     expect(blocksOf(page, "Geofences")).toEqual([
       { kind: "note", text: "No saved places yet." },
     ]);
+  });
+
+  test("puts the places with a position on the map, unless maps are off", () => {
+    const placed: PlacesInput = {
+      ...input,
+      visited: [
+        { ...input.visited[0]!, latitude: 40.76, longitude: 29.92 },
+        { ...input.visited[0]!, key: "g2", label: "Office", latitude: null },
+      ],
+      charging: [
+        {
+          ...input.charging[0]!,
+          key: "c9",
+          label: "Supercharger",
+          sessions: 1,
+          latitude: 40.8,
+          longitude: 29.4,
+        },
+      ],
+    };
+    expect(
+      blocksOf(
+        placesPage(placed, defaultPreferences, "30d", f, now, true),
+        "Map",
+      ),
+    ).toEqual([
+      {
+        kind: "map",
+        places: [
+          {
+            key: "g1",
+            label: "Home",
+            detail: "20 visits",
+            latitude: 40.76,
+            longitude: 29.92,
+            weight: 20,
+            kind: "visit",
+          },
+          {
+            key: "c9",
+            label: "Supercharger",
+            detail: "1 charge",
+            latitude: 40.8,
+            longitude: 29.4,
+            weight: 1,
+            kind: "charge",
+          },
+        ],
+      },
+    ]);
+    expect(
+      blocksOf(
+        placesPage(placed, defaultPreferences, "30d", f, now, false),
+        "Map",
+      ),
+    ).toEqual([{ kind: "note", text: "Maps are off in Settings." }]);
+    expect(
+      blocksOf(
+        placesPage(input, defaultPreferences, "30d", f, now, true),
+        "Map",
+      ),
+    ).toEqual([{ kind: "note", text: "No record yet." }]);
   });
 });

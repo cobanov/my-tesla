@@ -206,6 +206,14 @@ describe("tripDetail", () => {
       ["drive", { kind: "drive", id: 12 }],
     ]);
     expect(detail.routes).toHaveLength(2);
-    expect(tripDetail(trips[1]!, routes, car, f, now, false).routes).toBeNull();
+    expect(detail.markers?.map((marker) => marker.kind)).toEqual([
+      "start",
+      "charge",
+      "end",
+    ]);
+    expect(detail.markers?.[0]).toMatchObject({ longitude: 29, latitude: 41 });
+    const hidden = tripDetail(trips[1]!, routes, car, f, now, false);
+    expect(hidden.routes).toBeNull();
+    expect(hidden.markers).toBeNull();
   });
 });

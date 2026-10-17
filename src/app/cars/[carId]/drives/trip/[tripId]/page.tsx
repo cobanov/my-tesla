@@ -2,7 +2,7 @@ import { BatteryCharging, CirclePause, Route } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
-import { MapsOff, TripMap, type TripMarker } from "@/components/maps";
+import { MapsOff, TripMap } from "@/components/maps";
 import { Stat } from "@/components/overview/stat";
 import { PageTransition } from "@/components/page-transition";
 import { TripRow } from "@/components/trip-row";
@@ -10,9 +10,9 @@ import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
+import { tripMarkers } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import { tripRoutes } from "@/lib/queries";
-import type { LngLat } from "@/lib/route";
 import {
   stopDetail,
   stopsText,
@@ -20,7 +20,6 @@ import {
   tripOrigin,
   tripSteps,
   tripSummary,
-  type Trip,
   type TripStep,
 } from "@/lib/trip";
 import { findTrip } from "@/lib/trip-data";
@@ -32,51 +31,6 @@ export const metadata: Metadata = { title: "Trip" };
 
 function parseTripId(value: string): number | null {
   return /^\d{1,9}$/.test(value) ? Number(value) : null;
-}
-
-function markerAt(
-  point: LngLat | undefined,
-  marker: Omit<TripMarker, "longitude" | "latitude">,
-): TripMarker[] {
-  return point ? [{ ...marker, longitude: point[0], latitude: point[1] }] : [];
-}
-
-function tripMarkers(
-  trip: Trip,
-  routes: Map<number, LngLat[]>,
-  f: Formatter,
-): TripMarker[] {
-  const firstDrive = trip.drives[0];
-  const lastDrive = trip.drives[trip.drives.length - 1];
-  const stops = trip.stops.flatMap((stop, index) => {
-    const [charge] = stop.charges;
-    const charged: LngLat | undefined =
-      charge && charge.longitude !== null && charge.latitude !== null
-        ? [charge.longitude, charge.latitude]
-        : undefined;
-    const arrived = trip.legs[index].drives.at(-1);
-    return markerAt(charged ?? (arrived && routes.get(arrived.id)?.at(-1)), {
-      key: `stop-${index}`,
-      kind: stop.charged ? "charge" : "stop",
-      label: stop.place,
-      detail: stopDetail(stop, f),
-    });
-  });
-  return [
-    ...markerAt(routes.get(firstDrive.id)?.[0], {
-      key: "start",
-      kind: "start",
-      label: trip.from,
-      detail: f.clock(trip.startAt),
-    }),
-    ...stops,
-    ...markerAt(routes.get(lastDrive.id)?.at(-1), {
-      key: "end",
-      kind: "end",
-      label: trip.to,
-      detail: f.clock(trip.endAt),
-    }),
-  ];
 }
 
 function StepRow({

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BackLink } from "@/components/back-link";
 import { DayHeading } from "@/components/day-list";
 import { DownloadLink } from "@/components/download-link";
-import { MapsOff, TripMap, type TripMarker } from "@/components/maps";
+import { MapsOff, TripMap } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { TripRow } from "@/components/trip-row";
@@ -12,6 +12,7 @@ import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
+import type { TripMarker } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import { tripRoutes } from "@/lib/queries";
 import {

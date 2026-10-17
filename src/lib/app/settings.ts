@@ -8,6 +8,7 @@ import {
   currencyOptions,
   distanceOptions,
   mapOptions,
+  mapThemeOptions,
   numberStyleOptions,
   overviewKeys,
   parsePreferences,
@@ -50,6 +51,7 @@ const choiceKeys = [
   "placeNames",
   "addressDetail",
   "maps",
+  "mapTheme",
   "period",
 ] as const;
 
@@ -210,6 +212,7 @@ export function settingsPage(
             addressDetailOptions,
           ),
           choice("maps", "Maps", preferences, mapOptions),
+          choice("mapTheme", "Map theme", preferences, mapThemeOptions),
         ],
       },
       {

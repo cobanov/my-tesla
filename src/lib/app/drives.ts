@@ -1,6 +1,7 @@
 import { assessConsumption, ratedWhPerKm } from "../assessment";
 import type { DriveEnergy, DrivePoint } from "../drive-series";
 import type { Formatter } from "../format";
+import { tripMarkers } from "../map-points";
 import type { Car, Drive } from "../queries";
 import {
   stopDetail,
@@ -291,5 +292,6 @@ export function tripDetail(
           return route && route.length > 1 ? [route] : [];
         })
       : null,
+    markers: showMaps ? tripMarkers(trip, routes, f) : null,
   };
 }

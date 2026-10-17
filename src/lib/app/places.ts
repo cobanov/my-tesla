@@ -1,5 +1,6 @@
 import type { Formatter } from "../format";
 import type { PeriodId } from "../insights";
+import { placesOnMap } from "../map-points";
 import type {
   ChargingPlace,
   FrequentRoute,
@@ -45,8 +46,10 @@ export function placesPage(
   period: PeriodId,
   f: Formatter,
   now: Date,
+  showMaps: boolean,
 ): InsightPage {
   const { visited, charging, geofences, routes } = input;
+  const mapPlaces = placesOnMap(visited, charging);
   const figures = placesFigures(visited, charging);
   const { longest, parkedTotal } = figures;
   return {
@@ -79,6 +82,11 @@ export function placesPage(
         subtitle: null,
         period: false,
         panels: [
+          panel("Map", [
+            !showMaps
+              ? { kind: "note", text: "Maps are off in Settings." }
+              : mapPlaces.length > 0 && { kind: "map", places: mapPlaces },
+          ]),
           panel("Most visited", [
             figures.top.length > 0 && {
               kind: "records",

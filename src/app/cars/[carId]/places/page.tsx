@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChargerBadge } from "@/components/charger-badge";
-import { MapsOff, PlacesMap, type MapPlace } from "@/components/maps";
+import { MapsOff, PlacesMap } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
@@ -9,6 +9,7 @@ import { PeriodLinks } from "@/components/period-links";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
+import { placesOnMap } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import {
   chargingPlaces,
@@ -59,41 +60,7 @@ export default async function PlacesPage({
     visitsByFence,
     chargesByFence,
   } = placesFigures(visited, charging);
-  const visitKeys = new Set(visited.map((place) => place.key));
-  const mapPlaces: MapPlace[] = [
-    ...visited.slice(0, 40).flatMap((place): MapPlace[] =>
-      place.latitude === null || place.longitude === null
-        ? []
-        : [
-            {
-              key: place.key,
-              label: place.label,
-              detail: `${place.visits} ${place.visits === 1 ? "visit" : "visits"}`,
-              latitude: place.latitude,
-              longitude: place.longitude,
-              weight: place.visits,
-              kind: chargingKeys.has(place.key) ? "both" : "visit",
-            },
-          ],
-    ),
-    ...charging
-      .filter((place) => !visitKeys.has(place.key))
-      .flatMap((place): MapPlace[] =>
-        place.latitude === null || place.longitude === null
-          ? []
-          : [
-              {
-                key: place.key,
-                label: place.label,
-                detail: `${place.sessions} ${place.sessions === 1 ? "charge" : "charges"}`,
-                latitude: place.latitude,
-                longitude: place.longitude,
-                weight: place.sessions,
-                kind: "charge",
-              },
-            ],
-      ),
-  ];
+  const mapPlaces = placesOnMap(visited, charging);
   const periodLabel =
     periods.find((candidate) => candidate.id === period)?.label ?? "";
 

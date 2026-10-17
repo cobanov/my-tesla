@@ -41,6 +41,25 @@ export type AppChart = {
 
 export type LngLat = [number, number];
 
+export type MapMarker = {
+  key: string;
+  kind: "start" | "end" | "stop" | "charge";
+  label: string;
+  detail: string;
+  latitude: number;
+  longitude: number;
+};
+
+export type MapPlace = {
+  key: string;
+  label: string;
+  detail: string;
+  latitude: number;
+  longitude: number;
+  weight: number;
+  kind: "visit" | "charge" | "both";
+};
+
 export type AppTarget =
   | { kind: "drive"; id: number }
   | { kind: "trip"; id: number }
@@ -101,6 +120,7 @@ export type TripDetail = {
   stats: AppStat[];
   steps: TripStepRow[];
   routes: LngLat[][] | null;
+  markers: MapMarker[] | null;
 };
 
 export type LevelRange = { start: number; end: number };
@@ -184,6 +204,7 @@ export type AppBlock =
       rows: { key: string; cells: AppValue[] }[];
     }
   | { kind: "progress"; share: number; start: string; end: string }
+  | { kind: "map"; places: MapPlace[] }
   | { kind: "note"; text: string };
 
 export type AppPanel = {

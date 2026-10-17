@@ -14,7 +14,7 @@ export async function GET(
 ) {
   const context = await appContext(params);
   if (!context) return appNotFound();
-  const { car, f, preferences, now } = context;
+  const { car, f, preferences, now, showMaps } = context;
   const period = readPeriod(
     new URL(request.url).searchParams.get("period") ?? undefined,
     preferences.period,
@@ -33,6 +33,7 @@ export async function GET(
       period,
       f,
       now,
+      showMaps,
     ),
   );
 }
