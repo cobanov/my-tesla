@@ -45,7 +45,7 @@ mobile/src/
 
 ## Navigation
 
-1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with four tabs: Overview, Drives, Charging, Insights. Add no fifth tab without a decision record. Android allows five tabs at most, and Apple asks for few.
+1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with four tabs: Overview, Drives, Charging, Insights. Insights switches Battery, Stats, and Places with a segmented control. The period control shows in the section that has `period: true`, or at the top when no section has it. Add no fifth tab without a decision record. Android allows five tabs at most, and Apple asks for few.
 2. Every tab with more than one screen is a folder with a `_layout.tsx` that renders a `Stack` and exports `unstable_settings = { anchor: "index" }`.
 3. The list screen of a tab uses a large title (`headerLargeTitleEnabled: true`). A detail screen sets its title from its data with `<Stack.Screen options={{ title }} />` inside the screen.
 4. Every `Stack` uses `screenOptions={useStackOptions()}` from `src/navigation/header.ts`, so the headers use Inter and the palette.
@@ -83,7 +83,8 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `Button`, `IconButton` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. An icon button needs a `label`. |
 | `Icon`, `icons` | A symbol with a name for each platform: an SF Symbol and a Material Symbol. The types reject a wrong name. Add new icons to `icons.ts`. |
 | `Chart` | An `AppChart` from the server. It draws areas, lines, and bars on one or two axes, and a scrubbing tooltip. |
-| `Block` | One block of an insight panel: stats, chart, shares, table, progress, or note |
+| `Block` | One block of an insight panel: stats, chart, shares, table, records, heatmap, progress, notice, or note. It takes the tab stack, so a record opens its target in the same tab. |
+| `Records`, `Heatmap` | A ranked list with a bar, a badge, links, and a target, and the drive starts by weekday and hour |
 | `Notice` | A warning line with an icon, for a server notice |
 | `EmptyState`, `Problem` | A list without records, and an error with a retry button |
 | `TripStrip`, `LevelBar`, `ChargerBadge`, `DayStrip`, `Battery`, `LivePanel` | The small parts of the dashboard, drawn the same way as on the web |

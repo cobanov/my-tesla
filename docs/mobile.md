@@ -10,6 +10,7 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 | Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car, and a gear button opens Settings. |
 | Drives | The trips by day. A trip opens its legs and stops, and a drive opens its figures and its speed, power, elevation, and battery charts. |
 | Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. Older and Newer step through the charges. |
+| Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. A longest drive or a frequent route opens its drive. |
 | Settings | The alerts that this phone gets, a test alert, and the server, with Disconnect |
 
 The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them on the web. Read [API](api.md#app-api).

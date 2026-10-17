@@ -6,7 +6,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ### Added
 
-- A mobile app for iOS and Android in `mobile/`, built with Expo SDK 58. It connects to a My Tesla server, with a Cloudflare Access service token when needed, and shows the Overview, the trips and drives, and the charges of each car in the style of the dashboard, with charts. It uses the units and formats from Settings. Read [Mobile app](docs/mobile.md).
+- A mobile app for iOS and Android in `mobile/`, built with Expo SDK 58. It connects to a My Tesla server, with a Cloudflare Access service token when needed, and shows the Overview, the trips and drives, the charges, and the Battery, Stats, and Places insights of each car in the style of the dashboard, with charts. It uses the units and formats from Settings. Read [Mobile app](docs/mobile.md).
 - Push alerts for the mobile app: charging started, complete, or stopped, a car left unlocked for 10 minutes, a software update, and a tire warning. They need the MQTT feed. Each phone chooses its alerts. [Decision 0020](docs/decisions/0020-mobile-app-and-push-alerts.md) explains the design, and [Privacy](docs/privacy.md) lists what the alerts send.
 - `GET /api/cars.json` lists the cars, `/api/push` registers a phone for alerts, and `/api/app/cars/{carId}/` gives the app its screens, formatted for the user. Read [API](docs/api.md).
 

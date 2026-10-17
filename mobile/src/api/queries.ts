@@ -105,10 +105,14 @@ export function useCharge(carId: number, chargeId: string) {
   });
 }
 
-export function useInsight(carId: number, kind: InsightKind, period: PeriodId) {
+export function useInsight(
+  carId: number,
+  kind: InsightKind,
+  period: PeriodId | null,
+) {
   return useAppQuery({
     key: ["insight", carId, kind, period],
-    path: `/api/app/cars/${carId}/${kind}?period=${period}`,
+    path: `/api/app/cars/${carId}/${kind}${period ? `?period=${period}` : ""}`,
     read: insightPage,
     keepPrevious: true,
   });

@@ -31,6 +31,10 @@ function Tabs() {
         <NativeTabs.Trigger.Label>Charging</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="bolt.fill" md="ev_station" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="insights">
+        <NativeTabs.Trigger.Label>Insights</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="chart.bar.fill" md="bar_chart" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

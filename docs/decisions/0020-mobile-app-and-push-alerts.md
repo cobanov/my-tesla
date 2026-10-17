@@ -2,7 +2,7 @@
 
 Date: 2026-10-17
 
-Status: Accepted. The app has Overview, Drives, Charging, and Settings.
+Status: Accepted. The app has Overview, Drives, Charging, Insights, and Settings.
 
 ## Context
 
