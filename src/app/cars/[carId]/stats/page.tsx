@@ -18,7 +18,6 @@ import {
   periodStart,
   periods,
   readPeriod,
-  temperatureBands,
   weekGrid,
 } from "@/lib/insights";
 import {
@@ -33,6 +32,15 @@ import {
   speedBandRows,
   recentTireLeaks,
 } from "@/lib/stats-data";
+import {
+  bucketRows,
+  efficiencyBands,
+  efficiencyScatter,
+  pressureRows,
+  statsTotals,
+  updateDays,
+  widestEfficiency,
+} from "@/lib/stats-figures";
 import { efficiencyDigits } from "@/lib/units";
 import { speedBands, speedEdges } from "@/lib/speed-bands";
 import { leakWarning } from "@/lib/tire-leak";
@@ -55,8 +63,6 @@ const colors = {
   rearLeft: "var(--chart-4)",
   rearRight: "var(--charge)",
 };
-
-const dayMs = 86_400_000;
 
 export default async function StatsPage({
   params,
@@ -102,55 +108,23 @@ export default async function StatsPage({
     recentTireLeaks(car.id, timeZone),
   ]);
 
-  const whPerKm = drives.distanceKm
-    ? (drives.usedKwh * 1000) / drives.distanceKm
-    : null;
-  const distanceTotal = f.distanceValue(drives.distanceKm) ?? 0;
-  const costPer100 =
-    charges.cost !== null && distanceTotal
-      ? (charges.cost / distanceTotal) * 100
-      : null;
+  const { whPerKm, distanceTotal, costPer100 } = statsTotals(
+    drives,
+    charges.cost,
+    f,
+  );
   const speeds = speedBands(speedRows, edges.shown);
-  const widestSpeed = Math.max(
-    1,
-    ...speeds.map((band) => f.efficiencyValue(band.whPerKm) ?? 0),
-  );
-  const fahrenheit = preferences.temperature === "f";
-  const bands = temperatureBands(
-    efficiency.map((point) => ({
-      ...point,
-      temperature: f.temperatureValue(point.temperature) ?? point.temperature,
-    })),
-    fahrenheit ? 10 : 5,
-  );
-  const widest = Math.max(
-    1,
-    ...bands.map((band) => f.efficiencyValue(band.whPerKm) ?? 0),
-  );
-  const round1 = (value: number | null) =>
-    value === null ? null : Math.round(value * 10) / 10;
+  const widestSpeed = widestEfficiency(speeds, f);
+  const bands = efficiencyBands(efficiency, f, preferences.temperature === "f");
+  const widest = widestEfficiency(bands, f);
   const grid = weekGrid(starts);
-  const series = buckets.map((bucket) => ({
-    at: bucket.at.getTime(),
-    distance: round1(f.distanceValue(bucket.distanceKm)),
-    used: round1(bucket.usedKwh),
-    charged: round1(bucket.chargedKwh),
-    cost: bucket.cost === null ? null : Math.round(bucket.cost * 100) / 100,
-    outside: round1(f.temperatureValue(bucket.outsideC)),
-    cabin: round1(f.temperatureValue(bucket.cabinC)),
-  }));
+  const series = bucketRows(buckets, f);
   const temperatures = series.flatMap((bucket) =>
     [bucket.outside, bucket.cabin].filter(
       (value): value is number => value !== null,
     ),
   );
-  const pressureSeries = pressure.map((point) => ({
-    at: point.at.getTime(),
-    frontLeft: f.pressureValue(point.frontLeft),
-    frontRight: f.pressureValue(point.frontRight),
-    rearLeft: f.pressureValue(point.rearLeft),
-    rearRight: f.pressureValue(point.rearRight),
-  }));
+  const pressureSeries = pressureRows(pressure, f);
   const pressureValues = pressureSeries.flatMap((point) =>
     [point.frontLeft, point.frontRight, point.rearLeft, point.rearRight].filter(
       (value): value is number => value !== null,
@@ -159,12 +133,7 @@ export default async function StatsPage({
   const pressureTooltipDigits = { bar: 2, psi: 1, kpa: 0 }[
     preferences.pressure
   ];
-  const scatter = efficiency
-    .filter((point) => point.distanceKm >= 3)
-    .map((point) => ({
-      x: f.temperatureValue(point.temperature) ?? point.temperature,
-      y: f.efficiencyValue((point.usedKwh * 1000) / point.distanceKm) ?? 0,
-    }));
+  const scatter = efficiencyScatter(efficiency, f);
   const periodLabel =
     periods.find((candidate) => candidate.id === period)?.label ?? "";
   const bucketLabel = { day: "day", week: "week", month: "month" }[unit];
@@ -610,14 +579,7 @@ export default async function StatsPage({
           <Panel title="Software">
             {updates.length ? (
               <ol className="relative space-y-5 before:absolute before:top-2 before:bottom-2 before:left-[3px] before:w-px before:bg-border">
-                {updates.map((update, index) => {
-                  const until = updates[index - 1]?.startAt ?? now;
-                  const days = Math.max(
-                    0,
-                    Math.round(
-                      (until.getTime() - update.startAt.getTime()) / dayMs,
-                    ),
-                  );
+                {updateDays(updates, now).map(({ update, days }, index) => {
                   return (
                     <li
                       key={update.startAt.getTime()}

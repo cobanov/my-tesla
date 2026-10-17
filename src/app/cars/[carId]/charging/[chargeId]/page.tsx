@@ -15,8 +15,8 @@ import { Panel, PanelNote } from "@/components/panel";
 import { requireCar } from "@/lib/car-route";
 import { assessChargingEfficiency, assessVoltage } from "@/lib/assessment";
 import { carPath } from "@/lib/car-slug";
-import { costBreakdown } from "@/lib/charge-cost";
 import { chargeCurve, findChargeSession } from "@/lib/charge-data";
+import { chargeFigures, powerByLevel } from "@/lib/charge-figures";
 import { getLive } from "@/lib/live/live";
 import { mapThemeOf } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
@@ -120,20 +120,7 @@ export default async function ChargePage({
       : null;
   const base = carPath(car, "/charging");
 
-  const byLevel = new Map<number, { sum: number; count: number }>();
-  for (const point of curve) {
-    if (point.level === null || point.power === null) continue;
-    const entry = byLevel.get(point.level) ?? { sum: 0, count: 0 };
-    entry.sum += point.power;
-    entry.count += 1;
-    byLevel.set(point.level, entry);
-  }
-  const powerByLevel = [...byLevel.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([level, entry]) => ({
-      level,
-      power: Math.round((entry.sum / entry.count) * 10) / 10,
-    }));
+  const levelPower = powerByLevel(curve);
   const timeSeries = curve.map((point) => ({
     at: point.at,
     battery: point.level,
@@ -149,35 +136,15 @@ export default async function ChargePage({
   const ongoing = session.endAt === null;
   const missing = ongoing ? ongoingText : "—";
   const added = session.energyAddedKwh;
-  const averagePower =
-    added !== null && session.durationMin
-      ? added / (session.durationMin / 60)
-      : null;
-  const efficiency =
-    added !== null && session.energyUsedKwh
-      ? (added / session.energyUsedKwh) * 100
-      : null;
-  const rangeAdded =
-    session.startRangeKm !== null && session.endRangeKm !== null
-      ? f.distanceValue(session.endRangeKm - session.startRangeKm)
-      : null;
-  const kind = session.fast
-    ? [session.brand, "DC fast charge"].filter(Boolean).join(" ")
-    : `AC${session.phases ? `, ${session.phases} phase` : ""}`;
-  const levelsAdded =
-    session.startLevel !== null && session.endLevel !== null
-      ? session.endLevel - session.startLevel
-      : null;
-  const breakdown = costBreakdown({
-    cost: session.cost,
-    addedKwh: added,
-    billedKwh: session.billedKwh,
+  const {
+    averagePower,
+    efficiency,
     rangeAdded,
     levelsAdded,
-  });
-  const costSource = session.costEstimated
-    ? "Estimate from your price"
-    : "Recorded in TeslaMate";
+    kind,
+    costSource,
+    breakdown,
+  } = chargeFigures(session, f);
   const settingsLink = (
     <Link
       href={carPath(car, "/settings#cost")}
@@ -390,9 +357,9 @@ export default async function ChargePage({
           </Panel>
         )}
         <Panel title="Power by battery level (kW)">
-          {powerByLevel.length > 1 ? (
+          {levelPower.length > 1 ? (
             <SeriesChart
-              data={powerByLevel}
+              data={levelPower}
               xKey="level"
               xFormat="percent"
               xLabel="Battery"

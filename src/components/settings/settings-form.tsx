@@ -32,6 +32,7 @@ import {
   weekStartOptions,
   type Preferences,
 } from "@/lib/preferences";
+import { previewRows } from "@/lib/settings-preview";
 import { unitLabels } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import {
@@ -42,16 +43,7 @@ import {
   SettingsSection,
   Toggle,
 } from "./controls";
-
-const sample = {
-  at: new Date("2026-09-08T11:05:00Z"),
-  distanceKm: 152.4,
-  temperatureC: 21.4,
-  pressureBar: 2.9,
-  whPerKm: 152,
-  speedKmh: 118,
-  cost: 1234.5,
-};
+import { PairingCodePanel } from "./pairing-code";
 
 const sections = [
   { id: "units", label: "Units" },
@@ -62,6 +54,7 @@ const sections = [
   { id: "display", label: "Display" },
   { id: "tabs", label: "Tabs" },
   { id: "overview", label: "Overview" },
+  { id: "mobile", label: "Mobile app" },
 ];
 
 type Status = "idle" | "saving" | "saved" | "error";
@@ -95,6 +88,7 @@ function StatusChip({ status }: { status: Status }) {
 export function SettingsForm({
   initial,
   defaults,
+  car,
   cars,
   timeZones,
   serverTimeZone,
@@ -102,6 +96,7 @@ export function SettingsForm({
 }: {
   initial: Preferences;
   defaults: Preferences;
+  car: { id: number; name: string };
   cars: { id: number; name: string }[];
   timeZones: string[];
   serverTimeZone: string;
@@ -200,16 +195,7 @@ export function SettingsForm({
       >
         <p className="text-xs text-subtle">Preview</p>
         <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-4">
-          {[
-            ["Distance", f.distance(sample.distanceKm)],
-            ["Speed", f.speed(sample.speedKmh)],
-            ["Outside", f.temperature(sample.temperatureC)],
-            ["Tire", f.pressure(sample.pressureBar)],
-            ["Efficiency", f.efficiency(sample.whPerKm)],
-            ["Cost", f.cost(sample.cost)],
-            ["Date", f.day(sample.at, new Date("2026-10-01T09:00:00Z"))],
-            ["Time", f.clock(sample.at)],
-          ].map(([label, value]) => (
+          {previewRows(f).map(([label, value]) => (
             <div key={label}>
               <dt className="text-xs text-muted-foreground">{label}</dt>
               <dd className="mt-0.5 font-medium tabular">{value}</dd>
@@ -584,6 +570,14 @@ export function SettingsForm({
                 }
               />
             ))}
+          </SettingsSection>
+
+          <SettingsSection
+            id="mobile"
+            title="Mobile app"
+            description="Connect the My Tesla app on a phone."
+          >
+            <PairingCodePanel carId={car.id} carName={car.name} />
           </SettingsSection>
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-8">

@@ -7,7 +7,8 @@
   ],
   "project": ["src/**/*.{ts,tsx,css}", "tools/**/*.{ts,mjs}"],
   "ignoreIssues": {
-    "src/components/ui/**": ["exports", "types"]
+    "src/components/ui/**": ["exports", "types"],
+    "src/lib/app/contract.ts": ["types"]
   },
   "ignoreBinaries": ["sips"]
 }

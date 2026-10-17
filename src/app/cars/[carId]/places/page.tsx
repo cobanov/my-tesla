@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChargerBadge } from "@/components/charger-badge";
-import { MapsOff, PlacesMap, type MapPlace } from "@/components/maps";
+import { MapsOff, PlacesMap } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
@@ -9,6 +9,7 @@ import { PeriodLinks } from "@/components/period-links";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
+import { placesOnMap } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import {
   chargingPlaces,
@@ -16,6 +17,7 @@ import {
   geofenceList,
   visitedPlaces,
 } from "@/lib/places-data";
+import { placesFigures } from "@/lib/places-figures";
 import { toElevation } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
@@ -47,58 +49,18 @@ export default async function PlacesPage({
     frequentRoutes(car.id, from, f.timeZone),
   ]);
 
-  const top = visited.slice(0, 10);
-  const mostVisits = Math.max(1, ...top.map((place) => place.visits));
-  const longest = [...visited].sort((a, b) => b.parkedS - a.parkedS)[0];
-  const parkedTotal = visited.reduce((sum, place) => sum + place.parkedS, 0);
-  const chargingKeys = new Set(charging.map((place) => place.key));
-  const visitKeys = new Set(visited.map((place) => place.key));
-  const chargedTotal = charging.reduce((sum, place) => sum + place.addedKwh, 0);
-  const visitsByFence = new Map(
-    visited
-      .filter((place) => place.geofenceId !== null)
-      .map((place) => [place.geofenceId, place]),
-  );
-  const chargesByFence = new Map(
-    charging
-      .filter((place) => place.geofenceId !== null)
-      .map((place) => [place.geofenceId, place]),
-  );
-
-  const mapPlaces: MapPlace[] = [
-    ...visited.slice(0, 40).flatMap((place): MapPlace[] =>
-      place.latitude === null || place.longitude === null
-        ? []
-        : [
-            {
-              key: place.key,
-              label: place.label,
-              detail: `${place.visits} ${place.visits === 1 ? "visit" : "visits"}`,
-              latitude: place.latitude,
-              longitude: place.longitude,
-              weight: place.visits,
-              kind: chargingKeys.has(place.key) ? "both" : "visit",
-            },
-          ],
-    ),
-    ...charging
-      .filter((place) => !visitKeys.has(place.key))
-      .flatMap((place): MapPlace[] =>
-        place.latitude === null || place.longitude === null
-          ? []
-          : [
-              {
-                key: place.key,
-                label: place.label,
-                detail: `${place.sessions} ${place.sessions === 1 ? "charge" : "charges"}`,
-                latitude: place.latitude,
-                longitude: place.longitude,
-                weight: place.sessions,
-                kind: "charge",
-              },
-            ],
-      ),
-  ];
+  const {
+    top,
+    mostVisits,
+    longest,
+    parkedTotal,
+    arrivals,
+    chargingKeys,
+    chargedTotal,
+    visitsByFence,
+    chargesByFence,
+  } = placesFigures(visited, charging);
+  const mapPlaces = placesOnMap(visited, charging);
   const periodLabel =
     periods.find((candidate) => candidate.id === period)?.label ?? "";
 
@@ -121,7 +83,7 @@ export default async function PlacesPage({
           size="lg"
           label="Places"
           value={visited.length}
-          detail={`${visited.reduce((sum, place) => sum + place.visits, 0)} arrivals`}
+          detail={`${arrivals} arrivals`}
         />
         <Metric
           size="lg"

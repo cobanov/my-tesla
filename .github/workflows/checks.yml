@@ -18,6 +18,7 @@ jobs:
       - name: Prepare the selected toolchain
         run: |
           bun install --frozen-lockfile
+          bun install --cwd mobile --frozen-lockfile
       - name: Project checks
         run: python3 tools/quality.py check
       - name: Build

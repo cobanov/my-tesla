@@ -37,6 +37,8 @@ The value comes from `time_to_full_charge`, the estimate that the car calculates
 
 [Decision 0008](decisions/0008-mqtt-live-status.md) explains the design.
 
+The same feed drives the push alerts of the [mobile app](mobile.md#push-alerts).
+
 ## Set up the broker
 
 These steps add Mosquitto to the Docker Compose file of TeslaMate. Use two broker users: `teslamate` can write, and `mytesla` can only read.

@@ -1,3 +1,4 @@
+import type { CarIdentity } from "./app/contract";
 import type { LiveFeed } from "./live/live";
 import type { LiveView } from "./live/view";
 import type { Car, CarSnapshot } from "./queries";
@@ -57,7 +58,7 @@ type Navigation = {
 };
 
 export type CarSummary = {
-  car: { id: number; name: string; model: string; trim: string | null };
+  car: CarIdentity;
   state: CarActivity;
   stateSince: string | null;
   updatedAt: string | null;
@@ -155,16 +156,20 @@ function navigation(view: LiveView | null): Navigation | null {
   };
 }
 
+export function carIdentity(car: Car): CarIdentity {
+  return {
+    id: car.id,
+    name: car.name,
+    model: modelName(car.model),
+    trim: car.marketingName,
+  };
+}
+
 export function carSummary(input: SummaryInput): CarSummary {
   const { car, snapshot, live } = input;
   const liveNow = live?.connected ? live.view : null;
   const summary: CarSummary = {
-    car: {
-      id: car.id,
-      name: car.name,
-      model: modelName(car.model),
-      trim: car.marketingName,
-    },
+    car: carIdentity(car),
     state: liveActivity(liveNow?.state ?? null) ?? carActivity(snapshot),
     stateSince: iso(snapshot.stateSince),
     updatedAt: iso(snapshot.positionAt ?? snapshot.stateSince),

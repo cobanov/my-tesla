@@ -11,6 +11,7 @@ import {
   MarkerTooltip,
   useMap,
 } from "@/components/ui/map";
+import type { MapPlace, TripMarker } from "@/lib/map-points";
 import { routeBounds, type LngLat } from "@/lib/route";
 
 const electricBlue = "#3e6ae1";
@@ -172,16 +173,6 @@ export function RouteMap({
   );
 }
 
-export type MapPlace = {
-  key: string;
-  label: string;
-  detail: string;
-  latitude: number;
-  longitude: number;
-  weight: number;
-  kind: "visit" | "charge" | "both";
-};
-
 const placeDotTone: Record<MapPlace["kind"], string> = {
   visit: "border-2 border-white bg-primary",
   charge: "border-2 border-white bg-charge",
@@ -239,15 +230,6 @@ export function PlacesMap({
     </Map>
   );
 }
-
-export type TripMarker = {
-  key: string;
-  kind: "start" | "end" | "stop" | "charge";
-  label: string;
-  detail: string;
-  latitude: number;
-  longitude: number;
-};
 
 function TripDot({ kind }: { kind: TripMarker["kind"] }) {
   if (kind === "start" || kind === "end") return <EndPoint kind={kind} />;

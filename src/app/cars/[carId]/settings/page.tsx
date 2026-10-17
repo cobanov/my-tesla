@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default async function SettingsPage({
   params,
 }: PageProps<"/cars/[carId]/settings">) {
-  const [, preferences, defaults, cars, viewer] = await Promise.all([
+  const [car, preferences, defaults, cars, viewer] = await Promise.all([
     requireCar(params),
     getPreferences(),
     baseline(),
@@ -26,6 +26,7 @@ export default async function SettingsPage({
       <SettingsForm
         initial={preferences}
         defaults={defaults}
+        car={{ id: car.id, name: car.name }}
         cars={cars.map((car) => ({ id: car.id, name: car.name }))}
         timeZones={Intl.supportedValuesOf("timeZone")}
         serverTimeZone={readTimeZone(process.env)}

@@ -43,6 +43,7 @@ Other properties:
 - **Light and dark.** The theme follows the system, or you choose one in Settings.
 - **Value colors.** Consumption, charging efficiency, battery health, parked drain, and tire pressure show green when better than usual and red when worse. A tooltip gives the expected value. Read [Value colors](docs/value-colors.md).
 - **Phone ready.** Every page works at 390 px wide, with a bottom tab bar.
+- **Mobile app.** An Expo app for iOS and Android in `mobile/` shows the Overview, and the server can send push alerts for a finished charge, a car left unlocked, a software update, or a tire warning. Read [Mobile app](docs/mobile.md).
 
 ## Screenshots
 
@@ -127,6 +128,7 @@ The full guide is [Installation](docs/installation.md).
 | Environment variables and user settings | [Configuration](docs/configuration.md) |
 | Show live locks, charging, and navigation from MQTT | [Live status](docs/live-status.md) |
 | Get the car status as JSON, and the CSV and GPX exports | [API](docs/api.md) |
+| Run the iOS and Android app, and set up push alerts | [Mobile app](docs/mobile.md) |
 | Which outside services the browser contacts | [Privacy](docs/privacy.md) |
 | Run or deploy the public demo | [Demo site](docs/demo-site.md) |
 | Update the app and TeslaMate | [Upgrading](docs/upgrading.md) |

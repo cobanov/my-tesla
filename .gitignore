@@ -29,3 +29,15 @@ __pycache__/
 /.next-demo/
 /.data/
 /.next-build/
+/mobile/node_modules/
+/mobile/.expo/
+/mobile/dist/
+/mobile/ios/
+/mobile/android/
+/mobile/expo-env.d.ts
+/mobile/*.jks
+/mobile/*.p8
+/mobile/*.p12
+/mobile/*.key
+/mobile/*.mobileprovision
+/mobile/credentials.json

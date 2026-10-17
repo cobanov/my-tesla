@@ -11,11 +11,15 @@ An absent required check fails the runner. A skipped check is not a pass.
 | Format | `bun run format:check` (Prettier 3.9.9) |
 | Source comments | `bun run check:source` |
 | Lint | `bun run lint` (ESLint with the Next.js rules) |
+| Mobile lint | `bun run --cwd mobile lint` (ESLint 9 with the Expo rules) |
 | Types | `bun run typecheck` (`next typegen`, then `tsc --noEmit`) |
+| Mobile types | `bun run --cwd mobile typecheck` (`tsc --noEmit` with TypeScript 6) |
 | Unused code | `bun run check:unused` (knip 6.39.0) |
-| Tests | `bun test` |
+| Tests | `bun test`, which also runs the pure tests in `mobile/` |
 
 The build is a product check. CI runs `bun run build` after the gates.
+
+The root ESLint, TypeScript, and knip configurations leave out `mobile/`, which has its own. The format and source comment gates cover `mobile/`. Read [Mobile app](mobile.md#checks).
 
 Use the same check command in the commit hook and CI.
 The push hook runs the project test command. Add broader checks when the project requires them.
@@ -46,13 +50,14 @@ An unknown file type fails the gate.
 Exceptions:
 
 1. Markdown files, the `.txt` alt texts of the preview images, and `LICENSE` are documents, not source.
-2. `bun.lock` is generated.
+2. `bun.lock` and `mobile/bun.lock` are generated.
 3. Image and font files are assets.
 4. `next-env.d.ts` is generated and ignored by Git.
 5. `AGENTS.md` keeps the Next.js agent block with its HTML markers. `next dev` writes that block.
 6. `src/app/icon.svg` is an asset. It holds a CSS media query for the dark theme and no comment.
 7. `src/components/ui/` holds files from the shadcn CLI. The source gate checks them. The unused-code gate skips only their unused exports, through `ignoreIssues` in `knip.json`.
 8. `src/components/ui/map.tsx` is the mapcn registry file, 2,696 lines of third-party code with its own comments. The source gate skips this one file so that `shadcn add @mapcn/map --overwrite` stays a clean update. The only local change is the MapLibre worker URL. It points at `/maplibre/<version>/maplibre-gl-worker.mjs`, which the app serves from `node_modules`, not at unpkg. ESLint also skips it, because the React Compiler rules flag 13 ref reads in the upstream code.
+9. `src/lib/app/contract.ts` holds the types of the app API. The mobile app imports them through the `@contract` path, so the unused-code gate skips only its unused exported types, through `ignoreIssues` in `knip.json`.
 
 ## Product validation
 
@@ -93,7 +98,7 @@ Set `BASE_URL` for another address. Add `webkit` or `chromium` to check one engi
 
 ## Continuous integration
 
-`.github/workflows/checks.yml` installs Node.js 24 and Bun 1.3.14, runs `bun install --frozen-lockfile`, runs the gates, and runs `bun run build`. It needs only `contents: read`. The actions use full commit hashes.
+`.github/workflows/checks.yml` installs Node.js 24 and Bun 1.3.14, runs `bun install --frozen-lockfile` at the root and in `mobile/`, runs the gates, and runs `bun run build`. It needs only `contents: read`. The actions use full commit hashes.
 
 `.github/workflows/image.yml` builds the container image for `linux/amd64` and `linux/arm64` on each `v*` tag, and pushes it to GitHub Container Registry. A manual run on a branch pushes the tags `sha-<commit>` and `<branch>-test`, and it does not move `latest`. It needs `packages: write`. Its Docker actions also use full commit hashes: setup-qemu-action 4.4.0, setup-buildx-action 4.4.1, login-action 4.6.0, metadata-action 6.2.0, and build-push-action 7.4.0.
 
