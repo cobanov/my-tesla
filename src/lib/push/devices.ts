@@ -9,6 +9,7 @@ export type PushDevice = {
   token: string;
   events: CarEventId[];
   updatedAt: string;
+  sessionId: string | null;
 };
 
 export type PushMessage = {
@@ -31,12 +32,21 @@ export function isPushToken(value: unknown): value is string {
   return typeof value === "string" && pushTokenPattern.test(value);
 }
 
-export function parseDevice(input: unknown, now: Date): PushDevice | null {
+export function parseDevice(
+  input: unknown,
+  now: Date,
+  sessionId: string | null = null,
+): PushDevice | null {
   if (!input || typeof input !== "object") return null;
   const { token, events } = input as Record<string, unknown>;
   if (!isPushToken(token) || !Array.isArray(events)) return null;
   if (!events.every(isCarEventId)) return null;
-  return { token, events: [...new Set(events)], updatedAt: now.toISOString() };
+  return {
+    token,
+    events: [...new Set(events)],
+    updatedAt: now.toISOString(),
+    sessionId,
+  };
 }
 
 export function parseDevices(input: unknown): PushDevice[] {
@@ -44,11 +54,15 @@ export function parseDevices(input: unknown): PushDevice[] {
   const { devices } = input;
   if (!Array.isArray(devices)) return [];
   return devices.flatMap((entry: unknown) => {
-    const updatedAt = (entry as { updatedAt?: unknown } | null)?.updatedAt;
-    const device = parseDevice(entry, new Date(0));
+    const stored = entry as { updatedAt?: unknown; sessionId?: unknown } | null;
+    const device = parseDevice(
+      entry,
+      new Date(0),
+      typeof stored?.sessionId === "string" ? stored.sessionId : null,
+    );
     if (!device) return [];
-    return typeof updatedAt === "string"
-      ? [{ ...device, updatedAt }]
+    return typeof stored?.updatedAt === "string"
+      ? [{ ...device, updatedAt: stored.updatedAt }]
       : [device];
   });
 }

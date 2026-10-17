@@ -15,7 +15,7 @@ const other = "ExponentPushToken[yyyyyyyyyyyyyyyyyyyyyy]";
 const now = new Date("2026-10-17T12:00:00.000Z");
 
 function device(events: PushDevice["events"], to = token): PushDevice {
-  return { token: to, events, updatedAt: now.toISOString() };
+  return { token: to, events, updatedAt: now.toISOString(), sessionId: null };
 }
 
 describe("parseDevice", () => {
@@ -26,6 +26,18 @@ describe("parseDevice", () => {
         now,
       ),
     ).toEqual(device(["charging-complete"]));
+  });
+
+  test("keeps the session that registered the phone", () => {
+    expect(
+      parseDevice({ token, events: ["charging-complete"] }, now, "s1")
+        ?.sessionId,
+    ).toBe("s1");
+    expect(
+      parseDevices({
+        devices: [{ token, events: ["charging-complete"], sessionId: "s1" }],
+      })[0]?.sessionId,
+    ).toBe("s1");
   });
 
   test("refuses unknown events and other tokens", () => {

@@ -3,6 +3,7 @@ import { isDemoMode } from "../demo/mode";
 import { readMqttConfig } from "../live/config";
 import { mqttValues, watchFeed } from "../live/subscriber";
 import { liveView } from "../live/view";
+import { authStore } from "../auth/session";
 import { readDevices, removeDevices } from "./device-store";
 import {
   alertMessages,
@@ -60,7 +61,13 @@ function logError(error: unknown): void {
 
 async function sendAlerts(carId: number, alerts: CarAlert[]): Promise<void> {
   try {
-    await deliver(alertMessages(await readDevices(), carId, alerts));
+    const now = Date.now();
+    const signedIn = (await readDevices()).filter(
+      (device) =>
+        device.sessionId !== null &&
+        authStore().sessionActive(device.sessionId, now),
+    );
+    await deliver(alertMessages(signedIn, carId, alerts));
   } catch (error) {
     logError(error);
   }

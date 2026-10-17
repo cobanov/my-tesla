@@ -69,6 +69,7 @@ export async function signIn(
     return { error: "The email or the password is wrong.", values };
   }
   limits.account().succeed(`login:${email}`);
+  authStore().prune(Date.now());
   const { token } = authStore().createSession(
     {
       userId: found.user.id,

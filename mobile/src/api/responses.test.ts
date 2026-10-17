@@ -105,6 +105,8 @@ describe("screen shapes", () => {
     ).not.toBeNull();
     expect(pairClaim({ token: "t", status: "active", user: {} })).toBeNull();
     expect(pairStatus({ status: "active", user })).not.toBeNull();
+    expect(pairStatus({ status: "pending" })).not.toBeNull();
+    expect(pairStatus({ status: "active" })).toBeNull();
     expect(
       pairStatus({ status: "active", user: { ...user, role: "x" } }),
     ).toBeNull();

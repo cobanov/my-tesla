@@ -405,6 +405,16 @@ export class AuthStore {
     return user ? { session, user } : null;
   }
 
+  sessionActive(id: string, now: number): boolean {
+    return Boolean(
+      this.db
+        .prepare(
+          "select 1 from sessions where id = ? and status = 'active' and expires_at > ?",
+        )
+        .get(id, now),
+    );
+  }
+
   prune(now: number): void {
     this.db.prepare("delete from sessions where expires_at <= ?").run(now);
     this.db.prepare("delete from pairing_codes where expires_at <= ?").run(now);

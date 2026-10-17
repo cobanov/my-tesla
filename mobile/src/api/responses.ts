@@ -172,8 +172,8 @@ export const pairStatus = (value: unknown) =>
   shaped<PairStatus>(
     value,
     (shape) =>
-      (shape.status === "pending" || shape.status === "active") &&
-      isUser(shape.user),
+      shape.status === "pending" ||
+      (shape.status === "active" && isUser(shape.user)),
   );
 
 export const appMe = (value: unknown) =>

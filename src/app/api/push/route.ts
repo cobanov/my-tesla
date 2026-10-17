@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import type { PushCatalog } from "@/lib/app/contract";
 import { readJsonBody } from "@/lib/app/request";
+import { currentSession } from "@/lib/auth/session";
 import { deliver, pushEnabled } from "@/lib/push/alerts";
 import {
   readDevices,
@@ -32,7 +33,12 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   if (!pushEnabled()) return problem(409, "Push alerts need the MQTT feed.");
-  const device = parseDevice(await readJsonBody(request), new Date());
+  const signedIn = await currentSession();
+  const device = parseDevice(
+    await readJsonBody(request),
+    new Date(),
+    signedIn?.session.id ?? null,
+  );
   if (!device) {
     return problem(400, "Send a JSON body with an Expo push token and events.");
   }

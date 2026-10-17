@@ -14,9 +14,12 @@ export async function GET() {
     );
   }
   const { user, session } = found;
-  const body: PairStatus = {
-    status: session.status,
-    user: { name: user.name, email: user.email, role: user.role },
-  };
+  const body: PairStatus =
+    session.status === "active"
+      ? {
+          status: "active",
+          user: { name: user.name, email: user.email, role: user.role },
+        }
+      : { status: "pending" };
   return appJson(body);
 }

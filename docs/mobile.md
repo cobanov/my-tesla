@@ -112,7 +112,7 @@ The server watches the TeslaMate MQTT feed and sends an alert when an event happ
 4. Optional: turn on enhanced push security in the Expo dashboard, and set its token as `EXPO_ACCESS_TOKEN` on the My Tesla server.
 5. In the app, open Settings, turn on an alert, and press "Send a test alert".
 
-The server keeps the tokens in `push-devices.json` next to the Settings file. Sign out in the app removes the push token of the phone.
+The server keeps the tokens in `push-devices.json` next to the Settings file. Sign out in the app removes the push token of the phone. Each push token remembers the phone session that saved it, and the server sends alerts only to phones that are still signed in, so a phone signed out from the web gets no more alerts.
 
 ### Add an event
 

@@ -325,6 +325,7 @@ export type PairClaim = {
   user: { name: string };
 };
 
-export type PairStatus = { status: "pending" | "active"; user: AppUser };
+export type PairStatus =
+  { status: "pending" } | { status: "active"; user: AppUser };
 
 export type AppMe = { user: AppUser; device: { name: string | null } };
