@@ -278,3 +278,20 @@ export type OverviewPage = {
   lastDrive: RecentRecord | null;
   lastCharge: RecentRecord | null;
 };
+
+export type SettingOption = { id: string; label: string };
+
+export type SettingItem = {
+  key: string;
+  label: string;
+  hint: string | null;
+} & (
+  | { kind: "choice"; value: string; options: SettingOption[] }
+  | { kind: "switch"; value: boolean }
+  | { kind: "price"; value: number | null }
+);
+
+export type SettingsPage = {
+  preview: AppStat[];
+  groups: { title: string; note: string | null; items: SettingItem[] }[];
+};

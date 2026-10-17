@@ -4,6 +4,7 @@ import { findCar } from "../queries";
 import { getFormatter, getPreferences } from "../viewer";
 
 const recordId = /^\d{1,9}$/;
+const maxBodyLength = 4_096;
 
 export function appJson(body: unknown, status = 200): Response {
   return Response.json(body, {
@@ -38,4 +39,17 @@ export async function appContext(params: Promise<{ carId: string }>) {
         now: new Date(),
       }
     : null;
+}
+
+export async function readJsonBody(request: Request): Promise<unknown> {
+  if (!request.headers.get("content-type")?.startsWith("application/json")) {
+    return undefined;
+  }
+  const text = await request.text();
+  if (text.length > maxBodyLength) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
 }

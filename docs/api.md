@@ -79,6 +79,8 @@ The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. 
 | `charges`, `charges/{chargeId}` | The charge list, and a charge with its figures, cost breakdown, and charts |
 | `battery`, `stats`, `places` | The Battery, Stats, and Places pages in panels. Add `?period=` with `7d`, `30d`, `90d`, `1y`, or `all`. Without it, the user's default period applies. |
 
+`/api/app/settings` reads and changes the Settings of the person who asks, the same Settings as the web page. `GET` gives the groups, the choices, and a preview. `PUT` with `{ "key": "distance", "value": "mi" }` changes one setting and answers with the new page. A price takes a text such as `"4,857"`, and an Overview card takes `"overview.tires"` with `true` or `false`. The web-only settings, such as the theme and the tabs, stay on the web. In demo mode the Settings live in a cookie, as in the browser.
+
 `src/lib/app/contract.ts` defines every answer. A chart comes with its points in the user's units, the axis ticks, and the tooltip labels, so the app only draws it. The shape follows the app and can change in any release, so scripts should use `summary.json` and the exports.
 
 ## Call the API through Cloudflare Access

@@ -32,6 +32,7 @@ import {
   weekStartOptions,
   type Preferences,
 } from "@/lib/preferences";
+import { previewRows } from "@/lib/settings-preview";
 import { unitLabels } from "@/lib/units";
 import { cn } from "@/lib/utils";
 import {
@@ -42,16 +43,6 @@ import {
   SettingsSection,
   Toggle,
 } from "./controls";
-
-const sample = {
-  at: new Date("2026-09-08T11:05:00Z"),
-  distanceKm: 152.4,
-  temperatureC: 21.4,
-  pressureBar: 2.9,
-  whPerKm: 152,
-  speedKmh: 118,
-  cost: 1234.5,
-};
 
 const sections = [
   { id: "units", label: "Units" },
@@ -200,16 +191,7 @@ export function SettingsForm({
       >
         <p className="text-xs text-subtle">Preview</p>
         <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-4">
-          {[
-            ["Distance", f.distance(sample.distanceKm)],
-            ["Speed", f.speed(sample.speedKmh)],
-            ["Outside", f.temperature(sample.temperatureC)],
-            ["Tire", f.pressure(sample.pressureBar)],
-            ["Efficiency", f.efficiency(sample.whPerKm)],
-            ["Cost", f.cost(sample.cost)],
-            ["Date", f.day(sample.at, new Date("2026-10-01T09:00:00Z"))],
-            ["Time", f.clock(sample.at)],
-          ].map(([label, value]) => (
+          {previewRows(f).map(([label, value]) => (
             <div key={label}>
               <dt className="text-xs text-muted-foreground">{label}</dt>
               <dd className="mt-0.5 font-medium tabular">{value}</dd>
