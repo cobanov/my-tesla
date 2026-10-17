@@ -1,25 +1,24 @@
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import type { ReactNode } from "react";
+import { StyleSheet, View } from "react-native";
 import { space } from "@/theme/tokens";
-import { usePalette } from "@/theme/use-palette";
 import { Button } from "./button";
 import { Notice } from "./notice";
 import { Panel } from "./panel";
+import { TeslaMark } from "./tesla-mark";
 import { Text } from "./text";
 
-const spinnerDelayMs = 400;
-
 function Pending() {
-  const palette = usePalette();
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setShown(true), spinnerDelayMs);
-    return () => clearTimeout(timer);
-  }, []);
-  return shown ? (
-    <ActivityIndicator color={palette.subtle} style={styles.pending} />
-  ) : null;
+  return (
+    <View
+      accessible
+      accessibilityLabel="Loading"
+      accessibilityRole="progressbar"
+      style={styles.pending}
+    >
+      <TeslaMark size={44} kind="breathe" />
+    </View>
+  );
 }
 
 export function Problem({
@@ -76,7 +75,7 @@ export function EmptyState({ title, text }: { title: string; text: string }) {
 }
 
 const styles = StyleSheet.create({
-  pending: { marginTop: space.xxl * 2 },
+  pending: { marginTop: space.xxl * 3, alignItems: "center" },
   banner: { marginBottom: space.lg },
   empty: {
     paddingVertical: space.xxl * 2,

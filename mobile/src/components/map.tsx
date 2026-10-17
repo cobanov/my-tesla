@@ -70,6 +70,13 @@ function MapCanvas({
   const palette = usePalette();
   const mapStyle = useMapStyle();
   const height = useMapHeight(size);
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), motion.durationMs);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <View
       accessible
@@ -77,19 +84,21 @@ function MapCanvas({
       accessibilityLabel={label}
       style={[styles.frame, { height, backgroundColor: palette.card }]}
     >
-      <Map
-        style={StyleSheet.absoluteFill}
-        mapStyle={mapStyle}
-        dragPan={false}
-        touchRotate={false}
-        touchPitch={false}
-        compass={false}
-        logo={false}
-        attributionPosition={{ bottom: 8, right: screenPadding }}
-      >
-        <Camera initialViewState={view} />
-        {children}
-      </Map>
+      {settled ? (
+        <Map
+          style={StyleSheet.absoluteFill}
+          mapStyle={mapStyle}
+          dragPan={false}
+          touchRotate={false}
+          touchPitch={false}
+          compass={false}
+          logo={false}
+          attributionPosition={{ bottom: 8, right: screenPadding }}
+        >
+          <Camera initialViewState={view} />
+          {children}
+        </Map>
+      ) : null}
     </View>
   );
 }

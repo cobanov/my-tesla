@@ -18,6 +18,7 @@ import {
   ConnectionProvider,
   useConnectionState,
 } from "@/connection/connection-provider";
+import { LaunchSplash } from "@/components/launch-splash";
 import { useStackOptions } from "@/navigation/header";
 import { applyThemeChoice, readThemeChoice } from "@/theme/appearance";
 import { fonts } from "@/theme/tokens";
@@ -88,6 +89,7 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="connect" />
         </Stack.Protected>
       </Stack>
+      <LaunchSplash />
     </ThemeProvider>
   );
 }

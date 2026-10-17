@@ -65,7 +65,7 @@ mobile/src/
 4. A query that must show without a network sets `stored: <key>` in `useAppQuery`. The answer goes to `expo-sqlite/kv-store`, comes back as `initialData` through the same shape check, and is fetched again at once. Only the car list and the Settings use it: the tabs need the car list to open, and live values from a stored answer would mislead. Disconnect removes both with `forgetStored()`.
 5. Change a server setting with `useSettingChange()`. It shows the new value at once, puts the old one back when the server refuses, and refetches the other screens, because their units change.
 6. Pull to refresh uses `useRefresh(query)`. Never pass `isRefetching` to a `RefreshControl`.
-7. Render a query through `<QueryView query={…}>{(data) => …}</QueryView>`. It shows nothing for 400 ms, then a spinner. It shows the error with a retry button when there is no data, and a notice above the old data when a refresh fails.
+7. Render a query through `<QueryView query={…}>{(data) => …}</QueryView>`. It shows the breathing T-mark of the web while it loads. It shows the error with a retry button when there is no data, and a notice above the old data when a refresh fails.
 8. A list with sticky day headings renders through `DayList`, because the sticky indices must count the direct children of the ScrollView.
 9. Every answer from outside the app is untrusted: server JSON, notification data, and stored values. Check its shape before use.
 
@@ -91,6 +91,7 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `LocationMap`, `RouteMap`, `PlacesMap` | The maps of the web: the car, a route with its markers, and the places sized by visits, on the CARTO styles |
 | `Notice` | A warning line with an icon, for a server notice |
 | `EmptyState`, `Problem` | A list without records, and an error with a retry button |
+| `TeslaMark`, `LaunchSplash` | The T-mark of the web, drawn at launch or breathing while a screen loads. `src/theme/mark.ts` copies the path of `src/lib/logo.ts`, and a test fails when they differ. |
 | `TripStrip`, `LevelBar`, `ChargerBadge`, `DayStrip`, `Battery`, `LivePanel` | The small parts of the dashboard, drawn the same way as on the web |
 
 A new shared component:
