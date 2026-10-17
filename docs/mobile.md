@@ -6,12 +6,12 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 
 | Screen | Content |
 |---|---|
-| Connect | "Scan the code" reads the QR code from Settings on the web, connects, and opens its car. The server address and an optional Cloudflare Access service token can also be typed in. "Open the demo" connects to the public demo. |
+| Connect | "Scan the code" reads the QR code from Settings on the web, waits until the person allows the phone there, signs in, and opens its car. "Open the demo" connects to the public demo. |
 | Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location on a map with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
 | Drives | The trips by day. A trip opens its route on a map with its start, stops, and end, and its legs. A drive opens its route on a map, its figures, and its speed, power, elevation, and battery charts. |
 | Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. The place of the charge shows on a map. Older and Newer step through the charges. |
 | Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. Places starts with a map of the visited and charging places. A longest drive or a frequent route opens its drive. |
-| Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location with the maps and their theme, and the Overview cards), the alerts that this phone gets with a test alert, and the server with Disconnect |
+| Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location with the maps and their theme, and the Overview cards), the alerts that this phone gets with a test alert, and the account with Sign out |
 
 The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the car list, the last Settings, and the theme, so the Settings tab opens at once and without a network. Read [API](api.md#app-api).
 
@@ -70,26 +70,18 @@ DEMO_MODE=1 ALLOWED_DEV_ORIGINS=my-laptop.local bun run dev -- -H 0.0.0.0
 
 In the app, type `http://my-laptop.local:3000`. The iOS Simulator also reaches `http://localhost:3000`, and the Android emulator reaches `http://10.0.2.2:3000`. Use `https` for every server outside your own network.
 
-## Connect to a real server
+## Sign in to a real server
 
-The server sits behind an authenticating proxy. Read [Protect the dashboard](authentication.md).
+The phone signs in as a person, from Settings on the web. It never sees the password.
 
-| Proxy | What the app needs |
-|---|---|
-| Cloudflare Access | A service token. Make it as in [API](api.md#call-the-api-through-cloudflare-access), and type the Client ID and the Client Secret in the app. The app keeps both in the Keychain or the Android Keystore through `expo-secure-store`. |
-| Tailscale | Only the address, such as `https://tesla.your-tailnet.ts.net`, from a phone on the tailnet |
-| Other proxies | The app sends no browser login. Use a path that the proxy lets through for the phone, such as a VPN. |
+1. Set `SITE_URL` on the server to the address that the phone uses. Without it, the code holds the address that the browser uses.
+2. On the web, sign in, open Settings for a car, then **Mobile app**, and press **Pair a phone**.
+3. In the app, press **Scan the code**.
+4. The web page asks whether to allow the phone, with its name, its system, and its address. Press **Allow**. The app opens the car of the code.
 
-Give the app its own service token, so that you can stop it without the scripts.
+The code holds the server address, the car, and a single-use code that lasts 90 seconds, and the page shows a new one every minute. The phone gets its own token. The app keeps it in the Keychain or the Android Keystore through `expo-secure-store`, for this device only, and sends it as `Authorization: Bearer`. It lasts 90 days after its last use. **Account** on the web lists the phone and signs it out. The app then shows the Connect screen again. **Sign out** in the Settings tab of the app also ends the token on the server. [Decision 0023](decisions/0023-native-accounts.md) explains the design.
 
-## Connect with a QR code
-
-1. Behind Cloudflare Access, make a service token for the app as in [API](api.md#call-the-api-through-cloudflare-access), and set `MOBILE_ACCESS_CLIENT_ID` and `MOBILE_ACCESS_CLIENT_SECRET` on the server. On a private network, skip this step.
-2. Set `SITE_URL` to the address that the phone uses. Without it, the code holds the address in the browser.
-3. On the web, open Settings for the car, then Mobile app, and press "Show the code".
-4. In the app, press "Scan the code" on the Connect screen. To switch servers, press Disconnect in the Settings tab first.
-
-The code holds the address, the car, and the service token when the server has one. Anyone who scans or photographs it can open the dashboard, so show it only to yourself. It hides after 2 minutes. To stop the phones, delete the service token in Cloudflare and set a new one. [Decision 0021](decisions/0021-connect-the-app-with-a-qr-code.md) explains the design.
+"Open the demo" connects to the public demo, which needs no account.
 
 ## Push alerts
 
@@ -120,7 +112,7 @@ The server watches the TeslaMate MQTT feed and sends an alert when an event happ
 4. Optional: turn on enhanced push security in the Expo dashboard, and set its token as `EXPO_ACCESS_TOKEN` on the My Tesla server.
 5. In the app, open Settings, turn on an alert, and press "Send a test alert".
 
-The server keeps the tokens in `push-devices.json` next to the Settings file. Disconnect in the app removes the token of the phone.
+The server keeps the tokens in `push-devices.json` next to the Settings file. Sign out in the app removes the push token of the phone.
 
 ### Add an event
 
@@ -141,7 +133,7 @@ The app needs no change. It reads the list from the server.
 | `mobile/src/app/` | The Expo Router routes: the root stack with Connect, and the five tabs with a stack each |
 | `mobile/src/screens/` | The drive, trip, and charge screens, which more than one tab shows |
 | `mobile/src/components/` | The shared components: text, panels, stats, rows, the segmented control, the chart, and the dashboard parts |
-| `mobile/src/api/` | The request with the service token, the shape check of each answer, and one query hook for each endpoint |
+| `mobile/src/api/` | The request with the phone token, the shape check of each answer, and one query hook for each endpoint. A 401 signs the phone out. |
 | `src/lib/app/contract.ts` | The types of every answer, shared by the server and the app |
 
 ## Rules

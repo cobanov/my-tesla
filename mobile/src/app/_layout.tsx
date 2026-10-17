@@ -7,6 +7,7 @@ import {
   focusManager,
   QueryClient,
   QueryClientProvider,
+  useQueryClient,
 } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
@@ -18,6 +19,7 @@ import {
   ConnectionProvider,
   useConnectionState,
 } from "@/connection/connection-provider";
+import { SignedOutError } from "@/api/client";
 import { LaunchSplash } from "@/components/launch-splash";
 import { useStackOptions } from "@/navigation/header";
 import { applyThemeChoice, readThemeChoice } from "@/theme/appearance";
@@ -67,8 +69,26 @@ function useNavigationTheme() {
   };
 }
 
+function useSignedOut(): void {
+  const queryClient = useQueryClient();
+  const { connection, forget } = useConnectionState();
+  useEffect(() => {
+    if (!connection?.token) return;
+    return queryClient.getQueryCache().subscribe((event) => {
+      if (
+        event.type === "updated" &&
+        event.action.type === "error" &&
+        event.action.error instanceof SignedOutError
+      ) {
+        forget().then(() => queryClient.clear());
+      }
+    });
+  }, [connection, forget, queryClient]);
+}
+
 function Navigator({ fontsReady }: { fontsReady: boolean }) {
   const { loaded, connection } = useConnectionState();
+  useSignedOut();
   const theme = useNavigationTheme();
   const stackOptions = useStackOptions();
   const ready = fontsReady && loaded;

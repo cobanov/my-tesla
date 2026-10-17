@@ -19,6 +19,7 @@ import {
   driveList,
   insightPage,
   overviewPage,
+  appMe,
   pushCatalog,
   settingsPage,
   tripDetail,
@@ -96,6 +97,23 @@ export function useCars() {
     read: carList,
     stored: storageKey(connection, "cars"),
   });
+}
+
+export function useMe() {
+  const connection = useConnection();
+  return useAppQuery({
+    key: ["me"],
+    path: "/api/app/me",
+    read: appMe,
+    enabled: connection.token !== null,
+  });
+}
+
+export async function signOutPhone(connection: Connection): Promise<void> {
+  if (!connection.token) return;
+  await request(connection, "/api/app/me", { method: "DELETE" }).catch(
+    () => null,
+  );
 }
 
 export function usePushCatalog() {

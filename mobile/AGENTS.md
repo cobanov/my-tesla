@@ -36,7 +36,7 @@ mobile/src/
   components/     Shared components. One component, one file.
   api/            request(), the response shape checks, and one query hook for each endpoint
   car/            The chosen car, shared by every tab and saved on the device
-  connection/     The server address and the service token in the Keychain or the Keystore
+  connection/     The server address and the phone token in the Keychain or the Keystore
   alerts/         Push tokens, Android channels, the alert choices, and the routes for a tapped alert
   navigation/     The header options and the link from a server target to a route
   theme/          The palette, the tokens, the tones, the stored theme choice, and reduced motion
@@ -49,7 +49,7 @@ mobile/src/
 2. Every tab with more than one screen is a folder with a `_layout.tsx` that renders a `Stack` and exports `unstable_settings = { anchor: "index" }`.
 3. The list screen of a tab uses a large title (`headerLargeTitleEnabled: true`). A detail screen sets its title from its data with `<Stack.Screen options={{ title }} />` inside the screen.
 4. Every `Stack` uses `screenOptions={useStackOptions()}` from `src/navigation/header.ts`, so the headers use Inter and the palette.
-5. Connect lives in the root stack. Its scan button reads the QR code from Settings on the web with `CameraView.launchScanner`, and `pairingOf()` in `src/connection/server.ts` checks the code before the app uses it. Settings is a tab: its list screen shows the groups from `/api/app/settings`, and `settings/[key]` lists the options of one choice with a check mark. A choice list with more than 12 options gets `Stack.SearchBar`.
+5. Connect lives in the root stack. Its scan button reads the QR code from Settings on the web with `CameraView.launchScanner`, `pairingOf()` in `src/connection/server.ts` checks the code, `/api/app/pair` trades it for a phone token, and the screen polls `/api/app/pair/status` until the person allows the phone on the web. The token stays in `expo-secure-store` with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. A 401 for a phone token throws `SignedOutError`, and the root layout then forgets the connection. Settings is a tab: its list screen shows the groups from `/api/app/settings`, and `settings/[key]` lists the options of one choice with a check mark. A choice list with more than 12 options gets `Stack.SearchBar`.
 6. Build a link to a drive, a trip, or a charge with `targetHref(target, stack)`. Push it with `router.push(href)` in the same tab. From another tab, add `{ withAnchor: true }`.
 7. Use the typed route objects (`{ pathname: "/drives/[driveId]", params }`). Typed routes are on, so the type check catches a wrong path. Run `bun run start` once after you add a route, so Expo writes the route types.
 8. Never navigate to a string that comes from outside the app. `alertRoute()` in `src/alerts/use-alerts.ts` keeps the list of routes that an alert may open.
