@@ -10,8 +10,10 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 
 | Topic | Decision | Reason |
 |---|---|---|
-| Tabs | Four native tabs: Overview, Drives, Charging, Insights | Apple asks for few tabs and no overflow tab. Material 3 allows 3 to 5 destinations, and Android native tabs allow at most 5. Battery, Stats, and Places already share one period control on the web, so they form Insights. |
-| Settings | A modal from a gear button on Overview | Settings is rarely used, so it does not take a tab. |
+| Tabs | Five native tabs: Overview, Drives, Charging, Insights, Settings | Apple asks for the minimum number of tabs and, in general, three to five on iPhone. Material 3 and the Android navigation bar allow three to five destinations, and Android native tabs allow at most five. Battery, Stats, and Places already share one period control on the web, so they form Insights. |
+| Settings | A tab, not a modal | Settings now changes the web Settings, with a picker for each choice. A tab keeps that stack of screens, and the gear button on Overview is gone. Five is the limit, so a new destination needs a decision record. |
+| Choice lists | A pushed screen with one row for each option and a check mark on the chosen one. It stays open after a choice. | The Settings pattern of iOS: the check mark moves at once, and Back returns. A choice saves at once, with the old value back when the server refuses it. |
+| Search in a long list | `Stack.SearchBar` on a choice list with more than 12 options, such as the time zone | The native search field of the header. SDK 55 and later replace `headerSearchBarOptions` with this component. |
 | Stacks | A `Stack` inside each tab folder, with `unstable_settings = { anchor: "index" }` | `initialRouteName` is gone in SDK 58. The anchor puts the list under a deep link, so Back returns to it. |
 | Headers | Native large titles on the list screens, a small title on the detail screens | The ScrollView must be the first child for the large title to collapse. iOS 26 makes headers transparent with Liquid Glass by default, so the app adds no blur. |
 | Header fonts | `headerTitleStyle` and `headerLargeTitleStyle` set Inter | iOS 26 headers ignore the theme fonts in SDK 58. |
@@ -35,6 +37,8 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 | Loading | Nothing for 400 ms, then a spinner. Old data stays on screen with a notice when a refresh fails. | Nielsen Norman Group: no indicator under 1 s. The web keeps the old screen instead of a skeleton (decision 0002). |
 | Pull to refresh | A `refreshing` state of its own, not `isRefetching` | `isRefetching` is true for every background refetch, so the spinner would flash every 30 s. |
 | Polling | `subscribed: useIsFocused()` on every query | Tab screens stay mounted. A hidden tab must not poll. |
+| Theme | Dark at first. System, Light, or Dark, kept on the phone and set with `Appearance.setColorScheme` before the first screen. | `setColorScheme` overrides the scheme for the app only. React Native 0.88 takes `'auto'` to follow the system again and marks `'unspecified'` as old. The API keeps no choice, so the app stores it. The splash is dark, because the native splash cannot read the stored choice. |
+| Stored values | `expo-sqlite/kv-store` for the theme and the last Settings answer. `expo-secure-store` stays for the server address, the token, and the alert choices. | Expo's storage guide names `expo-sqlite/kv-store` as the AsyncStorage replacement, and it reads synchronously, so the theme applies before the first frame. A stored answer passes the same shape check as a server answer, and it is shown at once and fetched again. |
 | Period changes | `placeholderData: keepPreviousData` | The old panels stay while the next period loads. |
 
 ## Charts
@@ -81,6 +85,7 @@ Two open points:
 - [React Native Pressable](https://reactnative.dev/docs/pressable), [accessibility](https://reactnative.dev/docs/accessibility), [AccessibilityInfo](https://reactnative.dev/docs/accessibilityinfo), [text style props](https://reactnative.dev/docs/text-style-props)
 - [Expo React Compiler guide](https://docs.expo.dev/guides/react-compiler/), [Expo color themes](https://docs.expo.dev/develop/user-interface/color-themes/)
 - [TanStack Query for React Native](https://tanstack.com/query/latest/docs/framework/react/react-native)
+- [React Native Appearance](https://reactnative.dev/docs/appearance), [Expo storage guide](https://docs.expo.dev/develop/user-interface/store-data/), [Expo SQLite kv-store](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/), [Expo Router stack search bar](https://docs.expo.dev/versions/v58.0.0/sdk/router/stack/)
 - [Nielsen Norman Group: skeleton screens](https://www.nngroup.com/articles/skeleton-screens/)
 - [victory-native releases](https://github.com/FormidableLabs/victory-native-xl/releases), [gifted-charts issue 789](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/issues/789), [Skia bundle size](https://github.com/wcandillon/react-native-skia/blob/2.x/apps/docs/docs/getting-started/bundle-size.md)
 - [MapLibre React Native 11](https://github.com/maplibre/maplibre-react-native/releases/tag/v11.0.0), [its Expo setup](https://github.com/maplibre/maplibre-react-native/blob/main/docs/content/setup/expo.md), [CARTO basemap keys](https://www.carto.com/basemaps/apikey/)

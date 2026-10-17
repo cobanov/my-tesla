@@ -1,7 +1,15 @@
-import type { PeriodId } from "@contract";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import type { PeriodId, SettingItem, SettingsPage } from "@contract";
+import {
+  keepPreviousData,
+  useIsMutating,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useIsFocused } from "expo-router";
+import { Storage } from "expo-sqlite/kv-store";
 import { useConnection } from "@/connection/connection-provider";
+import type { Connection } from "@/connection/server";
 import { ApiError, request } from "./client";
 import {
   carList,
@@ -12,6 +20,7 @@ import {
   insightPage,
   overviewPage,
   pushCatalog,
+  settingsPage,
   tripDetail,
 } from "./responses";
 
@@ -26,11 +35,25 @@ type AppQuery<T> = {
   enabled?: boolean;
   refetchInterval?: number;
   keepPrevious?: boolean;
+  stored?: string;
 };
+
+function readStored<T>(
+  key: string,
+  read: (value: unknown) => T | null,
+): T | undefined {
+  try {
+    const stored = Storage.getItemSync(key);
+    return (stored ? read(JSON.parse(stored)) : null) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function useAppQuery<T>(query: AppQuery<T>) {
   const connection = useConnection();
   const focused = useIsFocused();
+  const stored = query.stored;
   return useQuery({
     queryKey: [connection.url, ...query.key],
     queryFn: async () => {
@@ -38,8 +61,11 @@ function useAppQuery<T>(query: AppQuery<T>) {
       if (value === null) {
         throw new ApiError("The server is not a My Tesla server.");
       }
+      if (stored) Storage.setItemSync(stored, JSON.stringify(value));
       return value;
     },
+    initialData: stored ? () => readStored(stored, query.read) : undefined,
+    initialDataUpdatedAt: 0,
     enabled: query.enabled ?? true,
     subscribed: focused,
     refetchInterval: query.refetchInterval,
@@ -115,5 +141,86 @@ export function useInsight(
     path: `/api/app/cars/${carId}/${kind}${period ? `?period=${period}` : ""}`,
     read: insightPage,
     keepPrevious: true,
+  });
+}
+
+const settingsMutation = ["settings"];
+
+function settingsStorageKey(connection: Connection): string {
+  return `settings:${connection.url}`;
+}
+
+export function forgetSettings(connection: Connection): void {
+  Storage.removeItemSync(settingsStorageKey(connection));
+}
+
+export function useSettings() {
+  const connection = useConnection();
+  return useAppQuery({
+    key: ["settings"],
+    path: "/api/app/settings",
+    read: settingsPage,
+    stored: settingsStorageKey(connection),
+  });
+}
+
+export type SettingChange = { key: string; value: string | boolean };
+
+function withValue(item: SettingItem, change: SettingChange): SettingItem {
+  if (item.key !== change.key) return item;
+  if (item.kind === "choice" && typeof change.value === "string") {
+    return { ...item, value: change.value };
+  }
+  if (item.kind === "switch" && typeof change.value === "boolean") {
+    return { ...item, value: change.value };
+  }
+  return item;
+}
+
+export function useSettingsBusy(): boolean {
+  return useIsMutating({ mutationKey: settingsMutation }) > 0;
+}
+
+export function useSettingChange() {
+  const connection = useConnection();
+  const queryClient = useQueryClient();
+  const key = [connection.url, "settings"];
+  return useMutation({
+    mutationKey: settingsMutation,
+    mutationFn: async (change: SettingChange) => {
+      const page = settingsPage(
+        await request(connection, "/api/app/settings", {
+          method: "PUT",
+          body: change,
+        }),
+      );
+      if (!page) throw new ApiError("The server is not a My Tesla server.");
+      return page;
+    },
+    onMutate: async (change) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<SettingsPage>(key);
+      if (previous) {
+        queryClient.setQueryData<SettingsPage>(key, {
+          ...previous,
+          groups: previous.groups.map((group) => ({
+            ...group,
+            items: group.items.map((item) => withValue(item, change)),
+          })),
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _change, context) => {
+      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    },
+    onSuccess: (page) => {
+      queryClient.setQueryData(key, page);
+      Storage.setItemSync(settingsStorageKey(connection), JSON.stringify(page));
+      return queryClient.invalidateQueries({
+        queryKey: [connection.url],
+        predicate: (query) => query.queryKey[1] !== "settings",
+      });
+    },
   });
 }

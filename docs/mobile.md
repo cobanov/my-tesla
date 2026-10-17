@@ -7,13 +7,13 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 | Screen | Content |
 |---|---|
 | Connect | The server address, and an optional Cloudflare Access service token. "Open the demo" connects to the public demo. |
-| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car, and a gear button opens Settings. |
+| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
 | Drives | The trips by day. A trip opens its legs and stops, and a drive opens its figures and its speed, power, elevation, and battery charts. |
 | Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. Older and Newer step through the charges. |
 | Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. A longest drive or a frequent route opens its drive. |
-| Settings | The alerts that this phone gets, a test alert, and the server, with Disconnect |
+| Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location, and the Overview cards), the alerts that this phone gets with a test alert, and the server with Disconnect |
 
-The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them on the web. Read [API](api.md#app-api).
+The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the last Settings and the theme, so the tab opens at once and without a network. Read [API](api.md#app-api).
 
 Every list refreshes when you pull it down. The Overview and a charge also refresh every 30 s while they are on screen. A value in green or red explains itself when you press it.
 
@@ -129,7 +129,7 @@ The app needs no change. It reads the list from the server.
 |---|---|
 | `mobile/app.config.ts` | The app name, the IDs, the icons, the splash, and the plugins. `APP_VARIANT` and `EAS_PROJECT_ID` come from the environment. |
 | `mobile/eas.json` | The build profiles: `development`, `development-simulator`, `preview`, and `production` |
-| `mobile/src/app/` | The Expo Router routes: the root stack with Connect and Settings, and the four tabs with a stack each |
+| `mobile/src/app/` | The Expo Router routes: the root stack with Connect, and the five tabs with a stack each |
 | `mobile/src/screens/` | The drive, trip, and charge screens, which more than one tab shows |
 | `mobile/src/components/` | The shared components: text, panels, stats, rows, the segmented control, the chart, and the dashboard parts |
 | `mobile/src/api/` | The request with the service token, the shape check of each answer, and one query hook for each endpoint |

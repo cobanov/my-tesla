@@ -8,6 +8,7 @@ import type {
   InsightPage,
   OverviewPage,
   PushCatalog,
+  SettingsPage,
   TripDetail,
 } from "@contract";
 
@@ -121,4 +122,25 @@ export const insightPage = (value: unknown) =>
       typeof shape.title === "string" &&
       Array.isArray(shape.hero) &&
       Array.isArray(shape.sections),
+  );
+
+export const settingsPage = (value: unknown) =>
+  shaped<SettingsPage>(
+    value,
+    (shape) =>
+      Array.isArray(shape.preview) &&
+      Array.isArray(shape.groups) &&
+      shape.groups.every(
+        (group) =>
+          isRecord(group) &&
+          typeof group.title === "string" &&
+          Array.isArray(group.items) &&
+          group.items.every(
+            (item) =>
+              isRecord(item) &&
+              typeof item.key === "string" &&
+              typeof item.label === "string" &&
+              (item.kind !== "choice" || Array.isArray(item.options)),
+          ),
+      ),
   );

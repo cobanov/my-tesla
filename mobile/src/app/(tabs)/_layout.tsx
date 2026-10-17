@@ -35,6 +35,10 @@ function Tabs() {
         <NativeTabs.Trigger.Label>Insights</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="chart.bar.fill" md="bar_chart" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="gearshape.fill" md="settings" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

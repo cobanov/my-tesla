@@ -19,10 +19,12 @@ import {
   useConnectionState,
 } from "@/connection/connection-provider";
 import { useStackOptions } from "@/navigation/header";
+import { applyThemeChoice, readThemeChoice } from "@/theme/appearance";
 import { fonts } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
 
 SplashScreen.preventAutoHideAsync();
+applyThemeChoice(readThemeChoice());
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -81,14 +83,6 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
       <Stack screenOptions={{ ...stackOptions, headerShown: false }}>
         <Stack.Protected guard={connection !== null}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="settings"
-            options={{
-              presentation: "modal",
-              headerShown: true,
-              title: "Settings",
-            }}
-          />
         </Stack.Protected>
         <Stack.Protected guard={connection === null}>
           <Stack.Screen name="connect" />

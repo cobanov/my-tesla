@@ -11,7 +11,7 @@ export function SwitchRow({
   onChange,
 }: {
   label: string;
-  detail: string;
+  detail: string | null;
   value: boolean;
   disabled: boolean;
   onChange: (value: boolean) => void;
@@ -21,7 +21,7 @@ export function SwitchRow({
     <View style={styles.row}>
       <View style={styles.text}>
         <Text variant="strong">{label}</Text>
-        <Text variant="caption">{detail}</Text>
+        {detail ? <Text variant="caption">{detail}</Text> : null}
       </View>
       <Switch
         accessibilityLabel={label}

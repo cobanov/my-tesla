@@ -13,6 +13,8 @@ export function ListRow({
   accessory,
   end,
   startWidth,
+  selected,
+  disabled,
 }: {
   label: string;
   onPress?: () => void;
@@ -22,6 +24,8 @@ export function ListRow({
   accessory?: ReactNode;
   end?: ReactNode;
   startWidth?: number;
+  selected?: boolean;
+  disabled?: boolean;
 }) {
   const palette = usePalette();
   const body = (
@@ -64,6 +68,8 @@ export function ListRow({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
       onPress={onPress}
       android_ripple={{ color: palette.accent }}
       style={({ pressed }) => [

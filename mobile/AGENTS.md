@@ -39,17 +39,17 @@ mobile/src/
   connection/     The server address and the service token in the Keychain or the Keystore
   alerts/         Push tokens, Android channels, the alert choices, and the routes for a tapped alert
   navigation/     The header options and the link from a server target to a route
-  theme/          The palette, the tokens, the tones, and reduced motion
+  theme/          The palette, the tokens, the tones, the stored theme choice, and reduced motion
   hooks/          Small shared hooks: refresh, the current time
 ```
 
 ## Navigation
 
-1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with four tabs: Overview, Drives, Charging, Insights. Insights switches Battery, Stats, and Places with a segmented control. The period control shows in the section that has `period: true`, or at the top when no section has it. Add no fifth tab without a decision record. Android allows five tabs at most, and Apple asks for few.
+1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with five tabs: Overview, Drives, Charging, Insights, Settings. Insights switches Battery, Stats, and Places with a segmented control. The period control shows in the section that has `period: true`, or at the top when no section has it. Five is the limit: Android allows five tabs at most, and Apple asks for three to five. Add no tab without a decision record.
 2. Every tab with more than one screen is a folder with a `_layout.tsx` that renders a `Stack` and exports `unstable_settings = { anchor: "index" }`.
 3. The list screen of a tab uses a large title (`headerLargeTitleEnabled: true`). A detail screen sets its title from its data with `<Stack.Screen options={{ title }} />` inside the screen.
 4. Every `Stack` uses `screenOptions={useStackOptions()}` from `src/navigation/header.ts`, so the headers use Inter and the palette.
-5. Settings and Connect live in the root stack. Settings opens as a modal.
+5. Connect lives in the root stack. Settings is a tab: its list screen shows the groups from `/api/app/settings`, and `settings/[key]` lists the options of one choice with a check mark. A choice list with more than 12 options gets `Stack.SearchBar`.
 6. Build a link to a drive, a trip, or a charge with `targetHref(target, stack)`. Push it with `router.push(href)` in the same tab. From another tab, add `{ withAnchor: true }`.
 7. Use the typed route objects (`{ pathname: "/drives/[driveId]", params }`). Typed routes are on, so the type check catches a wrong path. Run `bun run start` once after you add a route, so Expo writes the route types.
 8. Never navigate to a string that comes from outside the app. `alertRoute()` in `src/alerts/use-alerts.ts` keeps the list of routes that an alert may open.
@@ -62,10 +62,12 @@ mobile/src/
    - keeps the server address in the query key, so two servers never share a cache.
 2. Poll (`refetchInterval: 30_000`) only screens that show live values: Overview and a charge. Lists refresh when the tab comes back into focus or the app returns to the foreground.
 3. A screen with a filter, such as the period, sets `keepPrevious: true`, so the old panels stay while the next ones load.
-4. Pull to refresh uses `useRefresh(query)`. Never pass `isRefetching` to a `RefreshControl`.
-5. Render a query through `<QueryView query={…}>{(data) => …}</QueryView>`. It shows nothing for 400 ms, then a spinner. It shows the error with a retry button when there is no data, and a notice above the old data when a refresh fails.
-6. A list with sticky day headings renders through `DayList`, because the sticky indices must count the direct children of the ScrollView.
-7. Every answer from outside the app is untrusted: server JSON, notification data, and stored values. Check its shape before use.
+4. A query that must show without a network sets `stored: <key>` in `useAppQuery`. The answer goes to `expo-sqlite/kv-store`, comes back as `initialData` through the same shape check, and is fetched again at once. Only the Settings use it: live values from a stored answer would mislead.
+5. Change a server setting with `useSettingChange()`. It shows the new value at once, puts the old one back when the server refuses, and refetches the other screens, because their units change.
+6. Pull to refresh uses `useRefresh(query)`. Never pass `isRefetching` to a `RefreshControl`.
+7. Render a query through `<QueryView query={…}>{(data) => …}</QueryView>`. It shows nothing for 400 ms, then a spinner. It shows the error with a retry button when there is no data, and a notice above the old data when a refresh fails.
+8. A list with sticky day headings renders through `DayList`, because the sticky indices must count the direct children of the ScrollView.
+9. Every answer from outside the app is untrusted: server JSON, notification data, and stored values. Check its shape before use.
 
 ## Components
 
@@ -77,10 +79,11 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `Screen` | The scroll container of every screen. It sets the insets for the transparent header and the tab bar, and the refresh control. |
 | `Panel` | A card: a muted title, an optional note on the right, and children. A `Button` inside a panel gets the page background. |
 | `Stat`, `StatGrid` | An `AppStat` from the server: a label, a value with its tone, and a detail. A value with a note opens the explanation on press. |
-| `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. |
+| `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. Pass `selected` for the chosen row of a choice list. |
 | `DayList` | A list grouped by day with sticky headings |
 | `SegmentedControl` | Two to five choices that switch a view or a filter. `size="compact"` for a filter inside a section. |
-| `Button`, `IconButton` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. An icon button needs a `label`. |
+| `Button` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. |
+| `SwitchRow`, `Field` | An on and off setting with an optional detail, and a labelled text field |
 | `Icon`, `icons` | A symbol with a name for each platform: an SF Symbol and a Material Symbol. The types reject a wrong name. Add new icons to `icons.ts`. |
 | `Chart` | An `AppChart` from the server. It draws areas, lines, and bars on one or two axes, and a scrubbing tooltip. |
 | `Block` | One block of an insight panel: stats, chart, shares, table, records, heatmap, progress, notice, or note. It takes the tab stack, so a record opens its target in the same tab. |
@@ -100,13 +103,14 @@ A new shared component:
 
 The app follows the Tesla style of the web. `research/ui-stack.md` has the tokens.
 
-1. Colors come only from `usePalette()`. `src/theme/palette.ts` copies `src/app/globals.css`, and `palette.test.ts` fails when they differ. Change the web token first.
-2. Two font weights only: Inter 400 (`fonts.regular`) and Inter 500 (`fonts.medium`).
-3. Cards have a 12 pt radius (`radius.card`) and `borderCurve: "continuous"`. Controls have a 4 pt radius (`radius.control`). No shadows, no card borders, no gradients.
-4. Numbers that change or line up use `fontVariant: ["tabular-nums"]`.
-5. Spacing comes from `space` in `src/theme/tokens.ts`.
-6. Keep `StyleSheet.create` for layout, and pass palette colors inline: `[styles.card, { backgroundColor: palette.card }]`.
-7. A value tone is green for better than usual and red for worse, and the text always says the value. Never show meaning by color alone.
+1. The app starts dark. `src/theme/appearance.ts` keeps the choice of the phone (System, Light, or Dark) and applies it with `Appearance.setColorScheme` before the first screen. `useColorScheme()` and `usePalette()` follow it.
+2. Colors come only from `usePalette()`. `src/theme/palette.ts` copies `src/app/globals.css`, and `palette.test.ts` fails when they differ. Change the web token first.
+3. Two font weights only: Inter 400 (`fonts.regular`) and Inter 500 (`fonts.medium`).
+4. Cards have a 12 pt radius (`radius.card`) and `borderCurve: "continuous"`. Controls have a 4 pt radius (`radius.control`). No shadows, no card borders, no gradients.
+5. Numbers that change or line up use `fontVariant: ["tabular-nums"]`.
+6. Spacing comes from `space` in `src/theme/tokens.ts`.
+7. Keep `StyleSheet.create` for layout, and pass palette colors inline: `[styles.card, { backgroundColor: palette.card }]`.
+8. A value tone is green for better than usual and red for worse, and the text always says the value. Never show meaning by color alone.
 
 ## Accessibility
 

@@ -4,7 +4,7 @@ import type { AndroidSymbol, SFSymbol } from "expo-symbols";
 export type IconName = { ios: SFSymbol; android: AndroidSymbol };
 
 export const icons = {
-  settings: { ios: "gearshape", android: "settings" },
+  check: { ios: "checkmark", android: "check" },
   chevron: { ios: "chevron.right", android: "chevron_right" },
   warning: { ios: "exclamationmark.triangle.fill", android: "warning" },
   info: { ios: "info.circle", android: "info" },

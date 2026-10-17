@@ -7,6 +7,7 @@ import {
   overviewPage,
   pushCatalog,
   responseProblem,
+  settingsPage,
 } from "./responses";
 
 const car = { id: 2, name: "Juniper", model: "Model Y", trim: "SR" };
@@ -73,5 +74,22 @@ describe("screen shapes", () => {
       insightPage({ title: "Battery", hero: [], sections: [] }),
     ).not.toBeNull();
     expect(insightPage([])).toBeNull();
+  });
+
+  test("checks each settings group and the choices of a choice item", () => {
+    const item = { key: "distance", label: "Distance", kind: "choice" };
+    expect(
+      settingsPage({
+        preview: [],
+        groups: [{ title: "Units", items: [{ ...item, options: [] }] }],
+      }),
+    ).not.toBeNull();
+    expect(
+      settingsPage({
+        preview: [],
+        groups: [{ title: "Units", items: [item] }],
+      }),
+    ).toBeNull();
+    expect(settingsPage({ preview: [], groups: [null] })).toBeNull();
   });
 });

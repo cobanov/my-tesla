@@ -7,8 +7,6 @@ import { useCar } from "@/car/car-provider";
 import { Battery } from "@/components/battery";
 import { Button } from "@/components/button";
 import { DayStrip } from "@/components/day-strip";
-import { IconButton } from "@/components/icon-button";
-import { icons } from "@/components/icons";
 import { ListRow } from "@/components/list-row";
 import { LivePanel } from "@/components/live-tiles";
 import { Notice } from "@/components/notice";
@@ -174,33 +172,23 @@ function OverviewContent({ page }: { page: OverviewPage }) {
 }
 
 export default function OverviewScreen() {
-  const router = useRouter();
   const { cars, car, choose } = useCar();
   const overview = useOverview(car.id);
   const refresh = useRefresh(overview);
   return (
     <Screen refreshing={refresh.refreshing} onRefresh={refresh.onRefresh}>
-      <View style={styles.bar}>
-        <View style={styles.cars}>
-          {cars.length > 1 ? (
-            <SegmentedControl
-              label="Car"
-              size="compact"
-              items={cars.map((entry) => ({
-                id: String(entry.id),
-                label: entry.name,
-              }))}
-              value={String(car.id)}
-              onChange={(id) => choose(Number(id))}
-            />
-          ) : null}
-        </View>
-        <IconButton
-          icon={icons.settings}
-          label="Settings"
-          onPress={() => router.push("/settings")}
+      {cars.length > 1 ? (
+        <SegmentedControl
+          label="Car"
+          size="compact"
+          items={cars.map((entry) => ({
+            id: String(entry.id),
+            label: entry.name,
+          }))}
+          value={String(car.id)}
+          onChange={(id) => choose(Number(id))}
         />
-      </View>
+      ) : null}
       <QueryView query={overview}>
         {(page) => <OverviewContent page={page} />}
       </QueryView>
@@ -209,8 +197,6 @@ export default function OverviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", alignItems: "center", gap: space.md },
-  cars: { flex: 1 },
   image: { width: "100%", aspectRatio: 16 / 7 },
   status: {
     flexDirection: "row",
