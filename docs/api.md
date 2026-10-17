@@ -1,9 +1,10 @@
 # API
 
-The app has four read-only `GET` endpoints for scripts, widgets, and home automation. They sit behind the same proxy as the pages. Read [Protect the dashboard](authentication.md) first.
+The app has five read-only `GET` endpoints for scripts, widgets, home automation, and the [mobile app](mobile.md), and one endpoint for push alerts. They sit behind the same proxy as the pages. Read [Protect the dashboard](authentication.md) first.
 
 | Endpoint | Gives |
 |---|---|
+| `/api/cars.json` | The cars, as JSON: `id`, `name`, `model`, and `trim` of each car, and `defaultCarId`, the car with the latest position |
 | `/api/cars/{carId}/summary.json` | The car status now, as JSON. Add `?location=1` for the position and the navigation. |
 | `/api/cars/{carId}/drives.csv` | All drives as CSV. Optional `from` and `to` dates, as `YYYY-MM-DD`. |
 | `/api/cars/{carId}/charges.csv` | All charges as CSV, with the same optional dates. |
@@ -53,6 +54,19 @@ The response leaves out the position unless the request asks for it. A widget th
 ```
 
 The example shows some of the fields. Each response has the header `Cache-Control: private, no-store`.
+
+## Push alerts
+
+`/api/push` registers a phone for push alerts. Only the [mobile app](mobile.md) uses it. Each request with a body needs `Content-Type: application/json`.
+
+| Method | Body | Effect |
+|---|---|---|
+| `GET` | None | `{ "enabled": true, "events": [...] }`: whether the server can send alerts, and the events with `id`, `title`, and `description` |
+| `PUT` | `{ "token": "ExponentPushToken[...]", "events": ["charging-complete"] }` | Saves the phone and its events. An empty list removes the phone. |
+| `DELETE` | `{ "token": "ExponentPushToken[...]" }` | Removes the phone. Answers 204. |
+| `POST` | `{ "token": "ExponentPushToken[...]" }` | Sends a test alert to a saved phone. Answers 204. |
+
+`enabled` is `false` without `MQTT_URL` and in demo mode, and `PUT` and `POST` then answer 409. An unknown event or a token in another form gives 400.
 
 ## Call the API through Cloudflare Access
 

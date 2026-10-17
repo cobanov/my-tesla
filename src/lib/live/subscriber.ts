@@ -10,6 +10,7 @@ import {
 import type { LiveStamps } from "./view";
 
 type Listener = () => void;
+type FeedListener = (carId: number) => void;
 
 type Feed = {
   client: MqttClient;
@@ -17,6 +18,7 @@ type Feed = {
   values: Map<number, LiveValues>;
   stamps: Map<number, LiveStamps>;
   listeners: Map<number, Set<Listener>>;
+  feedListeners: Set<FeedListener>;
   ready: Promise<void>;
 };
 
@@ -41,6 +43,7 @@ function startFeed(config: MqttConfig): Feed {
     values: new Map(),
     stamps: new Map(),
     listeners: new Map(),
+    feedListeners: new Set(),
     ready: Promise.resolve(),
   };
   feed.ready = new Promise((resolve) => {
@@ -72,6 +75,7 @@ function startFeed(config: MqttConfig): Feed {
       [parsed.key]: Date.now(),
     });
     feed.listeners.get(parsed.carId)?.forEach((listener) => listener());
+    feed.feedListeners.forEach((listener) => listener(parsed.carId));
   });
   return feed;
 }
@@ -112,4 +116,8 @@ export function watchMqtt(
   return () => {
     listeners.delete(listener);
   };
+}
+
+export function watchFeed(listener: FeedListener): void {
+  currentFeed()?.feedListeners.add(listener);
 }

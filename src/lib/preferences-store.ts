@@ -13,7 +13,7 @@ export function userPreferencesTag(user: string): string {
   return `preferences:${user}`;
 }
 
-function preferencesPath(
+export function preferencesPath(
   environment: Record<string, string | undefined> = process.env,
 ): string {
   const configured = environment.PREFERENCES_FILE?.trim();

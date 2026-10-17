@@ -23,6 +23,7 @@ The server reads environment variables at the first request. The browser never s
 | `MQTT_USERNAME` | No | Empty | A broker user that can only read `teslamate/#` |
 | `MQTT_PASSWORD` | No | Empty | The password of that user. Set `MQTT_USERNAME` with it. |
 | `MQTT_NAMESPACE` | No | Empty | The same value as `MQTT_NAMESPACE` in TeslaMate, if you set one there |
+| `EXPO_ACCESS_TOKEN` | No | Empty | The access token for enhanced push security in Expo. Set it only when that setting is on. Read [Mobile app](mobile.md#push-alerts). |
 | `DEMO_MODE` | No | Empty | `1` runs the public demo: a built-in demo database, the landing page, and Settings in a cookie. Read [Demo site](demo-site.md). Never set it together with real data. |
 | `ALLOWED_DEV_ORIGINS` | No | Empty | Development only. A comma-separated list of extra host names for `next dev`. |
 
@@ -65,3 +66,5 @@ The server writes Settings to `PREFERENCES_FILE`, with one entry for each user. 
 The server keeps the Settings in memory for up to 1 minute, with Next.js Cache Components. A save clears your entry at once, so every device sees the change on the next page. A hand edit of the file shows after up to 1 minute. [Decision 0005](decisions/0005-cache-components.md) explains the cache.
 
 Back up the file with the rest of your TeslaMate data. It holds only display choices, no car data and no secrets.
+
+With [push alerts](mobile.md#push-alerts), the server also writes `push-devices.json` in the same folder. It holds the push token and the chosen alerts of each phone.
