@@ -53,18 +53,20 @@ export function TripScreen({ tripId }: { tripId: string }) {
       <QueryView query={trip}>
         {(detail) => (
           <>
+            {detail.routes?.length ? (
+              <View style={styles.hero}>
+                <RouteMap
+                  routes={detail.routes}
+                  markers={detail.markers ?? []}
+                  label={`Map of the trip to ${detail.title}`}
+                  width={3}
+                />
+              </View>
+            ) : null}
             <Text variant="label">{detail.subtitle}</Text>
             <View style={styles.stats}>
               <StatGrid stats={detail.stats} />
             </View>
-            {detail.routes?.length ? (
-              <RouteMap
-                routes={detail.routes}
-                markers={detail.markers ?? []}
-                label={`Map of the trip to ${detail.title}`}
-                width={3}
-              />
-            ) : null}
             <View style={styles.steps}>
               {detail.steps.map((step) => {
                 const target = step.target;
@@ -93,6 +95,7 @@ export function TripScreen({ tripId }: { tripId: string }) {
 }
 
 const styles = StyleSheet.create({
+  hero: { marginTop: -space.lg },
   stats: { marginVertical: space.lg },
   steps: { gap: 2 },
   icon: {

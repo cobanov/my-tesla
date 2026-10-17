@@ -140,7 +140,7 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 1. Lists use a ScrollView, because native tabs scroll it to the top and pop the stack when the active tab is pressed again. The server sends at most 50 rows. Measure first, then switch a list to `@shopify/flash-list` 2 (bundled by SDK 58) only if it scrolls badly.
 2. Charts take the `AppChart` that the server builds with `buildChart` in `src/lib/app/chart.ts`. Add a chart kind on the server first, then draw it in `Chart`. Do not add a chart library.
 3. Show a remote image with `Image` from `expo-image` and `cachePolicy="memory-disk"`, never the React Native `Image`. The car image server sends `max-age=60`.
-4. Draw a map with `LocationMap`, `RouteMap`, or `PlacesMap` from `src/components/map.tsx`. The server sends the positions, and `null` when maps are off. Draw routes and dots as style layers on a GeoJSON source, not as views. Keep the CARTO style URLs of the web, and keep panning off inside a scrolling screen. [Decision 0022](../docs/decisions/0022-maps-in-the-mobile-app.md) explains why.
+4. Draw a map with `LocationMap`, `RouteMap`, or `PlacesMap` from `src/components/map.tsx`. The server sends the positions, and `null` when maps are off. Draw routes and dots as style layers on a GeoJSON source, not as views. Keep the CARTO style URLs of the web, and keep panning off inside a scrolling screen. A map runs from edge to edge outside the cards: wrap it in `MapSection` for a titled map, or put a route map first on a detail screen with `marginTop: -space.lg`. [Decision 0022](../docs/decisions/0022-maps-in-the-mobile-app.md) explains why.
 
 ## Push alerts
 

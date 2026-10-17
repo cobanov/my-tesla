@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { useInsight, type InsightKind } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Block } from "@/components/blocks";
+import { MapSection } from "@/components/map";
 import { Panel } from "@/components/panel";
 import { QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
@@ -61,13 +62,21 @@ function Section({
       {section.period ? (
         <PeriodControl page={page} onChange={onPeriod} />
       ) : null}
-      {section.panels.map((panel) => (
-        <Panel key={panel.title} title={panel.title} note={panel.note}>
-          {panel.blocks.map((block, index) => (
-            <Block key={index} block={block} stack="insights" />
-          ))}
-        </Panel>
-      ))}
+      {section.panels.map((panel) =>
+        panel.blocks.some((block) => block.kind === "map") ? (
+          <MapSection key={panel.title} title={panel.title}>
+            {panel.blocks.map((block, index) => (
+              <Block key={index} block={block} stack="insights" />
+            ))}
+          </MapSection>
+        ) : (
+          <Panel key={panel.title} title={panel.title} note={panel.note}>
+            {panel.blocks.map((block, index) => (
+              <Block key={index} block={block} stack="insights" />
+            ))}
+          </Panel>
+        ),
+      )}
     </View>
   );
 }

@@ -13,7 +13,7 @@ The web dashboard shows maps on the Overview, a drive, a trip, a charge, and the
 1. The app draws its maps with `@maplibre/maplibre-react-native` 11.5.0, the React Native build of the same engine as the web, with the same CARTO style URLs. The version is pinned, because it holds native code.
 2. `src/components/map.tsx` holds three maps: `LocationMap` for the car on the Overview and the place of a charge, `RouteMap` for a drive and a trip, and `PlacesMap` for the Places page. The colors and the dot sizes copy `src/components/maps.tsx` of the web.
 3. Routes and dots are style layers on a GeoJSON source, so a map with many places stays fast. Only the car is a native view, so it can pulse. The pulse stops with Reduce Motion.
-4. A map inside a scrolling screen does not pan, rotate, or tilt, so one finger always scrolls the screen. Two fingers zoom. This matches the cooperative gestures of the web.
+4. A map runs from edge to edge with square corners, outside the cards: about 46% of the screen height on a drive, a trip, and Places, and 38% on the Overview and a charge. A drive and a trip start with their map under the navigation bar. A map inside a scrolling screen does not pan, rotate, or tilt, so one finger always scrolls the screen. Two fingers zoom. This matches the cooperative gestures of the web.
 5. The map theme follows Map theme in Settings, which the app now shows and changes, or the theme of the app.
 6. The server builds the trip markers and the place dots in `src/lib/map-points.ts` for the web pages and the app API.
 

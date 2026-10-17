@@ -3,6 +3,8 @@ import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 import { space } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
 
+export const screenPadding = space.xl;
+
 export function Screen({
   children,
   refreshing,
@@ -40,7 +42,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: space.xl,
+    paddingHorizontal: screenPadding,
     paddingTop: space.lg,
     paddingBottom: space.xxl * 3,
     gap: space.lg,

@@ -23,14 +23,16 @@ export function DriveScreen({ driveId }: { driveId: string }) {
       <QueryView query={drive}>
         {(detail) => (
           <>
+            {detail.route ? (
+              <View style={styles.hero}>
+                <RouteMap
+                  routes={[detail.route]}
+                  label={`Map of the drive ${detail.title}`}
+                />
+              </View>
+            ) : null}
             <Text variant="label">{detail.subtitle}</Text>
             {detail.notice ? <Notice text={detail.notice} /> : null}
-            {detail.route ? (
-              <RouteMap
-                routes={[detail.route]}
-                label={`Map of the drive ${detail.title}`}
-              />
-            ) : null}
             <View style={styles.stats}>
               <StatGrid stats={detail.stats} />
             </View>
@@ -47,5 +49,6 @@ export function DriveScreen({ driveId }: { driveId: string }) {
 }
 
 const styles = StyleSheet.create({
+  hero: { marginTop: -space.lg },
   stats: { marginVertical: space.lg },
 });

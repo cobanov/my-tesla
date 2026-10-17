@@ -8,9 +8,15 @@ import {
   type InitialViewState,
 } from "@maplibre/maplibre-react-native";
 import { useEffect, useState, type ReactNode } from "react";
-import { Animated, StyleSheet, View, useColorScheme } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  View,
+  useColorScheme,
+  useWindowDimensions,
+} from "react-native";
 import { useSettings } from "@/api/queries";
-import { motion, radius, space } from "@/theme/tokens";
+import { motion, space } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
 import { useReducedMotion } from "@/theme/use-reduced-motion";
 import {
@@ -20,6 +26,7 @@ import {
   placePoints,
   routeEnds,
 } from "./map-geometry";
+import { screenPadding } from "./screen";
 import { Text } from "./text";
 
 const mapStyles = {
@@ -28,7 +35,7 @@ const mapStyles = {
 };
 
 const carZoom = 15;
-const fitPadding = { top: 40, right: 40, bottom: 40, left: 40 };
+const fitPadding = { top: 48, right: 48, bottom: 48, left: 48 };
 
 function useMapStyle(): string {
   const scheme = useColorScheme();
@@ -40,30 +47,35 @@ function useMapStyle(): string {
   return scheme === "dark" ? mapStyles.dark : mapStyles.light;
 }
 
+export type MapSize = "hero" | "card";
+
+const heightShare: Record<MapSize, number> = { hero: 0.46, card: 0.38 };
+
+function useMapHeight(size: MapSize): number {
+  const { height } = useWindowDimensions();
+  return Math.round(Math.min(560, Math.max(260, height * heightShare[size])));
+}
+
 function MapCanvas({
   label,
-  height,
+  size,
   view,
-  rounded,
   children,
 }: {
   label: string;
-  height: number;
+  size: MapSize;
   view: InitialViewState;
-  rounded: number;
   children: ReactNode;
 }) {
   const palette = usePalette();
   const mapStyle = useMapStyle();
+  const height = useMapHeight(size);
   return (
     <View
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      style={[
-        styles.frame,
-        { height, borderRadius: rounded, backgroundColor: palette.card },
-      ]}
+      style={[styles.frame, { height, backgroundColor: palette.card }]}
     >
       <Map
         style={StyleSheet.absoluteFill}
@@ -73,7 +85,7 @@ function MapCanvas({
         touchPitch={false}
         compass={false}
         logo={false}
-        attributionPosition={{ bottom: 6, right: 6 }}
+        attributionPosition={{ bottom: 8, right: screenPadding }}
       >
         <Camera initialViewState={view} />
         {children}
@@ -142,21 +154,14 @@ export function LocationMap({
   latitude,
   longitude,
   label,
-  height = 192,
 }: {
   latitude: number;
   longitude: number;
   label: string;
-  height?: number;
 }) {
   const center: LngLat = [longitude, latitude];
   return (
-    <MapCanvas
-      label={label}
-      height={height}
-      rounded={radius.control}
-      view={{ center, zoom: carZoom }}
-    >
+    <MapCanvas label={label} size="card" view={{ center, zoom: carZoom }}>
       <Marker id="car" lngLat={center}>
         <CarDot />
       </Marker>
@@ -222,12 +227,7 @@ export function RouteMap({
   const ends =
     markers ?? (routes.length === 1 && routes[0] ? routeEnds(routes[0]) : []);
   return (
-    <MapCanvas
-      label={label}
-      height={280}
-      rounded={radius.card}
-      view={{ bounds, padding: fitPadding }}
-    >
+    <MapCanvas label={label} size="hero" view={{ bounds, padding: fitPadding }}>
       <GeoJSONSource id="route" data={lines(routes)}>
         <Layer
           id="route-line"
@@ -258,6 +258,23 @@ function Legend() {
   );
 }
 
+export function MapSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <View style={styles.section}>
+      <Text variant="label" accessibilityRole="header">
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
 export function PlacesMap({ places }: { places: readonly MapPlace[] }) {
   const palette = usePalette();
   const bounds = boundsOf(
@@ -268,8 +285,7 @@ export function PlacesMap({ places }: { places: readonly MapPlace[] }) {
     <View style={styles.places}>
       <MapCanvas
         label={`Map of ${places.length} places`}
-        height={320}
-        rounded={radius.control}
+        size="hero"
         view={{ bounds, padding: fitPadding }}
       >
         <GeoJSONSource id="places" data={placePoints(places)}>
@@ -307,7 +323,7 @@ export function PlacesMap({ places }: { places: readonly MapPlace[] }) {
 }
 
 const styles = StyleSheet.create({
-  frame: { overflow: "hidden", borderCurve: "continuous" },
+  frame: { overflow: "hidden", marginHorizontal: -screenPadding },
   car: {
     width: 24,
     height: 24,
@@ -317,6 +333,7 @@ const styles = StyleSheet.create({
   ring: { position: "absolute", width: 24, height: 24, borderRadius: 12 },
   dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
   places: { gap: space.md },
+  section: { gap: space.md, marginTop: space.sm },
   legend: { flexDirection: "row", gap: space.lg },
   legendItem: { flexDirection: "row", alignItems: "center", gap: space.sm },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
