@@ -46,6 +46,10 @@ export default function ConnectScreen() {
     },
   });
   const { mutate } = connect;
+  const connectTo = (input: ConnectInput) => {
+    setScanProblem(null);
+    mutate(input);
+  };
   const typed = { url, clientId, clientSecret, carId: null };
 
   useEffect(() => {
@@ -119,7 +123,7 @@ export default function ConnectScreen() {
         returnKeyType="go"
         value={url}
         onChangeText={setUrl}
-        onSubmitEditing={() => connect.mutate(typed)}
+        onSubmitEditing={() => connectTo(typed)}
       />
       <Field
         label="Access client ID"
@@ -132,7 +136,7 @@ export default function ConnectScreen() {
         returnKeyType="go"
         value={clientSecret}
         onChangeText={setClientSecret}
-        onSubmitEditing={() => connect.mutate(typed)}
+        onSubmitEditing={() => connectTo(typed)}
       />
       <Text variant="caption">
         Behind Cloudflare Access, add a service token. Leave both empty on a
@@ -146,14 +150,14 @@ export default function ConnectScreen() {
       <Button
         label="Connect"
         busy={connect.isPending}
-        onPress={() => connect.mutate(typed)}
+        onPress={() => connectTo(typed)}
       />
       <Button
         label="Open the demo"
         kind="secondary"
         disabled={connect.isPending}
         onPress={() =>
-          connect.mutate({
+          connectTo({
             url: demoUrl,
             clientId: "",
             clientSecret: "",
