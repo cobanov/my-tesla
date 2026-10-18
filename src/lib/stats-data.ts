@@ -13,6 +13,7 @@ import {
   type BiggestChargeRow,
 } from "./year-review-sql";
 import { getPlaceStyle, getRangeKind } from "./viewer";
+import { sinceOf, untilOf } from "./time-bounds";
 
 export type BucketUnit = "day" | "week" | "month";
 
@@ -83,14 +84,6 @@ type Place = {
   houseNumber: string | null;
   city: string | null;
 };
-
-function sinceOf(from: Date | null) {
-  return (from ?? new Date(0)).toISOString();
-}
-
-function untilOf(to: Date | null) {
-  return to?.toISOString() ?? "infinity";
-}
 
 function usedEnergy(kind: RangeKind) {
   return database()`

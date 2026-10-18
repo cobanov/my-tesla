@@ -13,6 +13,7 @@ import { placeLabel } from "./vehicle";
 import { getPlaceStyle, getRangeKind } from "./viewer";
 import { visitedAreas } from "./visited-areas";
 import { visitedAreasQuery } from "./visited-areas-sql";
+import { sinceOf, untilOf } from "./time-bounds";
 
 type Place = {
   geofence: string | null;
@@ -63,14 +64,6 @@ export type FrequentRoute = Omit<FrequentRouteRow, "from" | "to"> & {
 };
 
 const shownRoutes = 8;
-
-function sinceOf(from: Date | null) {
-  return (from ?? new Date(0)).toISOString();
-}
-
-function untilOf(to: Date | null) {
-  return to?.toISOString() ?? "infinity";
-}
 
 export const visitedPlaces = cache(
   async (
