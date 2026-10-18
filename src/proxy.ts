@@ -13,6 +13,7 @@ import { isDemoMode } from "@/lib/demo/mode";
 const access = readAccessConfig(process.env);
 const keys = access ? accessKeys(access) : null;
 const readOnly = new Set(["GET", "HEAD", "OPTIONS"]);
+const accountPaths = new Set(["/login", "/setup", "/account"]);
 
 function refused(api: boolean, status: number, message: string) {
   return api
@@ -38,9 +39,16 @@ export async function proxy(request: NextRequest) {
     if (!result.ok)
       return refused(api, 403, "Sign in through Cloudflare Access.");
   }
-  if (isDemoMode()) return NextResponse.next();
+  if (isDemoMode()) {
+    return accountPaths.has(path)
+      ? NextResponse.redirect(new URL("/", request.url))
+      : NextResponse.next();
+  }
 
   if (authStore().userCount() === 0) {
+    if (path === "/login") {
+      return NextResponse.redirect(new URL("/setup", request.url));
+    }
     if (path === "/setup" || isPublicPath(path)) return NextResponse.next();
     if (api) return refused(true, 503, "Create the admin account first.");
     return NextResponse.redirect(new URL("/setup", request.url));
