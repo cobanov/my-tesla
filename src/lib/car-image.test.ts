@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { carImageUrl, type CarImageInput } from "./car-image";
+import { carImageUrl, vinModelYear, type CarImageInput } from "./car-image";
 
 const rika: CarImageInput = {
   model: "Y",
@@ -11,6 +11,25 @@ const rika: CarImageInput = {
 function optionsOf(url: string | null): string | null {
   return url ? new URL(url).searchParams.get("options") : null;
 }
+
+function isNewBody(url: string | null): boolean {
+  return url
+    ? new URL(url).searchParams.get("context") === "design_studio_2"
+    : false;
+}
+
+describe("vinModelYear", () => {
+  test("reads the tenth character of the VIN", () => {
+    expect(vinModelYear("S")).toBe(2025);
+    expect(vinModelYear("r")).toBe(2024);
+    expect(vinModelYear("M")).toBe(2021);
+    expect(vinModelYear("L")).toBe(2020);
+    expect(vinModelYear("1")).toBe(2031);
+    for (const code of ["I", "O", "Q", "U", "Z", "0", "", "SS", null]) {
+      expect(vinModelYear(code)).toBeNull();
+    }
+  });
+});
 
 describe("carImageUrl", () => {
   test("builds the 2025 Model Y render for a Stealth Grey car", () => {
@@ -390,5 +409,34 @@ describe("carImageUrl", () => {
     expect(new URL(carImageUrl(rika, 960) ?? "").searchParams.get("size")).toBe(
       "960",
     );
+  });
+
+  test("lets the model year rule out a generation that did not exist", () => {
+    const model3 = {
+      model: "3",
+      exteriorColor: "PearlWhite",
+      wheelType: "Performance20",
+      trimBadging: "P74D",
+    };
+    expect(isNewBody(carImageUrl(model3))).toBe(false);
+    expect(isNewBody(carImageUrl({ ...model3, modelYear: 2022 }))).toBe(false);
+    expect(isNewBody(carImageUrl({ ...model3, modelYear: 2024 }))).toBe(true);
+    const capKit = {
+      ...model3,
+      wheelType: "Pinwheel18CapKit",
+      trimBadging: "50",
+    };
+    expect(isNewBody(carImageUrl(capKit))).toBe(false);
+    expect(isNewBody(carImageUrl({ ...capKit, modelYear: 2025 }))).toBe(true);
+    const modelY = {
+      ...rika,
+      exteriorColor: "PearlWhite",
+      wheelType: "Uberturbine21",
+    };
+    expect(isNewBody(carImageUrl({ ...modelY, modelYear: 2025 }))).toBe(
+      isNewBody(carImageUrl(modelY)),
+    );
+    expect(isNewBody(carImageUrl({ ...modelY, modelYear: 2026 }))).toBe(true);
+    expect(isNewBody(carImageUrl({ ...modelY, modelYear: 2021 }))).toBe(false);
   });
 });

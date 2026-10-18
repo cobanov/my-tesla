@@ -52,7 +52,7 @@ The values in the table come from cars that people pasted in issues ("car" in th
 
 ## Known limits
 
-1. TeslaMate cannot tell some generations apart. A white Model Y Performance from 2025 that reports `Uberturbine21` shows the older body, and so does a white Model 3 Performance from 2024 that reports `Performance20`. A Highland Model 3 that reports a legacy wheel name, such as `Pinwheel18CapKit`, shows the older body when its color existed on both. The model and the color are right in each case.
+1. The wheel name and the color cannot tell some generations apart. Since TSLA-64 the model year from the tenth character of the VIN rules out a generation that was not built that year: the legacy Model 3 ends with 2023 and Highland starts with 2024, the legacy Model Y runs from 2020 to 2025 and Juniper starts with 2025, the Model S and Model X change in 2021 and 2025, and the Cybertruck starts with 2024. So a white Model 3 Performance of 2024 that reports `Performance20` and a Highland that reports `Pinwheel18CapKit` now show the new body. A year that two generations share, such as a 2025 Model Y, still follows the wheel name: a white 2025 Model Y Performance that reports `Uberturbine21` can show the older body. The VIN stays on the server; only the year reaches the image rule.
 2. The wheel names of the Model S and Model X from 2025, the Model Y L, the Juniper Performance, and the Cybertruck are not known. These cars show the usual wheels of the newest generation that has their color.
 3. The color names `LunarSilver` and `FrostBlue` follow the pattern of the other names. No car has reported them yet.
 4. A color that is not in the table, such as a new paint, gives no image until the table learns it.

@@ -3,6 +3,7 @@ export type CarImageInput = {
   exteriorColor: string | null;
   wheelType: string | null;
   trimBadging: string | null;
+  modelYear?: number | null;
 };
 
 type WheelSpec = {
@@ -15,6 +16,7 @@ type WheelSpec = {
 type Profile = {
   base: string;
   model: string;
+  years: [number, number | null];
   view: string;
   modern: boolean;
   paints: string[];
@@ -113,6 +115,7 @@ const profiles: Profile[] = [
   {
     base: olderCompositor,
     model: "my",
+    years: [2020, 2025],
     view: "STUD_3QTR",
     modern: false,
     paints: [
@@ -138,6 +141,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "my",
+    years: [2025, null],
     view: "FRONT34",
     modern: true,
     paints: [
@@ -163,6 +167,7 @@ const profiles: Profile[] = [
   {
     base: olderCompositor,
     model: "m3",
+    years: [2017, 2023],
     view: "STUD_3QTR",
     modern: false,
     paints: ["$PPSW", "$PBSB", "$PMNG", "$PPSB", "$PPMR", "$PMBL", "$PMSS"],
@@ -188,6 +193,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "m3",
+    years: [2024, null],
     view: "STUD_FRONT34",
     modern: true,
     paints: [
@@ -220,6 +226,7 @@ const profiles: Profile[] = [
   {
     base: olderCompositor,
     model: "ms",
+    years: [2012, 2020],
     view: "STUD_3QTR",
     modern: false,
     paints: [
@@ -258,6 +265,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "ms",
+    years: [2021, 2025],
     view: "FRONT34",
     modern: true,
     paints: [
@@ -280,6 +288,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "ms",
+    years: [2025, null],
     view: "FRONT34",
     modern: true,
     paints: ["$PN01", "$PPSW", "$PX02", "$PB00", "$PR01", "$PN02"],
@@ -289,6 +298,7 @@ const profiles: Profile[] = [
   {
     base: olderCompositor,
     model: "mx",
+    years: [2016, 2020],
     view: "STUD_3QTR",
     modern: false,
     paints: [
@@ -315,6 +325,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "mx",
+    years: [2021, 2025],
     view: "FRONT34",
     modern: true,
     paints: ["$PPSW", "$PBSB", "$PMNG", "$PPSB", "$PPMR"],
@@ -327,6 +338,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "mx",
+    years: [2025, null],
     view: "FRONT34",
     modern: true,
     paints: ["$PN01", "$PPSW", "$PX02", "$PB00", "$PR01", "$PN02"],
@@ -336,6 +348,7 @@ const profiles: Profile[] = [
   {
     base: modernCompositor,
     model: "ct",
+    years: [2024, null],
     view: "FRONT34",
     modern: true,
     paints: ["$PDD"],
@@ -367,14 +380,23 @@ function wheelOf(profile: Profile, wheelKey: string): WheelSpec | null {
   return name ? profile.wheels[name] : null;
 }
 
+function builtIn(profile: Profile, year: number): boolean {
+  const [first, last] = profile.years;
+  return first <= year && (last === null || year <= last);
+}
+
 function pick(
   model: string,
   paint: string,
   wheelKey: string,
+  year: number | null,
 ): { profile: Profile; spec: WheelSpec } | null {
-  const painted = profiles.filter(
+  const colored = profiles.filter(
     (profile) => profile.model === model && profile.paints.includes(paint),
   );
+  const ofYear =
+    year === null ? [] : colored.filter((profile) => builtIn(profile, year));
+  const painted = ofYear.length > 0 ? ofYear : colored;
   for (const profile of painted) {
     const spec = wheelOf(profile, wheelKey);
     if (spec) return { profile, spec };
@@ -388,7 +410,7 @@ export function carImageUrl(car: CarImageInput, size = 1440): string | null {
   if (!model) return null;
   const paint = unpaintedBodies[model] ?? paintCodes[key(car.exteriorColor)];
   if (!paint) return null;
-  const picked = pick(model, paint, key(car.wheelType));
+  const picked = pick(model, paint, key(car.wheelType), car.modelYear ?? null);
   if (!picked) return null;
   const { profile, spec } = picked;
   const trim =
@@ -408,4 +430,13 @@ export function carImageUrl(car: CarImageInput, size = 1440): string | null {
     params.set("overlay", "0");
   }
   return `${profile.base}?${params}`;
+}
+
+const yearCodes = "ABCDEFGHJKLMNPRSTVWXY";
+
+export function vinModelYear(code: string | null): number | null {
+  if (!code || code.length !== 1) return null;
+  const letter = yearCodes.indexOf(code.toUpperCase());
+  if (letter >= 0) return 2010 + letter;
+  return /^[1-9]$/.test(code) ? 2030 + Number(code) : null;
 }

@@ -19,6 +19,7 @@ const car: Car = {
   trimBadging: null,
   efficiencyKwhPerKm: 0.136,
   lfpBattery: false,
+  modelYear: null,
 };
 
 function at(hour: number, minute = 0): Date {

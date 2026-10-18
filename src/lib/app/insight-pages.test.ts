@@ -20,6 +20,7 @@ const car: Car = {
   trimBadging: null,
   efficiencyKwhPerKm: 0.136,
   lfpBattery: false,
+  modelYear: null,
 };
 
 const emptyStats: StatsInput = {
