@@ -21,7 +21,7 @@ The dashboard shows a location history. This page lists every place that data go
 
 | Service | Request | What the service can see | How to stop it |
 |---|---|---|---|
-| CARTO basemaps | Map tiles for the map views of the web and the mobile app | Your IP address and the map area around the car, its routes, and your places | Settings, Location, Maps: Hide |
+| CARTO basemaps | Map tiles for the map views of the web and the mobile app, with the `CARTO_BASEMAPS_KEY` when it is set | Your IP address, the map area around the car, its routes, and your places, and the key, which ties the requests to the CARTO account of the key | Settings, Location, Maps: Hide |
 | Tesla image server (`static-assets.tesla.com`) | The picture of your car on Overview | Your IP address and the model, color, wheels, and trim of the car | Settings, Overview: turn off Car image |
 | Apple Maps | Only when you press "Open in Maps" | The car position | Do not press the button |
 

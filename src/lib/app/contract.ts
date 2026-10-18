@@ -315,6 +315,7 @@ export type SettingItem = {
 export type SettingsPage = {
   preview: AppStat[];
   groups: { title: string; note: string | null; items: SettingItem[] }[];
+  basemapKey?: string | null;
 };
 
 export type AppUser = { name: string; email: string; role: "admin" | "member" };

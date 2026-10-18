@@ -180,3 +180,12 @@ export const pairStatus = (value: unknown) =>
 
 export const appMe = (value: unknown) =>
   shaped<AppMe>(value, (shape) => isUser(shape.user) && isRecord(shape.device));
+
+export function basemapKeyOf(
+  page: SettingsPage | null | undefined,
+): string | null {
+  const key = page?.basemapKey;
+  return typeof key === "string" && /^[A-Za-z0-9._~-]{8,256}$/.test(key)
+    ? key
+    : null;
+}

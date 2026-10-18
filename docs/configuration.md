@@ -20,6 +20,7 @@ The server reads environment variables at the first request. The browser never s
 | `OPEN_ANALYTICS_KEY` | No | Empty | Demo mode only. The public tracking key of the Open Analytics site. Both variables must be set. |
 | `PORT` | No | `3000` | The port of the standalone server |
 | `HOSTNAME` | No | `0.0.0.0` in the image | The address of the standalone server |
+| `CARTO_BASEMAPS_KEY` | No | Empty | A CARTO basemaps key, free at [carto.com/basemaps/apikey](https://www.carto.com/basemaps/apikey/). The web and the mobile app add it as `key=` to every request to `cartocdn.com`. CARTO now asks for a key on its raster maps and says the vector maps that My Tesla uses come next. Without a key the maps still load today. The key goes to each browser and phone, so it is public by nature: use one key for this dashboard only. |
 | `MQTT_URL` | No | Empty | The TeslaMate MQTT broker, such as `mqtt://mosquitto:1883`. Empty turns off the Live card. Read [Live status](live-status.md). |
 | `MQTT_USERNAME` | No | Empty | A broker user that can only read `teslamate/#` |
 | `MQTT_PASSWORD` | No | Empty | The password of that user. Set `MQTT_USERNAME` with it. |

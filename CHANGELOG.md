@@ -25,6 +25,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - Places shows the countries, states, and cities visited, and a map of every road driven over all records.
 - Long-term trends: the charge level over time, time online, asleep, and offline, and the projected range at 100 % by outside temperature and by battery level on Battery, and the odometer over time on Stats.
 - The car image of the Model S, Model X, and Cybertruck, and more of the wheel names and colors that TeslaMate reports. `research/car-images.md` lists each combination.
+- `CARTO_BASEMAPS_KEY` adds a CARTO basemaps key to every map request of the web and the mobile app, ahead of the key rule that CARTO brings to vector maps.
 - The charge page shows the cable type and whether the battery heater ran.
 - The mobile app refreshes the Overview and a charge within seconds of a change in the car, through the live change stream, and opens the pairing code from the camera app of the phone.
 - Battery advice under the charge levels: a weekly full charge for an LFP battery, as Tesla recommends, and a daily limit of 80 to 90% for other cells, with the charges of the period.

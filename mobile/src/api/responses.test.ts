@@ -10,6 +10,7 @@ import {
   pairClaim,
   pairStatus,
   responseProblem,
+  basemapKeyOf,
   settingsPage,
 } from "./responses";
 
@@ -120,5 +121,19 @@ describe("screen shapes", () => {
     ).toBeNull();
     expect(appMe({ user, device: { name: null } })).not.toBeNull();
     expect(appMe({ user })).toBeNull();
+  });
+});
+
+describe("basemapKeyOf", () => {
+  test("takes a plausible key from the Settings and nothing else", () => {
+    const page = { preview: [], groups: [] };
+    expect(basemapKeyOf({ ...page, basemapKey: "abc123_KEY-value" })).toBe(
+      "abc123_KEY-value",
+    );
+    expect(
+      basemapKeyOf({ ...page, basemapKey: "no spaces allowed" }),
+    ).toBeNull();
+    expect(basemapKeyOf(page)).toBeNull();
+    expect(basemapKeyOf(null)).toBeNull();
   });
 });

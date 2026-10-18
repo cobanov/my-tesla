@@ -162,3 +162,14 @@ Checked on 2026-10-01. Tesla's compositor draws a car from option codes: `https:
 10. The 138 addresses that the table makes for these names were loaded: 136 gave a render. Marine Blue with the 18 inch wheels gives HTTP 412, and Tesla does not sell it.
 11. `v1/compositor` answers 200 with a black shape for a color that it does not know, such as `PN01` on a Model S. Checked on 2026-10-18: Model S, Model X, and the Cybertruck have tables too, and [Car images](car-images.md) lists every model, color, and wheel with its source and result.
 
+
+## CARTO basemaps key
+
+Checked on 2026-10-18. CARTO asks for a free key on its basemaps: a raster tile without a key shows "API KEY REQUIRED", and the vector styles and tiles that My Tesla uses still answer without one, but CARTO says the vector maps come next. The key goes in the `key` query parameter of every style, tile, glyph, and sprite request under `basemaps.cartocdn.com`. Keys registered before 23 September 2026 work as they are until 30 November 2026. The free tier allows 5 million requests a month for non-commercial use.
+
+1. **Optional.** `CARTO_BASEMAPS_KEY` turns the key on. Without it nothing changes.
+2. **Every request.** The style URL alone is not enough, because the style links to the tile list, the tiles, the glyphs, and the sprites. The web map adds the key with the MapLibre `transformRequest` option, and the app with `TransformRequestManager.addUrlSearchParam` of `@maplibre/maplibre-react-native` 11, both only for `https` URLs on `cartocdn.com`.
+3. **Public.** The key reaches each browser through the car layout and each phone through the Settings answer of the app API. A basemap key is public by nature, as in the CARTO samples for MapLibre GL JS.
+4. **Checked.** With a placeholder key, every CARTO request of the Places page (style, sprites, tile list, tiles, and glyphs) carried it, and CARTO still answered 200, so an unknown key is not refused yet. The maps of the app drew on iOS and Android with the key set.
+
+Sources: [CARTO: request an API key for basemaps](https://www.carto.com/basemaps/apikey/), [CARTO basemaps docs](https://docs.carto.com/carto-for-developers/basemaps), [MapLibre GL JS `transformRequest`](https://maplibre.org/maplibre-gl-js/docs/API/type-aliases/MapOptions/#transformrequest), [Home Assistant report of the key message, August 2026](https://community.home-assistant.io/t/carto-com-maps-requires-an-api-key/1022703).

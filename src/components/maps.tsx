@@ -2,6 +2,7 @@
 
 import { LocateFixed, MapPinOff } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { useBasemapKey } from "@/components/basemap-key";
 import {
   Map,
   MapControls,
@@ -13,6 +14,7 @@ import {
   useMap,
   type MapGeoJSONProps,
 } from "@/components/ui/map";
+import { withBasemapKey } from "@/lib/basemap";
 import type { MapPlace, TripMarker } from "@/lib/map-points";
 import { routeBounds, type LngLat } from "@/lib/route";
 
@@ -25,6 +27,14 @@ const quietMap = {
   touchPitch: false,
   attributionControl: { compact: true },
 } as const;
+
+function useMapOptions() {
+  const key = useBasemapKey();
+  return {
+    ...quietMap,
+    transformRequest: (url: string) => ({ url: withBasemapKey(url, key) }),
+  };
+}
 
 const carZoom = 15;
 
@@ -116,12 +126,13 @@ export function LocationMap({
   latitude: number;
   theme?: MapTheme;
 }) {
+  const mapOptions = useMapOptions();
   return (
     <Map
       center={[longitude, latitude]}
       zoom={carZoom}
       theme={theme}
-      {...quietMap}
+      {...mapOptions}
     >
       <CollapsedAttribution />
       <MapControls position="top-right" showZoom />
@@ -142,6 +153,7 @@ export function RouteMap({
   route: LngLat[];
   theme?: MapTheme;
 }) {
+  const mapOptions = useMapOptions();
   const bounds = routeBounds(route);
   if (!bounds) {
     return (
@@ -156,7 +168,7 @@ export function RouteMap({
       bounds={bounds}
       fitBoundsOptions={{ padding: 56, maxZoom: 16 }}
       theme={theme}
-      {...quietMap}
+      {...mapOptions}
     >
       <CollapsedAttribution />
       <MapControls position="top-right" showZoom />
@@ -197,6 +209,7 @@ export function PlacesMap({
   places: MapPlace[];
   theme?: MapTheme;
 }) {
+  const mapOptions = useMapOptions();
   const bounds = routeBounds(
     places.map((place): LngLat => [place.longitude, place.latitude]),
   );
@@ -207,7 +220,7 @@ export function PlacesMap({
       bounds={bounds}
       fitBoundsOptions={{ padding: 64, maxZoom: 14 }}
       theme={theme}
-      {...quietMap}
+      {...mapOptions}
     >
       <CollapsedAttribution />
       <MapControls position="top-right" showZoom />
@@ -250,6 +263,7 @@ export function TripMap({
   markers: TripMarker[];
   theme?: MapTheme;
 }) {
+  const mapOptions = useMapOptions();
   const bounds = routeBounds([
     ...routes.flat(),
     ...markers.map((marker): LngLat => [marker.longitude, marker.latitude]),
@@ -266,7 +280,7 @@ export function TripMap({
       bounds={bounds}
       fitBoundsOptions={{ padding: 56, maxZoom: 15 }}
       theme={theme}
-      {...quietMap}
+      {...mapOptions}
     >
       <CollapsedAttribution />
       <MapControls position="top-right" showZoom />
@@ -311,6 +325,7 @@ export function DrivenMap({
   roads: LngLat[][];
   theme?: MapTheme;
 }) {
+  const mapOptions = useMapOptions();
   const geometry = useMemo(
     (): GeoJSON.MultiLineString => ({
       type: "MultiLineString",
@@ -325,7 +340,7 @@ export function DrivenMap({
       bounds={bounds}
       fitBoundsOptions={{ padding: 40, maxZoom: 14 }}
       theme={theme}
-      {...quietMap}
+      {...mapOptions}
     >
       <CollapsedAttribution />
       <MapControls position="top-right" showZoom />

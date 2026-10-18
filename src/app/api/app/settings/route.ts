@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { connection } from "next/server";
 import { appJson, readJsonBody } from "@/lib/app/request";
+import { basemapKey } from "@/lib/basemap";
 import { applySetting, settingsPage } from "@/lib/app/settings";
 import type { Preferences } from "@/lib/preferences";
 import { storePreferences } from "@/lib/preferences-save";
@@ -9,13 +10,14 @@ import { baseline, getPreferences } from "@/lib/viewer";
 import { apiUnauthorized } from "@/lib/auth/session";
 
 function page(preferences: Preferences): Response {
-  return appJson(
-    settingsPage(
+  return appJson({
+    ...settingsPage(
       preferences,
       Intl.supportedValuesOf("timeZone"),
       readTimeZone(process.env),
     ),
-  );
+    basemapKey: basemapKey(process.env),
+  });
 }
 
 export async function GET() {
