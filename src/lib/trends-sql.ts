@@ -1,6 +1,11 @@
 import type postgres from "postgres";
 import type { RangeKind } from "./range-columns";
-import type { LevelTrendPoint, RangeGroup, StateTime } from "./trends";
+import type {
+  LevelTrendPoint,
+  OdometerPoint,
+  RangeGroup,
+  StateTime,
+} from "./trends";
 
 const trendPoints = 240;
 
@@ -31,6 +36,37 @@ export function chargeLevelTrendQuery(
       to_timestamp(avg(s.t)) as at,
       avg(s.battery_level)::float8 as level,
       avg(s.usable_level)::float8 as "usableLevel"
+    from samples s
+    cross join bounds b
+    group by width_bucket(s.t, b.first, b.last, ${points}::int)
+    order by 1
+  `;
+}
+
+export function odometerTrendQuery(
+  sql: postgres.Sql,
+  carId: number,
+  since: Date,
+  points = trendPoints,
+) {
+  return sql<OdometerPoint[]>`
+    with samples as (
+      select extract(epoch from start_date)::float8 as t, start_km as km
+      from drives
+      where car_id = ${carId}
+        and start_km is not null
+        and start_date >= ${utc(sql, since)}
+      union all
+      select extract(epoch from end_date)::float8, end_km
+      from drives
+      where car_id = ${carId}
+        and end_km is not null
+        and end_date >= ${utc(sql, since)}
+    ),
+    bounds as (select min(t) as first, max(t) + 1 as last from samples)
+    select
+      to_timestamp(max(s.t)) as at,
+      max(s.km)::float8 as km
     from samples s
     cross join bounds b
     group by width_bucket(s.t, b.first, b.last, ${points}::int)

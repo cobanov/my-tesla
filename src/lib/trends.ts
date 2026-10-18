@@ -2,6 +2,8 @@ import type { Formatter } from "./format";
 
 export type LevelTrendPoint = { at: Date; level: number; usableLevel: number };
 
+export type OdometerPoint = { at: Date; km: number };
+
 export type RangeGroup = {
   value: number;
   samples: number;
@@ -63,6 +65,13 @@ export function levelTrendRows(points: LevelTrendPoint[]) {
     })),
     usableDiffers: points.some((point) => point.level - point.usableLevel >= 1),
   };
+}
+
+export function odometerRows(points: OdometerPoint[], f: Formatter) {
+  return points.map((point) => ({
+    at: point.at.getTime(),
+    odometer: Math.round(f.distanceValue(point.km) ?? 0),
+  }));
 }
 
 export function stateShares(times: StateTime[]) {

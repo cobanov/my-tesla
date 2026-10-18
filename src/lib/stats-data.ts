@@ -6,6 +6,8 @@ import { database } from "./database";
 import { rangeColumn, type RangeKind } from "./range-columns";
 import type { SpeedBandRow } from "./speed-bands";
 import { slowLeaks, type SlowLeak } from "./tire-leak";
+import type { OdometerPoint } from "./trends";
+import { odometerTrendQuery } from "./trends-sql";
 import { placeLabel } from "./vehicle";
 import {
   biggestChargeQuery,
@@ -408,6 +410,13 @@ export const speedBandRows = cache(
       group by 1
       order by 1
     `;
+  },
+);
+
+export const odometerTrend = cache(
+  async (carId: number, from: Date | null): Promise<OdometerPoint[]> => {
+    await connection();
+    return odometerTrendQuery(database(), carId, from ?? new Date(0));
   },
 );
 

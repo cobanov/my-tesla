@@ -24,6 +24,7 @@ import {
   driveTotals,
   efficiencyPoints,
   longestDrives,
+  odometerTrend,
   periodChargeTotals,
   pressureTrend,
   softwareUpdates,
@@ -39,6 +40,7 @@ import {
   updateDays,
   widestEfficiency,
 } from "@/lib/stats-figures";
+import { odometerRows } from "@/lib/trends";
 import { efficiencyDigits } from "@/lib/units";
 import { speedBands, speedEdges } from "@/lib/speed-bands";
 import { leakWarning } from "@/lib/tire-leak";
@@ -50,6 +52,7 @@ export const metadata: Metadata = { title: "Stats" };
 
 const colors = {
   distance: "var(--chart-1)",
+  odometer: "var(--chart-1)",
   used: "var(--chart-1)",
   charged: "var(--charge)",
   cost: "var(--charge)",
@@ -93,6 +96,7 @@ export default async function StatsPage({
     longest,
     speedRows,
     leaks,
+    odometer,
   ] = await Promise.all([
     statsBuckets(car.id, from, unit, timeZone, sundayFirst),
     driveTotals(car.id, from),
@@ -104,6 +108,7 @@ export default async function StatsPage({
     longestDrives(car.id, from),
     speedBandRows(car.id, from, edges.kmh),
     recentTireLeaks(car.id, timeZone),
+    odometerTrend(car.id, from),
   ]);
 
   const speeds = speedBands(speedRows, edges.shown);
@@ -117,6 +122,7 @@ export default async function StatsPage({
       (value): value is number => value !== null,
     ),
   );
+  const odometerSeries = odometerRows(odometer, f);
   const pressureSeries = pressureRows(pressure, f);
   const pressureValues = pressureSeries.flatMap((point) =>
     [point.frontLeft, point.frontRight, point.rearLeft, point.rearRight].filter(
@@ -183,6 +189,32 @@ export default async function StatsPage({
               ]}
               yDomain={[0, "auto"]}
               height={240}
+            />
+          ) : (
+            <PanelNote>No record yet.</PanelNote>
+          )}
+        </Panel>
+
+        <Panel title={`Odometer (${f.units.distance})`}>
+          {odometerSeries.length > 1 ? (
+            <SeriesChart
+              data={odometerSeries}
+              xKey="at"
+              xFormat="day"
+              chartStyle={f.chartStyle}
+              series={[
+                {
+                  key: "odometer",
+                  label: "Odometer",
+                  color: colors.odometer,
+                  unit: f.units.distance,
+                  kind: "area",
+                },
+              ]}
+              yDomain={niceDomain(
+                odometerSeries.map((point) => point.odometer),
+              )}
+              height={220}
             />
           ) : (
             <PanelNote>No record yet.</PanelNote>

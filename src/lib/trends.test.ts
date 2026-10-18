@@ -3,6 +3,7 @@ import { createFormatter } from "./format";
 import { defaultPreferences } from "./preferences";
 import {
   levelTrendRows,
+  odometerRows,
   projectedRangeKm,
   rangeByLevel,
   rangeByTemperature,
@@ -83,6 +84,15 @@ describe("levelTrendRows", () => {
     expect(
       levelTrendRows([{ at, level: 70, usableLevel: 68 }]).usableDiffers,
     ).toBe(true);
+  });
+});
+
+describe("odometerRows", () => {
+  test("converts the reading to the distance unit", () => {
+    const at = new Date("2026-10-01T00:00:00Z");
+    expect(odometerRows([{ at, km: 1609.344 }], imperial)).toEqual([
+      { at: at.getTime(), odometer: 1000 },
+    ]);
   });
 });
 

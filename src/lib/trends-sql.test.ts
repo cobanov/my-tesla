@@ -5,6 +5,7 @@ import { demoSchema } from "./demo/schema";
 import { createSql } from "./sql-template";
 import {
   chargeLevelTrendQuery,
+  odometerTrendQuery,
   rangeByLevelQuery,
   rangeByTemperatureQuery,
   stateTimesQuery,
@@ -47,6 +48,16 @@ const charges = `
     (4, 3, '2026-09-30 10:10', 30, 30, 0, 11, 159, 150, 20)
 `;
 
+const drives = `
+  insert into drives (id, car_id, start_date, end_date, start_km, end_km)
+  values
+    (1, 1, '2026-10-01 08:00', '2026-10-01 09:00', 1000, 1040),
+    (2, 1, '2026-10-02 08:00', '2026-10-02 09:00', 1040, 1100),
+    (3, 1, '2026-09-30 08:00', '2026-09-30 09:00', 900, 950),
+    (4, 2, '2026-10-02 08:00', '2026-10-02 09:00', 5000, 5100),
+    (5, 1, '2026-10-04 08:00', null, 1100, null)
+`;
+
 const states = `
   insert into states (id, car_id, state, start_date, end_date)
   values
@@ -71,6 +82,7 @@ beforeAll(async () => {
   await db.exec(demoSchema);
   await db.exec(positions);
   await db.exec(charges);
+  await db.exec(drives);
   await db.exec(states);
   sql = createSql(
     async (text, params) => (await db.query(text, params)).rows as never,
@@ -92,6 +104,20 @@ describe("chargeLevelTrendQuery", () => {
   test("keeps each position when the points outnumber them", async () => {
     const rows = await chargeLevelTrendQuery(sql, 1, since);
     expect(rows.map((row) => row.level)).toEqual([80, 60, 50, 40]);
+  });
+});
+
+describe("odometerTrendQuery", () => {
+  test("takes the highest reading of each slice of the period", async () => {
+    expect(await list(odometerTrendQuery(sql, 1, since, 2))).toEqual([
+      { at: new Date("2026-10-02T09:00:00Z"), km: 1100 },
+      { at: new Date("2026-10-04T08:00:00Z"), km: 1100 },
+    ]);
+  });
+
+  test("uses the start and the end of each drive of the car", async () => {
+    const rows = await odometerTrendQuery(sql, 1, since);
+    expect(rows.map((row) => row.km)).toEqual([1000, 1040, 1040, 1100, 1100]);
   });
 });
 
