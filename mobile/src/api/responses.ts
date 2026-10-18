@@ -12,8 +12,11 @@ import type {
   PairClaim,
   PairStatus,
   PushCatalog,
+  ReportPage,
   SettingsPage,
+  TimelinePage,
   TripDetail,
+  YearPage,
 } from "@contract";
 
 type Shape = Record<string, unknown>;
@@ -189,3 +192,49 @@ export function basemapKeyOf(
     ? key
     : null;
 }
+
+export const yearPage = (value: unknown) =>
+  shaped<YearPage>(
+    value,
+    (shape) =>
+      typeof shape.title === "string" &&
+      Array.isArray(shape.years) &&
+      shape.years.every((year) => typeof year === "number") &&
+      Array.isArray(shape.hero) &&
+      Array.isArray(shape.heroBlocks) &&
+      Array.isArray(shape.sections),
+  );
+
+export const timelinePage = (value: unknown) =>
+  shaped<TimelinePage>(
+    value,
+    (shape) =>
+      typeof shape.day === "string" &&
+      typeof shape.title === "string" &&
+      typeof shape.previous === "string" &&
+      (shape.next === null || typeof shape.next === "string") &&
+      Array.isArray(shape.stats) &&
+      isRecord(shape.strip) &&
+      Array.isArray(shape.strip.segments) &&
+      Array.isArray(shape.rows),
+  );
+
+export const reportPage = (value: unknown) =>
+  shaped<ReportPage>(
+    value,
+    (shape) =>
+      Array.isArray(shape.presets) &&
+      Array.isArray(shape.stats) &&
+      (shape.routes === null || Array.isArray(shape.routes)) &&
+      Array.isArray(shape.markers) &&
+      Array.isArray(shape.sections) &&
+      Array.isArray(shape.exports) &&
+      shape.exports.every(
+        (item) =>
+          isRecord(item) &&
+          typeof item.label === "string" &&
+          typeof item.path === "string" &&
+          typeof item.file === "string" &&
+          item.path.startsWith("/api/cars/"),
+      ),
+  );

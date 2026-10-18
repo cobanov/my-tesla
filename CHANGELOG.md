@@ -27,6 +27,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - The car image of the Model S, Model X, and Cybertruck, and more of the wheel names and colors that TeslaMate reports. The model year in the VIN rules out a car generation that was not built that year. `research/car-images.md` lists each combination.
 - `CARTO_BASEMAPS_KEY` adds a CARTO basemaps key to every map request of the web and the mobile app, ahead of the key rule that CARTO brings to vector maps.
 - The charge page shows the cable type and whether the battery heater ran.
+- The mobile app has the Timeline, the Report with CSV exports, Charging insights, and the year in review, shares a drive as GPX, and shows the lock history, the long-term trends, the visited areas, and the map of every road driven, as the web does.
 - The mobile app refreshes the Overview and a charge within seconds of a change in the car, through the live change stream, and opens the pairing code from the camera app of the phone.
 - Battery advice under the charge levels: a weekly full charge for an LFP battery, as Tesla recommends, and a daily limit of 80 to 90% for other cells, with the charges of the period.
 

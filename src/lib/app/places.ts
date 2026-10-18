@@ -8,8 +8,10 @@ import type {
   VisitedPlace,
 } from "../places-data";
 import { placesFigures } from "../places-figures";
+import type { LngLat } from "../route";
 import { toElevation, type UnitSystem } from "../units";
-import type { AppRecord, InsightPage } from "./contract";
+import type { VisitedArea } from "../visited-areas";
+import type { AppPanel, AppRecord, InsightPage } from "./contract";
 import { panel, periodChoices, periodLabel } from "./panels";
 import { appStat } from "./values";
 
@@ -18,7 +20,15 @@ export type PlacesInput = {
   charging: ChargingPlace[];
   geofences: Geofence[];
   routes: FrequentRoute[];
+  areas: {
+    countries: VisitedArea[];
+    states: VisitedArea[];
+    cities: VisitedArea[];
+  };
+  roads: LngLat[][];
 };
+
+const shownAreas = 10;
 
 function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
@@ -38,6 +48,56 @@ function record(
     links: [],
     ...input,
   };
+}
+
+export function visitedRecords(
+  places: VisitedPlace[],
+  figures: Pick<
+    ReturnType<typeof placesFigures>,
+    "mostVisits" | "chargingKeys"
+  >,
+  f: Formatter,
+  now: Date,
+): AppRecord[] {
+  return places.map((place, index) =>
+    record({
+      key: place.key,
+      rank: index + 1,
+      title: place.label,
+      value: plural(place.visits, "visit", "visits"),
+      detail: [
+        place.city && place.city !== place.label ? place.city : null,
+        `${f.span(place.parkedS / 60)} parked`,
+        `last visit ${f.dayInline(place.lastAt, now)}`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      bar: {
+        share: place.visits / figures.mostVisits,
+        color: figures.chargingKeys.has(place.key) ? "charge" : "primary",
+      },
+    }),
+  );
+}
+
+function areaPanel(title: string, areas: VisitedArea[]): AppPanel {
+  const shown = areas.slice(0, shownAreas);
+  const most = Math.max(1, ...shown.map((area) => area.places));
+  return panel(title, [
+    shown.length > 0 && {
+      kind: "records",
+      rows: shown.map((area, index) =>
+        record({
+          key: area.key,
+          rank: index + 1,
+          title: area.name,
+          value: plural(area.places, "place", "places"),
+          detail: area.within,
+          bar: { share: area.places / most, color: "primary" },
+        }),
+      ),
+    },
+  ]);
 }
 
 export function placesPage(
@@ -90,29 +150,7 @@ export function placesPage(
           panel("Most visited", [
             figures.top.length > 0 && {
               kind: "records",
-              rows: figures.top.map((place, index) =>
-                record({
-                  key: place.key,
-                  rank: index + 1,
-                  title: place.label,
-                  value: plural(place.visits, "visit", "visits"),
-                  detail: [
-                    place.city && place.city !== place.label
-                      ? place.city
-                      : null,
-                    `${f.span(place.parkedS / 60)} parked`,
-                    `last visit ${f.dayInline(place.lastAt, now)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(" · "),
-                  bar: {
-                    share: place.visits / figures.mostVisits,
-                    color: figures.chargingKeys.has(place.key)
-                      ? "charge"
-                      : "primary",
-                  },
-                }),
-              ),
+              rows: visitedRecords(figures.top, figures, f, now),
             },
           ]),
           panel("Charging places", [
@@ -173,6 +211,39 @@ export function placesPage(
                   },
             ],
             "3 drives or more",
+          ),
+        ],
+      },
+      {
+        title: "Visited",
+        subtitle:
+          "The countries, states, and cities where a drive or a charge started or ended.",
+        period: false,
+        panels: [
+          panel("Areas", [
+            {
+              kind: "stats",
+              stats: [
+                appStat("Countries", String(input.areas.countries.length)),
+                appStat("States", String(input.areas.states.length)),
+                appStat("Cities", String(input.areas.cities.length)),
+              ],
+            },
+          ]),
+          areaPanel("Top countries", input.areas.countries),
+          areaPanel("Top states", input.areas.states),
+          areaPanel("Top cities", input.areas.cities),
+          panel(
+            "Every road driven",
+            [
+              !showMaps
+                ? { kind: "note", text: "Maps are off in Settings." }
+                : input.roads.length > 0 && {
+                    kind: "routes",
+                    routes: input.roads,
+                  },
+            ],
+            "All records",
           ),
         ],
       },

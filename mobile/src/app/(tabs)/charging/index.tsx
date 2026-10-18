@@ -5,6 +5,7 @@ import { useCharges } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { ChargerBadge } from "@/components/charger-badge";
 import { DayList } from "@/components/day-list";
+import { LinkRow } from "@/components/link-row";
 import { ListRow, RowTime } from "@/components/list-row";
 import { EmptyState, QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
@@ -66,6 +67,7 @@ function ChargeListRow({ row }: { row: ChargeRow }) {
 }
 
 export default function ChargingScreen() {
+  const router = useRouter();
   const { car } = useCar();
   const charges = useCharges(car.id);
   const refresh = useRefresh(charges);
@@ -89,6 +91,13 @@ export default function ChargingScreen() {
   return (
     <DayList
       summary={[car.name, ...charges.data.summary]}
+      actions={
+        <LinkRow
+          title="Charging insights"
+          subtitle="Curves, charging times, and places"
+          onPress={() => router.push("/charging/insights")}
+        />
+      }
       sections={charges.data.sections}
       renderRow={(row) => <ChargeListRow row={row} />}
       refreshing={refresh.refreshing}

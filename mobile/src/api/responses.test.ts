@@ -11,7 +11,10 @@ import {
   pairStatus,
   responseProblem,
   basemapKeyOf,
+  reportPage,
   settingsPage,
+  timelinePage,
+  yearPage,
 } from "./responses";
 
 const car = { id: 2, name: "Juniper", model: "Model Y", trim: "SR" };
@@ -135,5 +138,48 @@ describe("basemapKeyOf", () => {
     ).toBeNull();
     expect(basemapKeyOf(page)).toBeNull();
     expect(basemapKeyOf(null)).toBeNull();
+  });
+});
+
+describe("the new screens", () => {
+  test("check the year, the timeline, and the report", () => {
+    expect(
+      yearPage({
+        title: "Year in review",
+        years: [2026],
+        hero: [],
+        heroBlocks: [],
+        sections: [],
+      }),
+    ).not.toBeNull();
+    expect(yearPage({ title: "x", years: ["2026"] })).toBeNull();
+    const timeline = {
+      day: "2026-10-17",
+      title: "Yesterday",
+      previous: "2026-10-16",
+      next: "2026-10-18",
+      stats: [],
+      strip: { segments: [], now: 0, hours: [] },
+      rows: [],
+    };
+    expect(timelinePage(timeline)).not.toBeNull();
+    expect(timelinePage({ ...timeline, next: 3 })).toBeNull();
+    const report = {
+      presets: [],
+      stats: [],
+      routes: null,
+      markers: [],
+      sections: [],
+      exports: [
+        { label: "Drives CSV", path: "/api/cars/2/drives.csv", file: "a.csv" },
+      ],
+    };
+    expect(reportPage(report)).not.toBeNull();
+    expect(
+      reportPage({
+        ...report,
+        exports: [{ label: "x", path: "https://evil.example/x", file: "x" }],
+      }),
+    ).toBeNull();
   });
 });

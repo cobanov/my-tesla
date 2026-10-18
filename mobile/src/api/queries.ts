@@ -21,13 +21,16 @@ import {
   overviewPage,
   appMe,
   pushCatalog,
+  reportPage,
   settingsPage,
+  timelinePage,
   tripDetail,
+  yearPage,
 } from "./responses";
 
 const liveRefreshMs = 30_000;
 
-export type InsightKind = "battery" | "stats" | "places";
+export type InsightKind = "battery" | "stats" | "places" | "charging";
 
 type AppQuery<T> = {
   key: unknown[];
@@ -134,6 +137,36 @@ export function useDrives(carId: number) {
     key: ["drives", carId],
     path: `/api/app/cars/${carId}/drives`,
     read: driveList,
+  });
+}
+
+export function useTimeline(carId: number, day: string | null) {
+  return useAppQuery({
+    key: ["timeline", carId, day],
+    path: `/api/app/cars/${carId}/timeline${day ? `?day=${day}` : ""}`,
+    read: timelinePage,
+    keepPrevious: true,
+  });
+}
+
+export function useReport(
+  carId: number,
+  range: { from: string; to: string } | null,
+) {
+  return useAppQuery({
+    key: ["report", carId, range?.from, range?.to],
+    path: `/api/app/cars/${carId}/report${range ? `?from=${range.from}&to=${range.to}` : ""}`,
+    read: reportPage,
+    keepPrevious: true,
+  });
+}
+
+export function useYear(carId: number, year: number | null) {
+  return useAppQuery({
+    key: ["year", carId, year],
+    path: `/api/app/cars/${carId}/year${year === null ? "" : `?year=${year}`}`,
+    read: yearPage,
+    keepPrevious: true,
   });
 }
 

@@ -17,13 +17,15 @@ function dayColors(palette: Palette): Record<DayKind, string> {
 
 export function DayStrip({
   today,
+  label,
 }: {
   today: NonNullable<OverviewPage["today"]>;
+  label: string;
 }) {
   const palette = usePalette();
   const colors = dayColors(palette);
   return (
-    <View accessible accessibilityLabel="Today, hour by hour">
+    <View accessible accessibilityLabel={label}>
       <View style={[styles.strip, { backgroundColor: palette.background }]}>
         {today.segments.map((segment) => (
           <View

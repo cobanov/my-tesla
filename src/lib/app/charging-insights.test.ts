@@ -1,0 +1,87 @@
+import { describe, expect, test } from "bun:test";
+import { createFormatter } from "../format";
+import { defaultPreferences } from "../preferences";
+import {
+  chargingInsightsPage,
+  type ChargingInsightsInput,
+} from "./charging-insights";
+
+const f = createFormatter(defaultPreferences, "Europe/Istanbul");
+
+const input: ChargingInsightsInput = {
+  types: [
+    { fast: false, sessions: 3, addedKwh: 60, cost: 12, costedKwh: 60 },
+    { fast: true, sessions: 1, addedKwh: 40, cost: 20, costedKwh: 40 },
+  ],
+  starts: [{ weekday: 1, hour: 21, drives: 3 }],
+  curves: [
+    {
+      id: 5,
+      startAt: new Date("2026-10-01T10:00:00Z"),
+      points: [
+        { level: 20, power: 150 },
+        { level: 60, power: 90 },
+      ],
+    },
+  ],
+  places: [
+    {
+      key: "g1",
+      label: "Home",
+      geofenceId: 1,
+      sessions: 3,
+      addedKwh: 60,
+      cost: 12,
+      fast: false,
+      lastAt: new Date("2026-10-01T10:00:00Z"),
+      latitude: null,
+      longitude: null,
+    },
+  ],
+  drivenKm: 500,
+  levelTimes: [],
+  batteryLevel: 55,
+};
+
+describe("chargingInsightsPage", () => {
+  test("gives the totals, the curves, the heatmap, and the places", () => {
+    const page = chargingInsightsPage(input, "30d", false, f);
+    expect(page.title).toBe("Charging insights");
+    expect(page.hero.map((stat) => stat.label)).toEqual([
+      "Sessions",
+      "Energy added",
+      "Cost per kWh",
+      "Cost per 100 km",
+    ]);
+    expect(page.hero[0]?.value.text).toBe("4");
+    expect(page.heroBlocks[0]).toMatchObject({
+      kind: "stats",
+      stats: [{ label: "AC charging" }, { label: "DC fast charging" }],
+    });
+    const panels = page.sections[0]?.panels ?? [];
+    const titled = (title: string) =>
+      panels.find((item) => item.title === title)?.blocks ?? [];
+    expect(titled("DC charging curves (kW)")[0]?.kind).toBe("chart");
+    expect(titled("When the car charges")[0]).toMatchObject({
+      kind: "heatmap",
+      unit: "charges",
+    });
+    expect(titled("Top charging places")[0]).toMatchObject({
+      kind: "records",
+      rows: [{ title: "Home", badge: "AC" }],
+    });
+  });
+
+  test("says so for a period without charges", () => {
+    const page = chargingInsightsPage(
+      { ...input, types: [], curves: [], places: [] },
+      "7d",
+      false,
+      f,
+    );
+    expect(page.heroBlocks).toEqual([
+      { kind: "note", text: "No charge in this period." },
+    ]);
+    expect(page.sections).toEqual([]);
+  });
+});

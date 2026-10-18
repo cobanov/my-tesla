@@ -1,49 +1,28 @@
-import type { DriveRow } from "@contract";
 import { useRouter } from "expo-router";
 import { useDrives } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { DayList } from "@/components/day-list";
-import { ListRow, RowTime } from "@/components/list-row";
+import { DriveListRow } from "@/components/drive-row";
+import { LinkRow } from "@/components/link-row";
 import { EmptyState, QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
-import { TripStrip } from "@/components/strips";
-import { Text } from "@/components/text";
 import { useRefresh } from "@/hooks/use-refresh";
-import { targetHref } from "@/navigation/targets";
-import { toneColor } from "@/theme/tones";
-import { usePalette } from "@/theme/use-palette";
 
-function DriveListRow({ row }: { row: DriveRow }) {
+function DrivesLinks() {
   const router = useRouter();
-  const palette = usePalette();
-  const consumption = row.consumption;
   return (
-    <ListRow
-      label={`${row.clock}, ${row.title}, ${row.subtitle}, ${row.distance}, ${consumption.text}`}
-      onPress={() => router.push(targetHref(row.target, "drives"))}
-      start={<RowTime clock={row.clock} caption={row.duration} />}
-      title={row.title}
-      subtitle={row.subtitle}
-      accessory={<TripStrip segments={row.segments} />}
-      end={
-        <>
-          <Text variant="strong" numberOfLines={1}>
-            {row.distance}
-          </Text>
-          <Text
-            variant="caption"
-            numberOfLines={1}
-            color={
-              consumption.tone
-                ? toneColor(palette, consumption.tone)
-                : palette.subtle
-            }
-          >
-            {consumption.text}
-          </Text>
-        </>
-      }
-    />
+    <>
+      <LinkRow
+        title="Timeline"
+        subtitle="One day at a time"
+        onPress={() => router.push("/drives/timeline")}
+      />
+      <LinkRow
+        title="Report"
+        subtitle="Totals and exports for a date range"
+        onPress={() => router.push("/drives/report")}
+      />
+    </>
   );
 }
 
@@ -71,8 +50,9 @@ export default function DrivesScreen() {
   return (
     <DayList
       summary={[car.name, ...drives.data.summary]}
+      actions={<DrivesLinks />}
       sections={drives.data.sections}
-      renderRow={(row) => <DriveListRow row={row} />}
+      renderRow={(row) => <DriveListRow row={row} stack="drives" />}
       refreshing={refresh.refreshing}
       onRefresh={refresh.onRefresh}
     />

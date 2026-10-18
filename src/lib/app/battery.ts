@@ -12,6 +12,7 @@ import type {
 } from "../battery-data";
 import {
   batteryFigures,
+  chargeAdvice,
   idleWatts,
   levelChargeHistogram,
   missingChargesText,
@@ -24,6 +25,15 @@ import {
   type IdlePeriod,
   type PeriodId,
 } from "../insights";
+import {
+  levelTrendRows,
+  rangeByLevel,
+  rangeByTemperature,
+  stateShares,
+  type LevelTrendPoint,
+  type RangeGroup,
+  type StateTime,
+} from "../trends";
 import { buildChart } from "./chart";
 import type { InsightPage, ShareColor } from "./contract";
 import { chartBlock, panel, periodChoices, periodLabel } from "./panels";
@@ -34,9 +44,13 @@ export type BatteryInput = {
   latest: BatteryNow;
   totals: BatteryTotals;
   levels: { level: number; seconds: number }[];
-  charges: { startLevel: number; endLevel: number }[];
+  charges: { startLevel: number; endLevel: number; endAt: Date }[];
   idle: IdlePeriod[];
   minimumKwh: number | null;
+  levelTrend: LevelTrendPoint[];
+  ranges: { byTemperature: RangeGroup[]; byLevel: RangeGroup[] };
+  states: StateTime[];
+  lfpBattery: boolean;
 };
 
 const idleRows = 8;
@@ -78,6 +92,11 @@ export function batteryPage(
   const shares = levelShares(
     levels.map((row) => ({ level: row.level, weightMs: row.seconds * 1000 })),
   );
+  const advice = chargeAdvice(input.lfpBattery, charges, now);
+  const levelSeries = levelTrendRows(input.levelTrend);
+  const stateTime = stateShares(input.states);
+  const rangeByOutside = rangeByTemperature(input.ranges.byTemperature, f);
+  const rangeByBattery = rangeByLevel(input.ranges.byLevel, f);
   const trackedHours = levels.reduce((sum, row) => sum + row.seconds, 0) / 3600;
   const drain = drainRate(idle);
   const style = f.chartStyle;
@@ -285,6 +304,110 @@ export function batteryPage(
                 ]
               : [],
             charges.length ? `${charges.length} charges` : null,
+          ),
+          panel("Charging advice", [
+            { kind: "note", text: advice.advice },
+            advice.detail ? { kind: "note", text: advice.detail } : null,
+            {
+              kind: "note",
+              text: "TeslaMate sets the battery type in its car settings, under LFP battery.",
+            },
+          ]),
+          panel("Charge level (%)", [
+            levelSeries.rows.length > 1 &&
+              chartBlock(
+                buildChart({
+                  title: "Charge level",
+                  rows: levelSeries.rows,
+                  xKey: "at",
+                  xFormat: "day",
+                  style,
+                  left: "percent",
+                  series: [
+                    {
+                      key: "level",
+                      label: "Level",
+                      unit: "%",
+                      color: "chart1",
+                      kind: "area",
+                    },
+                    ...(levelSeries.usableDiffers
+                      ? [
+                          {
+                            key: "usable",
+                            label: "Usable",
+                            unit: "%",
+                            color: "chart3" as const,
+                          },
+                        ]
+                      : []),
+                  ],
+                }),
+              ),
+          ]),
+          panel(
+            "Time in each state",
+            stateTime.hours
+              ? [
+                  {
+                    kind: "shares",
+                    rows: stateTime.states.map((state) => ({
+                      label: state.label,
+                      share: state.share,
+                      text: `${f.span(state.seconds / 60)} · ${percentText(state.share)}`,
+                      color: "primary" as const,
+                    })),
+                  },
+                  {
+                    kind: "note",
+                    text: "Online includes driving and charging.",
+                  },
+                ]
+              : [],
+            stateTime.hours ? `${f.number(stateTime.hours)} h recorded` : null,
+          ),
+          panel(
+            `Projected range (${f.units.distance})`,
+            [
+              rangeByOutside.length > 1 &&
+                chartBlock(
+                  buildChart({
+                    title: "By outside temperature",
+                    rows: rangeByOutside,
+                    xKey: "temperature",
+                    xFormat: "number",
+                    xUnit: f.units.temperature,
+                    style,
+                    series: [
+                      {
+                        key: "range",
+                        label: "Range",
+                        unit: f.units.distance,
+                        color: "chart1",
+                      },
+                    ],
+                  }),
+                ),
+              rangeByBattery.length > 1 &&
+                chartBlock(
+                  buildChart({
+                    title: "By battery level",
+                    rows: rangeByBattery,
+                    xKey: "level",
+                    xFormat: "percent",
+                    style,
+                    series: [
+                      {
+                        key: "range",
+                        label: "Range",
+                        unit: f.units.distance,
+                        color: "chart1",
+                      },
+                    ],
+                  }),
+                ),
+            ],
+            "At 100%",
           ),
           panel(
             "Idle drain",

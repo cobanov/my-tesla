@@ -11,6 +11,7 @@ import { Button } from "@/components/button";
 import { DayStrip } from "@/components/day-strip";
 import { ListRow } from "@/components/list-row";
 import { LivePanel } from "@/components/live-tiles";
+import { LockHistory } from "@/components/lock-history";
 import { LocationMap, MapSection } from "@/components/map";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
@@ -168,11 +169,8 @@ function OverviewContent({ page }: { page: OverviewPage }) {
         </View>
       ) : null}
       {page.live ? <LivePanel live={page.live} /> : null}
-      {page.today ? (
-        <Panel title="Today">
-          <DayStrip today={page.today} />
-        </Panel>
-      ) : null}
+      {page.history ? <LockHistory history={page.history} /> : null}
+      {page.today ? <TodayPanel today={page.today} /> : null}
       {page.tires ? <Tires tires={page.tires} /> : null}
       <Location page={page} />
       {page.lastDrive ? (
@@ -182,6 +180,20 @@ function OverviewContent({ page }: { page: OverviewPage }) {
         <Recent title="Last charge" record={page.lastCharge} stack="charging" />
       ) : null}
     </>
+  );
+}
+
+function TodayPanel({ today }: { today: NonNullable<OverviewPage["today"]> }) {
+  const router = useRouter();
+  return (
+    <Panel title="Today">
+      <DayStrip today={today} label="Today, hour by hour" />
+      <Button
+        label="Timeline"
+        kind="secondary"
+        onPress={() => router.push("/drives/timeline", { withAnchor: true })}
+      />
+    </Panel>
   );
 }
 

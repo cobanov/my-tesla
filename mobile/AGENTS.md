@@ -80,7 +80,11 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `Panel` | A card: a muted title, an optional note on the right, and children. A `Button` inside a panel gets the page background. |
 | `Stat`, `StatGrid` | An `AppStat` from the server: a label, a value with its tone, and a detail. A value with a note opens the explanation on press. |
 | `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. Pass `selected` for the chosen row of a choice list. |
-| `DayList` | A list grouped by day with sticky headings |
+| `DayList` | A list grouped by day with sticky headings, and optional `actions` under the summary |
+| `LinkRow` | A row with a chevron that opens another screen of the same tab, such as Timeline from Drives |
+| `InsightBody`, `PeriodControl` | The hero, the hero blocks, and the sections of an insight page, for Insights, Charging insights, and the year in review |
+| `DriveListRow` | A trip or a charge row of a drive list, for Drives and the Report |
+| `ExportButton` | Downloads an export of the server with the phone token and opens the share sheet. `src/api/export-file.ts` checks the path and the file name. |
 | `SegmentedControl` | Two to five choices that switch a view or a filter. `size="compact"` for a filter inside a section. |
 | `Button` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. |
 | `SwitchRow`, `Field` | An on and off setting with an optional detail, and a labelled text field |
