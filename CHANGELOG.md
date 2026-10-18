@@ -21,6 +21,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 - `GET /api/cars/{carId}/calendar.ics`, a calendar feed of the drives and charges of the last year. Settings, **Calendar**, makes a private link for a calendar app, and Account can revoke it.
 - A history of locks and Sentry Mode from the MQTT feed, in `history.sqlite`. The Overview shows the changes of the last 7 days. Read [decision 0024](docs/decisions/0024-lock-and-sentry-history.md).
+- A year in review page under Stats: the totals, the distance per month, the records, and the top places of one calendar year, with a picker for each year that has data.
+- Places shows the countries, states, and cities visited, and a map of every road driven over all records.
 - The charge page shows the cable type and whether the battery heater ran.
 - The mobile app refreshes the Overview and a charge within seconds of a change in the car, through the live change stream, and opens the pairing code from the camera app of the phone.
 - Battery advice under the charge levels: a weekly full charge for an LFP battery, as Tesla recommends, and a daily limit of 80 to 90% for other cells, with the charges of the period.
