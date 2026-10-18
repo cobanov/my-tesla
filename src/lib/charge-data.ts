@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import type { CostBasis } from "./charge-figures";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import { rangeColumn } from "./range-columns";
@@ -23,6 +24,10 @@ export type ChargeSession = {
   outsideTempAvg: number | null;
   cost: number | null;
   costEstimated: boolean;
+  costBasis: CostBasis | null;
+  billingType: "per_kwh" | "per_minute" | null;
+  costPerUnit: number | null;
+  sessionFee: number | null;
   price: number | null;
   billedKwh: number | null;
   unclosed: boolean;
@@ -33,6 +38,8 @@ export type ChargeSession = {
   avgVoltage: number | null;
   maxCurrent: number | null;
   phases: number | null;
+  cable: string | null;
+  batteryHeater: boolean | null;
   previousId: number | null;
   nextId: number | null;
 };
@@ -81,6 +88,10 @@ export async function findChargeSession(
       cp.outside_temp_avg::float8 as "outsideTempAvg",
       cp.cost::float8 as cost,
       cp.cost_estimated as "costEstimated",
+      cp.cost_basis as "costBasis",
+      cp.billing_type as "billingType",
+      cp.cost_per_unit::float8 as "costPerUnit",
+      cp.session_fee::float8 as "sessionFee",
       cp.price::float8 as price,
       cp.billed_kwh::float8 as "billedKwh",
       cp.unclosed,
@@ -91,6 +102,8 @@ export async function findChargeSession(
       stats."avgVoltage",
       stats."maxCurrent",
       stats.phases,
+      stats.cable,
+      stats."batteryHeater",
       g.name as geofence,
       a.name,
       a.road,
@@ -118,7 +131,15 @@ export async function findChargeSession(
         max(c.charger_power)::float8 as "maxPowerKw",
         avg(c.charger_voltage) filter (where c.charger_power > 0)::float8 as "avgVoltage",
         max(c.charger_actual_current)::float8 as "maxCurrent",
-        max(c.charger_phases)::int as phases
+        max(c.charger_phases)::int as phases,
+        max(c.conn_charge_cable)
+          filter (where c.conn_charge_cable not in ('', '<invalid>')) as cable,
+        bool_or(
+          coalesce(c.battery_heater_on, false)
+            or coalesce(c.battery_heater, false)
+        ) filter (
+          where c.battery_heater_on is not null or c.battery_heater is not null
+        ) as "batteryHeater"
       from charges c
       where c.charging_process_id = cp.id
     ) stats on true

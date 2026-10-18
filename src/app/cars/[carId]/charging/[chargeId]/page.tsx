@@ -143,6 +143,11 @@ export default async function ChargePage({
     levelsAdded,
     kind,
     costSource,
+    estimatedFrom,
+    perKwhSource,
+    tariff,
+    cable,
+    batteryHeater,
     breakdown,
   } = chargeFigures(session, f);
   const settingsLink = (
@@ -288,6 +293,10 @@ export default async function ChargePage({
               : `up to ${Math.round(session.maxCurrent)} A`
           }
         />
+        {cable && <Metric label="Cable" value={cable} />}
+        {batteryHeater && (
+          <Metric label="Battery heater" value={batteryHeater} />
+        )}
       </dl>
 
       <div className="mt-12 grid grid-cols-1 gap-4">
@@ -310,9 +319,7 @@ export default async function ChargePage({
               <Metric
                 label="Price per kWh"
                 value={f.cost(breakdown.perKwhBilled)}
-                detail={
-                  session.costEstimated ? "Your price" : "Cost ÷ energy billed"
-                }
+                detail={perKwhSource}
               />
               <Metric
                 label="Per kWh in the battery"
@@ -349,9 +356,14 @@ export default async function ChargePage({
                 }
               />
             </dl>
-            {session.costEstimated && (
+            {(tariff || estimatedFrom) && (
               <p className="mt-6 text-xs text-subtle">
-                Change the price in {settingsLink}.
+                {tariff && `The price at this place: ${tariff}. `}
+                {estimatedFrom === "settings" && (
+                  <>Change the price in {settingsLink}.</>
+                )}
+                {estimatedFrom === "geofence" &&
+                  "Change it in the geofence in TeslaMate."}
               </p>
             )}
           </Panel>

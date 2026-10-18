@@ -21,11 +21,43 @@ export function chargeSessionsRelation(
 ) {
   return sql`(
     select
+      r.*,
+      coalesce(
+        r.recorded_cost,
+        case r.cost_rule
+          when 'free' then 0
+          when 'per_minute' then round(
+            coalesce(r.session_fee, 0) + r.duration_min * r.cost_per_unit, 2
+          )
+          when 'per_kwh' then round(
+            coalesce(r.session_fee, 0)
+              + coalesce(r.billed_kwh * r.cost_per_unit, 0), 2
+          )
+          when 'price' then round(r.price * r.billed_kwh, 2)
+        end
+      ) as cost,
+      r.recorded_cost is null
+        and coalesce(r.cost_rule in ('per_minute', 'per_kwh', 'price'), false)
+        as cost_estimated,
+      case
+        when r.cost_rule = 'free' and coalesce(r.recorded_cost, 0) = 0
+          then 'free'
+        when r.recorded_cost is not null then 'recorded'
+        else r.cost_rule
+      end as cost_basis
+    from (
+    select
       s.*,
-      coalesce(s.recorded_cost, round(s.price * s.billed_kwh, 2)) as cost,
-      s.recorded_cost is null
-        and s.price is not null
-        and s.billed_kwh is not null as cost_estimated
+      case
+        when s.free_supercharging then 'free'
+        when s.billing_type = 'per_minute'
+          and s.cost_per_unit is not null
+          and s.duration_min is not null then 'per_minute'
+        when s.billing_type = 'per_kwh'
+          and (s.cost_per_unit is not null or s.session_fee is not null)
+          and s.billed_kwh is not null then 'per_kwh'
+        when s.price is not null and s.billed_kwh is not null then 'price'
+      end as cost_rule
     from (
       select
         cp.id,
@@ -58,12 +90,25 @@ export function chargeSessionsRelation(
         coalesce(cp.outside_temp_avg, o.outside_temp_avg) as outside_temp_avg,
         cp.cost as recorded_cost,
         gate.unclosed,
+        g.billing_type::text as billing_type,
+        g.cost_per_unit,
+        g.session_fee,
+        exists (
+          select 1 from cars car
+          join car_settings cs on cs.id = car.settings_id
+          where car.id = cp.car_id and cs.free_supercharging
+        ) and exists (
+          select 1 from charges tc
+          where tc.charging_process_id = cp.id
+            and tc.fast_charger_type like 'Tesla%'
+        ) as free_supercharging,
         ${priceOf(sql, prices)} as price,
         greatest(
           coalesce(cp.charge_energy_added, o.charge_energy_added),
           coalesce(cp.charge_energy_used, o.charge_energy_used)
         ) as billed_kwh
       from charging_processes cp
+      left join geofences g on g.id = cp.geofence_id
       cross join lateral (
         select cp.end_date is null and exists (
           select 1 from charging_processes later
@@ -131,5 +176,6 @@ export function chargeSessionsRelation(
       ) o on true
       where cp.car_id = ${carId}
     ) s
+    ) r
   )`;
 }

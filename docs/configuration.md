@@ -56,7 +56,7 @@ TeslaMate records a cost only for a charge in a geofence with a price. For the o
 3. Type the price per kWh, then press Enter. Use a dot or a comma for the decimals.
 4. Optional: type a separate price for DC fast chargers.
 
-For each completed charge without a TeslaMate cost, the app multiplies the energy from the charger by the price. The energy from the charger is the larger of the energy added and the energy used, as in TeslaMate. A cost that TeslaMate recorded always stays.
+For each completed charge without a TeslaMate cost, the app first applies the rules of TeslaMate: a car with free Supercharging costs 0 at a Tesla Supercharger, and a geofence with a price per minute or per kWh, or a session fee, prices the charge as TeslaMate does. Otherwise the app multiplies the energy from the charger by the price. The energy from the charger is the larger of the energy added and the energy used, as in TeslaMate. A cost that TeslaMate recorded always stays.
 
 The charge page shows the source of each cost and a breakdown: the energy billed, the price per kWh, the cost per kWh in the battery, the charging losses, and the cost per 100 km of range. The Stats chart and the CSV file also name the charges that use your price. Empty the field to remove a price. [Decision 0011](decisions/0011-charging-cost-from-a-price.md) explains the rule.
 

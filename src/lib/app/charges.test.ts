@@ -52,6 +52,12 @@ const session: ChargeSession = {
   avgVoltage: 398,
   maxCurrent: 410,
   phases: null,
+  costBasis: "recorded",
+  billingType: null,
+  costPerUnit: null,
+  sessionFee: null,
+  cable: null,
+  batteryHeater: null,
   previousId: 8,
   nextId: null,
 };

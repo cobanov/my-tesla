@@ -37,6 +37,36 @@ const charges = `
     (6, 5, '2026-10-04 21:24', 54, 9.46, 3, 1, 13, 230, false, 236, 236, 18)
 `;
 
+const pricedCar = `
+  insert into car_settings (id, free_supercharging) values (30, true);
+  insert into cars (id, eid, vid, inserted_at, updated_at, vin, settings_id)
+    values (3, 3, 3, now(), now(), 'VIN3', 30);
+  insert into geofences
+    (id, name, latitude, longitude, inserted_at, updated_at, cost_per_unit,
+     session_fee, billing_type)
+  values
+    (1, 'Office', 1, 1, now(), now(), 0.25, 1.50, 'per_minute'),
+    (2, 'Garage', 1, 1, now(), now(), 0.30, null, 'per_kwh'),
+    (3, 'Club', 1, 1, now(), now(), null, 4.00, 'per_kwh');
+  insert into charging_processes
+    (id, car_id, position_id, geofence_id, start_date, end_date,
+     charge_energy_added, charge_energy_used, duration_min, cost)
+  values
+    (31, 3, 1, null, '2026-10-06 10:00', '2026-10-06 10:30', 40, 42, 30, null),
+    (32, 3, 1, 1, '2026-10-06 12:00', '2026-10-06 13:00', 10, 11, 60, null),
+    (33, 3, 1, 2, '2026-10-06 14:00', '2026-10-06 15:00', 10, 12, 60, null),
+    (34, 3, 1, 3, '2026-10-06 16:00', '2026-10-06 17:00', 10, 11, 60, null),
+    (35, 3, 1, 1, '2026-10-06 18:00', '2026-10-06 19:00', 10, 11, 60, 9.99),
+    (36, 3, 1, null, '2026-10-06 20:00', '2026-10-06 20:30', 30, 31, 30, null);
+  insert into charges
+    (id, charging_process_id, date, battery_level, charge_energy_added,
+     charger_power, ideal_battery_range_km, fast_charger_present,
+     fast_charger_type)
+  values
+    (31, 31, '2026-10-06 10:00', 20, 0, 150, 90, true, 'Tesla'),
+    (36, 36, '2026-10-06 20:00', 20, 0, 150, 90, true, 'CCS');
+`;
+
 type SessionRow = {
   id: number;
   endAt: Date | null;
@@ -51,10 +81,14 @@ type SessionRow = {
   billedKwh: number | null;
   cost: number | null;
   estimated: boolean;
+  basis: string | null;
   unclosed: boolean;
 };
 
-async function sessions(prices: ChargePrices): Promise<SessionRow[]> {
+async function sessions(
+  prices: ChargePrices,
+  carId = 2,
+): Promise<SessionRow[]> {
   return sql<SessionRow[]>`
     select
       cp.id::int as id,
@@ -70,8 +104,9 @@ async function sessions(prices: ChargePrices): Promise<SessionRow[]> {
       cp.billed_kwh::float8 as "billedKwh",
       cp.cost::float8 as cost,
       cp.cost_estimated as estimated,
+      cp.cost_basis as basis,
       cp.unclosed
-    from ${chargeSessionsRelation(sql, 2, prices)} cp
+    from ${chargeSessionsRelation(sql, carId, prices)} cp
     order by cp.start_date
   `;
 }
@@ -82,6 +117,7 @@ beforeAll(async () => {
   await db.exec(demoSchema);
   await db.exec(processes);
   await db.exec(charges);
+  await db.exec(pricedCar);
   sql = createSql(
     async (text, params) => (await db.query(text, params)).rows as never,
   ) as unknown as postgres.Sql;
@@ -145,5 +181,24 @@ describe("chargeSessionsRelation", () => {
   test("prices only the DC charges when only that price is set", async () => {
     const rows = await sessions({ perKwh: null, fastPerKwh: 5 });
     expect(rows.map((row) => row.cost)).toEqual([null, 7.5, 105, null, null]);
+  });
+
+  test("follows TeslaMate: free Supercharging, then the geofence, then your price", async () => {
+    const rows = await sessions({ perKwh: 2, fastPerKwh: 5 }, 3);
+    expect(
+      rows.map(({ id, cost, estimated, basis }) => [
+        id,
+        cost,
+        estimated,
+        basis,
+      ]),
+    ).toEqual([
+      [31, 0, false, "free"],
+      [32, 16.5, true, "per_minute"],
+      [33, 3.6, true, "per_kwh"],
+      [34, 4, true, "per_kwh"],
+      [35, 9.99, false, "recorded"],
+      [36, 155, true, "price"],
+    ]);
   });
 });

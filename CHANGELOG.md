@@ -19,8 +19,11 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - A Settings tab in the mobile app. It changes the same Settings as the web, and the phone keeps the last Settings. The app starts in dark mode, and Settings has a theme choice for the phone.
 - `GET /api/cars.json` lists the cars, `/api/push` registers a phone for alerts, `/api/app/cars/{carId}/` gives the app its screens, formatted for the user, and `/api/app/settings` reads and changes the Settings. Read [API](docs/api.md).
 
+- The charge page shows the cable type and whether the battery heater ran.
+
 ### Changed
 
+- Charges without a TeslaMate cost follow the rules of TeslaMate before the price in Settings: free Supercharging costs 0, and a geofence price per minute or per kWh, with its session fee, gives the cost. The charge page names the rule and shows the price of the place.
 - **Breaking:** the app no longer reads the user from a proxy header. `IDENTITY_HEADER` is gone, and the Settings stay under the email of the account that signs in. Scripts that used a Cloudflare Access service token need a token from **Account**, and paired phones pair again.
 - With `MQTT_URL` set, the server connects to the broker when it starts, not at the first page.
 
