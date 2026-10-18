@@ -25,7 +25,7 @@ Every list refreshes when you pull it down. With the MQTT feed, the Overview and
 | Bun | 1.4.3 | Installs the packages and runs the tests |
 | EAS CLI | 25 or newer | Cloud builds, push credentials, store uploads |
 | Xcode | 27 or newer | Local iOS builds and the iOS Simulator |
-| Android Studio | Current | Local Android builds and the emulator |
+| Android SDK | Platform 36 and 37, build tools 37, NDK 27.1, JDK 17 | Local Android builds and the emulator. Android Studio installs them, or the command-line tools: `brew install openjdk@17` and `brew install --cask android-commandlinetools`, then `sdkmanager` for the packages above and an `arm64-v8a` system image. Set `JAVA_HOME` to JDK 17 and `ANDROID_HOME` to the SDK. |
 
 Push alerts do not work in Expo Go, so the app runs as a development build.
 
@@ -56,7 +56,9 @@ The root quality gates also lint and type-check `mobile/`, so the commit hook ne
    APP_VARIANT=development bun run start
    ```
 
-3. In the app, open the demo, or type the address of your server.
+3. In the app, open the demo, or pair it with your server.
+
+On the Android emulator, `localhost` is the emulator itself. Run `adb reverse tcp:3000 tcp:3000` so that a server address with `localhost` reaches your computer, and run it again after `adb` restarts: Maestro restarts it. A pairing code also opens from the command line, which helps on a simulator without a camera: `xcrun simctl openurl booted "mytesla-dev://connect?…"` on iOS, or `adb shell am start -a android.intent.action.VIEW -d "mytesla-dev://connect?…"` on Android, with the query of the QR code.
 
 `APP_VARIANT=development` gives the app its own name, "My Tesla Dev", its own bundle ID, `bi.chele.mytesla.dev`, and the scheme `mytesla-dev`, so it sits next to a store build.
 

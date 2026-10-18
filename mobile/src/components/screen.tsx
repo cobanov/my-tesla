@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet } from "react-native";
+import { Platform, RefreshControl, ScrollView, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { space } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
 
@@ -10,17 +11,24 @@ export function Screen({
   refreshing,
   onRefresh,
   stickyHeaderIndices,
+  withoutHeader = false,
 }: {
   children: ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
   stickyHeaderIndices?: number[];
+  withoutHeader?: boolean;
 }) {
   const palette = usePalette();
+  const { top } = useSafeAreaInsets();
+  const statusBar = withoutHeader && Platform.OS === "android" ? top : 0;
   return (
     <ScrollView
       style={{ backgroundColor: palette.background }}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: space.lg + statusBar },
+      ]}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
@@ -43,7 +51,6 @@ export function Screen({
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: screenPadding,
-    paddingTop: space.lg,
     paddingBottom: space.xxl * 3,
     gap: space.lg,
   },

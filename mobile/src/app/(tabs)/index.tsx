@@ -191,7 +191,11 @@ export default function OverviewScreen() {
   useLiveChanges(car.id, ["overview", car.id]);
   const refresh = useRefresh(overview);
   return (
-    <Screen refreshing={refresh.refreshing} onRefresh={refresh.onRefresh}>
+    <Screen
+      withoutHeader
+      refreshing={refresh.refreshing}
+      onRefresh={refresh.onRefresh}
+    >
       {cars.length > 1 ? (
         <SegmentedControl
           label="Car"

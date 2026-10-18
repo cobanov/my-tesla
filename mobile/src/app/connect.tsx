@@ -205,7 +205,7 @@ export default function ConnectScreen() {
 
   const busy = claim.isPending || demo.isPending;
   return (
-    <Screen>
+    <Screen withoutHeader>
       <View style={styles.heading}>
         <Text variant="title" accessibilityRole="header">
           My Tesla

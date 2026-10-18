@@ -76,7 +76,7 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | Component | Use |
 |---|---|
 | `Text` | All text. Variants: `body`, `label`, `caption`, `strong`, `value`, `heading`, `title`, `display`, `hero`. Pass `tone` for a palette color or `color` for a computed one. `hero`, `display`, and `title` stop growing at 1.2 times the font scale. |
-| `Screen` | The scroll container of every screen. It sets the insets for the transparent header and the tab bar, and the refresh control. |
+| `Screen` | The scroll container of every screen. It sets the insets for the transparent header and the tab bar, and the refresh control. A screen without a native header, such as the Overview, passes `withoutHeader`, so Android keeps it below the status bar. |
 | `Panel` | A card: a muted title, an optional note on the right, and children. A `Button` inside a panel gets the page background. |
 | `Stat`, `StatGrid` | An `AppStat` from the server: a label, a value with its tone, and a detail. A value with a note opens the explanation on press. |
 | `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. Pass `selected` for the chosen row of a choice list. |
