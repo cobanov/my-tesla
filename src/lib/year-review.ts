@@ -33,3 +33,9 @@ export function busiest<T extends { distanceKm: number }>(
     null,
   );
 }
+
+export function monthName(at: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", { month: "long", timeZone }).format(
+    at,
+  );
+}

@@ -32,7 +32,7 @@ A self-hosted, read-only web dashboard for the car data that [TeslaMate](https:/
 | Charging | All charging sessions, with energy, levels, power, and cost. A price per kWh in Settings gives a cost to each charge that TeslaMate has no cost for. Each session has a cost breakdown and power, voltage, and current charts. All sessions export as CSV. An insights page shows the cost per kWh for AC and DC, the cost per 100 km, the DC curves, the charging time from one battery level to another, when the car charges, and the top places. |
 | Timeline | One day at a time: driving, charging, parked, asleep, and offline time on a 24-hour strip |
 | Battery | Estimated health, capacity from the first long charge, range at 100 %, charge cycles, AC and DC energy, time at each level, idle drain |
-| Stats | Distance, energy, cost, efficiency against temperature and speed, charging cost for each week or month, drive times, longest drives, tire pressure trend with a slow-leak warning, software updates |
+| Stats | Distance, energy, cost, efficiency against temperature and speed, charging cost for each week or month, drive times, longest drives, tire pressure trend with a slow-leak warning, software updates. A year in review page shows the totals, the distance per month, the records, and the top places of one calendar year. |
 | Places | A map of visited and charging places, the most visited places, charging cost by place, the frequent routes with their typical, fastest, and slowest drive, geofences |
 | Settings | Units, date and time formats, number style, currency, charging prices, place names, maps, theme, tabs, and Overview cards. Saved on the server for each user. |
 

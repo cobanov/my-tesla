@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -143,7 +143,17 @@ export default async function StatsPage({
             Stats
           </h1>
         </div>
-        <PeriodLinks base={carPath(car, "/stats")} active={period} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={carPath(car, "/stats/year")}
+            transitionTypes={["tab-forward"]}
+            className="inline-flex h-9 items-center gap-2 rounded bg-card px-3 text-sm font-medium transition-tesla hover:bg-accent"
+          >
+            <CalendarDays aria-hidden className="size-4" />
+            Year in review
+          </Link>
+          <PeriodLinks base={carPath(car, "/stats")} active={period} />
+        </div>
       </div>
 
       <StatsTotals car={car} drives={drives} charges={charges} f={f} />

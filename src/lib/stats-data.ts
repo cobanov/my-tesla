@@ -7,6 +7,11 @@ import { rangeColumn, type RangeKind } from "./range-columns";
 import type { SpeedBandRow } from "./speed-bands";
 import { slowLeaks, type SlowLeak } from "./tire-leak";
 import { placeLabel } from "./vehicle";
+import {
+  biggestChargeQuery,
+  dataYearsQuery,
+  type BiggestChargeRow,
+} from "./year-review-sql";
 import { getPlaceStyle, getRangeKind } from "./viewer";
 
 export type BucketUnit = "day" | "week" | "month";
@@ -65,6 +70,10 @@ export type LongDrive = {
   durationMin: number;
   from: string;
   to: string;
+};
+
+export type BiggestCharge = Omit<BiggestChargeRow, "place"> & {
+  place: string;
 };
 
 type Place = {
@@ -415,5 +424,34 @@ export const recentTireLeaks = cache(
   async (carId: number, timeZone: string): Promise<SlowLeak[]> => {
     const from = new Date(Date.now() - leakWindowMs);
     return slowLeaks(await pressureTrend(carId, from, "day", timeZone));
+  },
+);
+
+export const dataYears = cache(
+  async (carId: number, timeZone: string): Promise<number[]> => {
+    await connection();
+    const { relation: sessions } = await chargeSessions(carId);
+    const rows = await dataYearsQuery(database(), {
+      carId,
+      timeZone,
+      sessions,
+    });
+    return rows.map((row) => row.year);
+  },
+);
+
+export const biggestCharge = cache(
+  async (
+    carId: number,
+    from: Date,
+    to: Date,
+  ): Promise<BiggestCharge | null> => {
+    await connection();
+    const [style, { relation: sessions }] = await Promise.all([
+      getPlaceStyle(),
+      chargeSessions(carId),
+    ]);
+    const [row] = await biggestChargeQuery(database(), { from, to, sessions });
+    return row ? { ...row, place: placeLabel(row.place, style) } : null;
   },
 );

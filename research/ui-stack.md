@@ -93,6 +93,20 @@ Checked on 2026-10-13 against the Checklist Design checklists for a data table, 
 5. **Charger badge.** `ChargerBadge` draws the AC or DC label on every page.
 6. **Open.** The lists show the last 50 drives and charges without paging. The subtle text color is under 4.5:1 on the cards. Reset to defaults has no confirmation. Each needs a product decision.
 
+## Year in review
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with metric and with US settings.
+
+1. **Place.** The page hangs off Stats at `/stats/year`, with a back link, like Charging insights and Report hang off their tabs. The tab bar keeps five data tabs. Stats links to it with a card button next to the period control, like the Insights and Report buttons.
+2. **Year picker.** `SegmentedLinks` with one link for each year that has a drive or a charge, newest first. The current year in the user's time zone is the default, and the newest year with data stands in when the current year has none. The active year carries `aria-current="page"`, and each link is 32 px high, above the 24 px of WCAG 2.2 target size.
+3. **Many years.** Apple suggests about five segments on iPhone, and a car that TeslaMate has logged since 2019 has eight years. `SegmentedLinks` now wraps its links inside the screen width with `max-w-full flex-wrap`, so no year moves off the screen and the page never scrolls sideways, which WCAG 2.2 reflow asks for at 320 px. The period control has five short links and stays on one line.
+4. **Shared parts.** `StatsTotals` holds the eight figures of Stats, and `VisitedPlaces` holds the most visited list of Places. The year page uses both, so the figures read the same on the three pages.
+5. **Month chart.** Bars for the distance of each month, the pattern for counts per day, week, or month. Records name the busiest month in full, because the axis label `Sep 26` can read as a date.
+6. **Records.** One row each for the busiest month, the busiest day, the longest drive, and the biggest charge. A row links to the day in Timeline, the drive, or the charge, and a row without a page keeps the same right edge.
+7. **Places.** A list without a map, so the map setting does not apply.
+
+Sources: [Apple segmented controls](https://developer.apple.com/design/human-interface-guidelines/segmented-controls), [WCAG 2.2 reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow), [WCAG 2.2 target size (minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [WAI-ARIA `aria-current`](https://www.w3.org/TR/wai-aria-1.2/#aria-current), and the Next.js 16.3.8 `page.md` guide on `searchParams` in `node_modules/next/dist/docs/`.
+
 ## Rejected
 
 | Option | Reason |

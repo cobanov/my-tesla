@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { busiest, pickYear, yearWindow } from "./year-review";
+import { busiest, monthName, pickYear, yearWindow } from "./year-review";
 
 const phoenix = "America/Phoenix";
 const newYearUtc = new Date("2027-01-01T03:00:00Z");
@@ -57,5 +57,16 @@ describe("busiest", () => {
   test("gives nothing without a distance", () => {
     expect(busiest([{ distanceKm: 0 }])).toBeNull();
     expect(busiest([])).toBeNull();
+  });
+});
+
+describe("monthName", () => {
+  test("names the local month of a bucket start", () => {
+    expect(monthName(new Date("2026-09-01T07:00:00Z"), phoenix)).toBe(
+      "September",
+    );
+    expect(monthName(new Date("2026-08-31T22:00:00Z"), "Europe/Berlin")).toBe(
+      "September",
+    );
   });
 });

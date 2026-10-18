@@ -119,6 +119,7 @@ async function pagesToCheck(browser: Browser): Promise<string[]> {
     `${car}/charging/insights`,
     `${car}/battery`,
     `${car}/stats`,
+    `${car}/stats/year`,
     `${car}/places`,
     `${car}/timeline`,
     `${car}/settings`,

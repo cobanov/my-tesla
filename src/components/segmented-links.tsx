@@ -13,7 +13,7 @@ export function SegmentedLinks({
   return (
     <nav
       aria-label={label}
-      className="inline-flex rounded bg-card p-1 text-sm font-medium"
+      className="inline-flex max-w-full flex-wrap rounded bg-card p-1 text-sm font-medium"
     >
       {items.map((item) => (
         <Link
