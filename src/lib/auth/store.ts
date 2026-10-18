@@ -34,6 +34,16 @@ export type Session = {
 
 export type Device = { name: string; platform: string; ip: string | null };
 
+export type Invite = {
+  id: string;
+  email: string;
+  createdBy: string;
+  createdAt: number;
+  expiresAt: number;
+};
+
+export type Removal = "removed" | "root" | "last-admin" | "missing";
+
 function checkDigits(hash: Uint8Array): string {
   const [a = 0, b = 0, c = 0, d = 0] = hash;
   const value = ((a << 24) | (b << 16) | (c << 8) | d) >>> 0;
@@ -49,7 +59,11 @@ export const lifetimes = {
   pendingDevice: 2 * minute,
   pairingCode: 90 * 1000,
   touch: 60 * minute,
+  invite: 3 * day,
+  passwordReset: 30 * minute,
 } as const;
+
+const linkPattern = /^[A-Za-z0-9_-]{43}$/;
 
 const migrations = [
   `
@@ -85,6 +99,22 @@ const migrations = [
     used_at integer
   );
   `,
+  `
+  create table invites (
+    id text primary key,
+    token_hash blob not null unique,
+    email text not null unique collate nocase,
+    created_by text not null references users (id) on delete cascade,
+    created_at integer not null,
+    expires_at integer not null
+  );
+  create table password_resets (
+    token_hash blob primary key,
+    user_id text not null references users (id) on delete cascade,
+    created_at integer not null,
+    expires_at integer not null
+  );
+  `,
 ];
 
 type Row = Record<string, unknown>;
@@ -96,6 +126,16 @@ function userOf(row: Row): User {
     name: String(row.name),
     role: row.role === "admin" ? "admin" : "member",
     createdAt: Number(row.created_at),
+  };
+}
+
+function inviteOf(row: Row): Invite {
+  return {
+    id: String(row.id),
+    email: String(row.email),
+    createdBy: String(row.created_by),
+    createdAt: Number(row.created_at),
+    expiresAt: Number(row.expires_at),
   };
 }
 
@@ -125,15 +165,19 @@ export class AuthStore {
   }
 
   private migrate(): void {
-    const version = Number(
-      (this.db.prepare("pragma user_version").get() as Row).user_version,
-    );
-    migrations.slice(version).forEach((sql, index) => {
-      this.transaction(() => {
+    let pending = true;
+    while (pending) {
+      pending = this.transaction(() => {
+        const version = Number(
+          (this.db.prepare("pragma user_version").get() as Row).user_version,
+        );
+        const sql = migrations[version];
+        if (sql === undefined) return false;
         this.db.exec(sql);
-        this.db.exec(`pragma user_version = ${version + index + 1}`);
+        this.db.exec(`pragma user_version = ${version + 1}`);
+        return true;
       });
-    });
+    }
   }
 
   private transaction<T>(work: () => T): T {
@@ -204,8 +248,169 @@ export class AuthStore {
 
   listUsers(): User[] {
     return (
-      this.db.prepare("select * from users order by created_at").all() as Row[]
+      this.db
+        .prepare("select * from users order by created_at, id")
+        .all() as Row[]
     ).map(userOf);
+  }
+
+  rootId(): string | null {
+    const row = this.db
+      .prepare(
+        "select id from users where role = 'admin' order by created_at, id limit 1",
+      )
+      .get() as Row | undefined;
+    return row ? String(row.id) : null;
+  }
+
+  removeUser(id: string): Removal {
+    return this.transaction(() => {
+      const user = this.userById(id);
+      if (!user) return "missing";
+      if (id === this.rootId()) return "root";
+      if (user.role === "admin") {
+        const admins = Number(
+          (
+            this.db
+              .prepare(
+                "select count(*) as count from users where role = 'admin'",
+              )
+              .get() as Row
+          ).count,
+        );
+        if (admins <= 1) return "last-admin";
+      }
+      this.db.prepare("delete from users where id = ?").run(id);
+      return "removed";
+    });
+  }
+
+  createInvite(
+    email: string,
+    createdBy: string,
+    now: number,
+  ): { invite: Invite; token: string } | null {
+    const token = newSecret();
+    const id = newId();
+    const created = this.transaction(() => {
+      if (this.credentialsByEmail(email)) return false;
+      this.db.prepare("delete from invites where email = ?").run(email);
+      this.db
+        .prepare(
+          "insert into invites (id, token_hash, email, created_by, created_at, expires_at) values (?, ?, ?, ?, ?, ?)",
+        )
+        .run(
+          id,
+          hashSecret(token),
+          email,
+          createdBy,
+          now,
+          now + lifetimes.invite,
+        );
+      return true;
+    });
+    if (!created) return null;
+    const row = this.db.prepare("select * from invites where id = ?").get(id);
+    return { invite: inviteOf(row as Row), token };
+  }
+
+  listInvites(now: number): Invite[] {
+    return (
+      this.db
+        .prepare(
+          "select * from invites where expires_at > ? order by created_at",
+        )
+        .all(now) as Row[]
+    ).map(inviteOf);
+  }
+
+  deleteInvite(id: string): boolean {
+    return (
+      Number(
+        this.db.prepare("delete from invites where id = ?").run(id).changes,
+      ) > 0
+    );
+  }
+
+  inviteByToken(token: string, now: number): Invite | null {
+    if (!linkPattern.test(token)) return null;
+    const row = this.db
+      .prepare("select * from invites where token_hash = ? and expires_at > ?")
+      .get(hashSecret(token), now);
+    return row ? inviteOf(row as Row) : null;
+  }
+
+  acceptInvite(
+    token: string,
+    input: { name: string; passwordHash: string },
+    now: number,
+  ): User | null {
+    if (!linkPattern.test(token)) return null;
+    return this.transaction(() => {
+      const row = this.db
+        .prepare(
+          "delete from invites where token_hash = ? and expires_at > ? returning email",
+        )
+        .get(hashSecret(token), now) as Row | undefined;
+      if (!row) return null;
+      const email = String(row.email);
+      if (this.credentialsByEmail(email)) return null;
+      const id = newId();
+      this.db
+        .prepare(
+          "insert into users (id, email, name, password_hash, role, created_at, password_changed_at) values (?, ?, ?, ?, 'member', ?, ?)",
+        )
+        .run(id, email, input.name, input.passwordHash, now, now);
+      return this.userById(id);
+    });
+  }
+
+  createPasswordReset(
+    userId: string,
+    now: number,
+  ): { token: string; expiresAt: number } {
+    const token = newSecret();
+    const expiresAt = now + lifetimes.passwordReset;
+    this.transaction(() => {
+      this.db
+        .prepare("delete from password_resets where user_id = ?")
+        .run(userId);
+      this.db
+        .prepare(
+          "insert into password_resets (token_hash, user_id, created_at, expires_at) values (?, ?, ?, ?)",
+        )
+        .run(hashSecret(token), userId, now, expiresAt);
+    });
+    return { token, expiresAt };
+  }
+
+  passwordResetUser(token: string, now: number): User | null {
+    if (!linkPattern.test(token)) return null;
+    const row = this.db
+      .prepare(
+        "select user_id from password_resets where token_hash = ? and expires_at > ?",
+      )
+      .get(hashSecret(token), now) as Row | undefined;
+    return row ? this.userById(String(row.user_id)) : null;
+  }
+
+  resetPassword(token: string, passwordHash: string, now: number): User | null {
+    if (!linkPattern.test(token)) return null;
+    return this.transaction(() => {
+      const row = this.db
+        .prepare(
+          "delete from password_resets where token_hash = ? and expires_at > ? returning user_id",
+        )
+        .get(hashSecret(token), now) as Row | undefined;
+      if (!row) return null;
+      const userId = String(row.user_id);
+      this.setPassword(userId, passwordHash, now);
+      this.db.prepare("delete from sessions where user_id = ?").run(userId);
+      this.db
+        .prepare("delete from password_resets where user_id = ?")
+        .run(userId);
+      return this.userById(userId);
+    });
   }
 
   createSession(
@@ -339,7 +544,7 @@ export class AuthStore {
     device: Device,
     now: number,
   ): { session: Session; token: string; user: User; check: string } | null {
-    if (!/^[A-Za-z0-9_-]{43}$/.test(code)) return null;
+    if (!linkPattern.test(code)) return null;
     return this.transaction(() => {
       const row = this.db
         .prepare(
@@ -432,6 +637,10 @@ export class AuthStore {
   prune(now: number): void {
     this.db.prepare("delete from sessions where expires_at <= ?").run(now);
     this.db.prepare("delete from pairing_codes where expires_at <= ?").run(now);
+    this.db.prepare("delete from invites where expires_at <= ?").run(now);
+    this.db
+      .prepare("delete from password_resets where expires_at <= ?")
+      .run(now);
   }
 
   close(): void {
