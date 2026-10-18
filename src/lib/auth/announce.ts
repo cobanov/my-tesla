@@ -1,6 +1,7 @@
 import "server-only";
 import { isDemoMode } from "../demo/mode";
-import { siteUrl } from "../site";
+import { siteLink } from "../site";
+import { serverOrigin } from "./reset-link";
 import { authStore, setupToken } from "./session";
 
 export function announceSetup(): void {
@@ -13,10 +14,11 @@ export function announceSetup(): void {
     console.error("My Tesla could not open its account store.", error);
     return;
   }
-  const origin =
-    siteUrl(process.env)?.href.replace(/\/$/, "") ??
-    `http://localhost:${process.env.PORT ?? "3000"}`;
+  const link = siteLink(
+    serverOrigin(process.env),
+    `setup?token=${setupToken()}`,
+  );
   console.info(
-    `My Tesla has no account yet. Open ${origin}/setup?token=${setupToken()} to create the admin account. The link works until the account exists.`,
+    `My Tesla has no account yet. Open ${link} to create the admin account. The link works until the account exists.`,
   );
 }

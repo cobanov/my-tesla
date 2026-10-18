@@ -10,7 +10,9 @@ RUN bun install --frozen-lockfile
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bun run build
+RUN bun run build \
+    && bun build src/cli/reset-password.ts --target=node \
+       --outfile=.next/standalone/reset-password.mjs
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production \
