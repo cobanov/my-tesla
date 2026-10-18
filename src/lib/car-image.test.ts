@@ -105,7 +105,13 @@ describe("carImageUrl", () => {
 
   test("gives no image when a field is missing or unknown", () => {
     expect(carImageUrl({ ...rika, model: null })).toBeNull();
-    expect(carImageUrl({ ...rika, model: "S" })).toBeNull();
+    expect(carImageUrl({ ...rika, model: "Roadster" })).toBeNull();
+    expect(
+      carImageUrl({ ...rika, model: "S", exteriorColor: null }),
+    ).toBeNull();
+    expect(
+      carImageUrl({ ...rika, model: "3", exteriorColor: "GlacierBlue" }),
+    ).toBeNull();
     expect(carImageUrl({ ...rika, exteriorColor: "Plaid" })).toBeNull();
     expect(
       carImageUrl({
@@ -217,11 +223,167 @@ describe("carImageUrl", () => {
     ).toBe("$MTY09,$PBSB,$WY19B,$INPB0");
   });
 
-  test("gives no image for an unknown wheel when the color fits two generations", () => {
+  test("shows the newest generation with the color for an unknown wheel", () => {
     expect(
-      carImageUrl({ ...rika, exteriorColor: "PearlWhite", wheelType: "New22" }),
-    ).toBeNull();
-    expect(carImageUrl({ ...rika, wheelType: "Pinwheel18" })).toBeNull();
+      optionsOf(
+        carImageUrl({
+          ...rika,
+          exteriorColor: "PearlWhite",
+          wheelType: "New22",
+        }),
+      ),
+    ).toBe("$MTY60,$PPSW,$WY19P,$IPB12");
+    expect(optionsOf(carImageUrl({ ...rika, wheelType: "Pinwheel18" }))).toBe(
+      "$MTY60,$PN01,$WY19P,$IPB12",
+    );
+    expect(
+      optionsOf(
+        carImageUrl({
+          model: "S",
+          exteriorColor: "SolidBlack",
+          wheelType: null,
+          trimBadging: null,
+        }),
+      ),
+    ).toBe("$MTS13,$PBSB,$WS90,$IBE00");
+  });
+
+  test.each([
+    ["Base19", "PearlWhite", "$PPSW,$WT19"],
+    ["Slipstream19Carbon", "SolidBlack", "$PBSB,$WT19"],
+    ["Turbine19Dark", "MetallicBlack", "$PMBL,$WTAS"],
+    ["Arachnid21Grey", "TitaniumCopper", "$PPTI,$WTSG"],
+    ["Super21Silver", "MetallicBrown", "$PMAB,$WTSS"],
+    ["Silver21Euro", "DolphinGrey", "$PMTG,$WT21"],
+    ["TwinTurbine21Carbon", "SignatureRed", "$PPSR,$WTTB"],
+    ["Charcoal21", "MetallicGreen", "$PMSG,$WTSG"],
+  ])(
+    "builds the 2012-2020 Model S render for %s",
+    (wheelType, color, codes) => {
+      const url = carImageUrl({
+        model: "S",
+        exteriorColor: color,
+        wheelType,
+        trimBadging: "85D",
+      });
+      const parsed = new URL(url ?? "");
+      expect(parsed.pathname).toBe("/v1/compositor/");
+      expect(parsed.searchParams.get("model")).toBe("ms");
+      expect(parsed.searchParams.get("view")).toBe("STUD_3QTR");
+      expect(optionsOf(url)).toBe(codes);
+    },
+  );
+
+  test.each([
+    ["Cardenio19", "SolidBlack", "$MTS13,$PBSB,$WS90,$IBE00"],
+    ["Tempest19", "LunarSilver", "$MTS13,$PN02,$WS90,$IBE00"],
+    ["Arachnid21", "UltraRed", "$MTS13,$PR01,$WS11,$IBE00"],
+    [null, "DiamondBlack", "$MTS22,$PX02,$WS93,$IBE01"],
+    [null, "FrostBlue", "$MTS22,$PB00,$WS93,$IBE01"],
+  ])(
+    "builds the Model S render from 2021 for %s in %s",
+    (wheelType, color, codes) => {
+      const url = carImageUrl({
+        model: "S",
+        exteriorColor: color,
+        wheelType,
+        trimBadging: "100D",
+      });
+      const parsed = new URL(url ?? "");
+      expect(parsed.pathname).toBe("/configurator/compositor");
+      expect(parsed.searchParams.get("model")).toBe("ms");
+      expect(parsed.searchParams.get("view")).toBe("FRONT34");
+      expect(optionsOf(url)).toBe(codes);
+    },
+  );
+
+  test.each([
+    ["AeroTurbine20", "PearlWhite", "/v1/compositor/", "$PPSW,$WT20"],
+    ["Slipstream20Carbon", "SteelGrey", "/v1/compositor/", "$PMNG,$WTSC"],
+    ["Slipstream20Silver", "SilverMetallic", "/v1/compositor/", "$PMSS,$WT20"],
+    ["Turbine22", "SolidWhite", "/v1/compositor/", "$PBCW,$WT22"],
+    ["Turbine22Dark", "MetallicBlack", "/v1/compositor/", "$PMBL,$WTUT"],
+    [
+      "Cyberstream20",
+      "RedMulticoat",
+      "/configurator/compositor",
+      "$MTX10,$PPMR,$WX00,$IBE00",
+    ],
+    [
+      "NewTurbine22Black",
+      "DeepBlue",
+      "/configurator/compositor",
+      "$MTX10,$PPSB,$WX20,$IBE00",
+    ],
+    [
+      "NewTurbine22Black",
+      "StealthGrey",
+      "/configurator/compositor",
+      "$MTX22,$PN01,$WX02,$IBE01",
+    ],
+  ])(
+    "builds the Model X render for %s in %s",
+    (wheelType, color, path, codes) => {
+      const url = carImageUrl({
+        model: "X",
+        exteriorColor: color,
+        wheelType,
+        trimBadging: "P100D",
+      });
+      const parsed = new URL(url ?? "");
+      expect(parsed.pathname).toBe(path);
+      expect(parsed.searchParams.get("model")).toBe("mx");
+      expect(optionsOf(url)).toBe(codes);
+    },
+  );
+
+  test("shows the stainless Cybertruck whatever the color and wheel", () => {
+    for (const exteriorColor of [null, "Stainless", "SatinBlack"]) {
+      const url = carImageUrl({
+        model: "Cybertruck",
+        exteriorColor,
+        wheelType: "CybertruckPremium",
+        trimBadging: "AWD",
+      });
+      const parsed = new URL(url ?? "");
+      expect(parsed.pathname).toBe("/configurator/compositor");
+      expect(parsed.searchParams.get("model")).toBe("ct");
+      expect(parsed.searchParams.get("view")).toBe("FRONT34");
+      expect(optionsOf(url)).toBe("$MTC03,$PDD,$WH0B,$IG01");
+    }
+  });
+
+  test.each([
+    ["PinwheelRefresh18", "$PPSW,$W40B"],
+    ["Sportwheel19", "$PPSW,$W39B"],
+    ["StilettoRefresh19", "$PPSW,$W41B"],
+    ["Stiletto20DarkSquare", "$PPSW,$W32D"],
+    ["Performancewheel20", "$PPSW,$W32P"],
+    ["ZeroG20Gunpowder", "$PPSW,$W33D"],
+  ])("knows the 2017-2023 Model 3 wheel name %s", (wheelType, codes) => {
+    expect(
+      optionsOf(
+        carImageUrl({
+          model: "3",
+          exteriorColor: "PearlWhite",
+          wheelType,
+          trimBadging: "74D",
+        }),
+      ),
+    ).toBe(codes);
+  });
+
+  test("shows a Marine Blue Model 3 from 2024", () => {
+    expect(
+      optionsOf(
+        carImageUrl({
+          model: "3",
+          exteriorColor: "MarineBlue",
+          wheelType: "Glider18",
+          trimBadging: "50",
+        }),
+      ),
+    ).toBe("$MT369,$PB02,$W38A,$IPB2");
   });
 
   test("sets the requested size", () => {
