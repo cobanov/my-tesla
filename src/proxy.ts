@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { accessKeys, readAccessConfig, verifyAccessToken } from "@/lib/access";
-import { isPublicPath, sameSiteWrite } from "@/lib/auth/paths";
+import { isCalendarFeed, isPublicPath, sameSiteWrite } from "@/lib/auth/paths";
 import {
   authStore,
   cookieNames,
@@ -63,6 +63,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   if (isPublicPath(path)) return NextResponse.next();
+  if (isCalendarFeed(path) && request.nextUrl.searchParams.has("token")) {
+    return NextResponse.next();
+  }
 
   const now = Date.now();
   const signedIn = readSession(

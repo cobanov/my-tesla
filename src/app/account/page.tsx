@@ -1,4 +1,4 @@
-import { KeyRound, Laptop, Smartphone } from "lucide-react";
+import { CalendarDays, KeyRound, Laptop, Smartphone } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -29,6 +29,7 @@ export const metadata: Metadata = {
 function sessionTitle(session: Session): string {
   if (session.kind === "web") return "Browser";
   if (session.platform === "script") return `Script token: ${session.name}`;
+  if (session.platform === "calendar") return `Calendar: ${session.name}`;
   return session.name ?? "Phone";
 }
 
@@ -78,7 +79,9 @@ export default async function AccountPage() {
                   ? Laptop
                   : session.platform === "script"
                     ? KeyRound
-                    : Smartphone;
+                    : session.platform === "calendar"
+                      ? CalendarDays
+                      : Smartphone;
               const mine = session.id === current.id;
               return (
                 <li

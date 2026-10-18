@@ -36,6 +36,10 @@ export function isPublicPath(path: string): boolean {
   );
 }
 
+export function isCalendarFeed(path: string): boolean {
+  return /^\/api\/cars\/\d{1,9}\/calendar\.ics$/.test(path);
+}
+
 export function sameSiteWrite(headers: Headers, host: string): boolean {
   const site = headers.get("sec-fetch-site");
   if (site) return site === "same-origin";

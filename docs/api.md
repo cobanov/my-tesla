@@ -1,6 +1,6 @@
 # API
 
-The app has five read-only `GET` endpoints for scripts, widgets, home automation, and the [mobile app](mobile.md), and one endpoint for push alerts. Each call needs an account: a script sends a token, the mobile app sends its phone token, and a browser sends its session cookie. Read [Accounts and sign-in](authentication.md) first.
+The app has six read-only `GET` endpoints for scripts, widgets, home automation, and the [mobile app](mobile.md), and one endpoint for push alerts. Each call needs an account: a script sends a token, the mobile app sends its phone token, and a browser sends its session cookie. Read [Accounts and sign-in](authentication.md) first.
 
 | Endpoint | Gives |
 |---|---|
@@ -9,6 +9,7 @@ The app has five read-only `GET` endpoints for scripts, widgets, home automation
 | `/api/cars/{carId}/drives.csv` | All drives as CSV. Optional `from` and `to` dates, as `YYYY-MM-DD`. |
 | `/api/cars/{carId}/charges.csv` | All charges as CSV, with the same optional dates. |
 | `/api/cars/{carId}/drives/{driveId}.gpx` | One drive as a GPX track. |
+| `/api/cars/{carId}/calendar.ics` | The drives and charges of the last year as an iCalendar feed. Read [Calendar feed](#calendar-feed). |
 
 The car id is the TeslaMate number of the car. The dashboard address uses the car name, such as `/cars/red-rocket`, and the id address, such as `/cars/2`, opens the same car. The API takes only the id, so a new car name does not break a script. An unknown car gives status 404.
 
@@ -54,6 +55,17 @@ The response leaves out the position unless the request asks for it. A widget th
 ```
 
 The example shows some of the fields. Each response has the header `Cache-Control: private, no-store`.
+
+## Calendar feed
+
+A calendar app subscribes to `/api/cars/{carId}/calendar.ics` and shows each drive and each finished charge of the last year as an event, with the distance, the time, and the consumption, or the energy, the levels, and the cost. It asks for new events every hour.
+
+A calendar app cannot send a header, so the feed takes a token in its address:
+
+1. Open Settings for a car, then **Calendar**, and press **Make a calendar link**.
+2. Press **Subscribe in the calendar app**, or copy the `https` link into the calendar app, for example Google Calendar, **From URL**.
+
+The link holds a token for the feed of that account. It works only for `calendar.ics`, never as a bearer token for the other endpoints, and the events use the Settings of the account. Anyone with the link sees the drives and charges, and proxies and calendar services may log it, so keep it private. **Account** lists each link as **Calendar** with its last use, and signs it out. A new password signs out every calendar link too. A browser that is signed in can also open the feed without a token.
 
 ## Push alerts
 

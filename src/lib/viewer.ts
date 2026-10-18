@@ -1,4 +1,5 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
@@ -27,7 +28,15 @@ import {
 import { readTimeZone } from "./time-zone";
 import type { PlaceStyle } from "./vehicle";
 
+const feedViewer = new AsyncLocalStorage<string>();
+
+export function asViewer<T>(email: string, work: () => Promise<T>): Promise<T> {
+  return feedViewer.run(email.toLowerCase(), work);
+}
+
 export const currentViewer = cache(async (): Promise<string | null> => {
+  const feed = feedViewer.getStore();
+  if (feed) return feed;
   const signedIn = await currentSession();
   return signedIn?.user.email.toLowerCase() ?? null;
 });

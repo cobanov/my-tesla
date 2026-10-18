@@ -19,6 +19,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - A Settings tab in the mobile app. It changes the same Settings as the web, and the phone keeps the last Settings. The app starts in dark mode, and Settings has a theme choice for the phone.
 - `GET /api/cars.json` lists the cars, `/api/push` registers a phone for alerts, `/api/app/cars/{carId}/` gives the app its screens, formatted for the user, and `/api/app/settings` reads and changes the Settings. Read [API](docs/api.md).
 
+- `GET /api/cars/{carId}/calendar.ics`, a calendar feed of the drives and charges of the last year. Settings, **Calendar**, makes a private link for a calendar app, and Account can revoke it.
 - The charge page shows the cable type and whether the battery heater ran.
 - Battery advice under the charge levels: a weekly full charge for an LFP battery, as Tesla recommends, and a daily limit of 80 to 90% for other cells, with the charges of the period.
 

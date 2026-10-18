@@ -43,13 +43,26 @@ export const limits = {
 
 export type SignedIn = { session: Session; user: User };
 
+export const calendarPlatform = "calendar";
+
+export function calendarSession(
+  token: string | null,
+  now: number,
+): SignedIn | null {
+  const signedIn = token ? authStore().validate(token, "device", now) : null;
+  return signedIn?.session.platform === calendarPlatform ? signedIn : null;
+}
+
 export function readSession(
   list: { get(name: string): string | null },
   cookieValue: (name: string) => string | undefined,
   now: number,
 ): SignedIn | null {
   const bearer = bearerToken(list.get("authorization"));
-  if (bearer) return authStore().validate(bearer, "device", now);
+  if (bearer) {
+    const signedIn = authStore().validate(bearer, "device", now);
+    return signedIn?.session.platform === calendarPlatform ? null : signedIn;
+  }
   const token = cookieValue(
     isSecureRequest(list) ? cookieNames.secure : cookieNames.plain,
   );
