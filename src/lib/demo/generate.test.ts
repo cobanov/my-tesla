@@ -48,6 +48,14 @@ describe("generateDemo", () => {
     }
   });
 
+  test("places every address in an Arizona city", () => {
+    for (const address of data.addresses) {
+      expect(address.city).toBeTruthy();
+      expect(address.state).toBe("Arizona");
+      expect(address.country).toBe("United States");
+    }
+  });
+
   test("keeps every record inside the window", () => {
     const first = data.states[0].start_date.getTime();
     for (const position of data.positions) {

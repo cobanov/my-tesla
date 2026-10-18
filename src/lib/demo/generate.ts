@@ -6,6 +6,8 @@ const minute = 60_000;
 const hour = 60 * minute;
 const day = 24 * hour;
 const localOffset = -7 * hour;
+const addressState = "Arizona";
+const addressCountry = "United States";
 
 type PositionRow = {
   id: number;
@@ -128,6 +130,7 @@ type AddressRow = {
   house_number: string | null;
   road: string;
   city: string;
+  state: string;
   country: string;
   inserted_at: Date;
   updated_at: Date;
@@ -290,14 +293,21 @@ export function generateDemo(options: {
   }));
   const addressRows: AddressRow[] = places.map((place, index) => ({
     id: index + 1,
-    display_name: [place.name, place.road, place.city, "Türkiye"].join(", "),
+    display_name: [
+      place.name,
+      place.road,
+      place.city,
+      addressState,
+      addressCountry,
+    ].join(", "),
     latitude: place.latitude,
     longitude: place.longitude,
     name: place.name,
     house_number: place.houseNumber,
     road: place.road,
     city: place.city,
-    country: "Türkiye",
+    state: addressState,
+    country: addressCountry,
     inserted_at: created,
     updated_at: created,
   }));
