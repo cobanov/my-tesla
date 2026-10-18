@@ -19,6 +19,7 @@ describe("car names", () => {
   test.each([
     ["Y", "Model Y"],
     ["3", "Model 3"],
+    ["Cybertruck", "Cybertruck"],
     ["Z", "Model Z"],
     [null, "Tesla"],
   ])("modelName(%p)", (model, expected) => {
