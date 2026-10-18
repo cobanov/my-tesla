@@ -5,6 +5,13 @@ import { chargeSessions, type ChargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import type { CapacityPoint, IdlePeriod } from "./insights";
 import { rangeColumn } from "./range-columns";
+import type { LevelTrendPoint, RangeGroup, StateTime } from "./trends";
+import {
+  chargeLevelTrendQuery,
+  rangeByLevelQuery,
+  rangeByTemperatureQuery,
+  stateTimesQuery,
+} from "./trends-sql";
 import { getRangeKind } from "./viewer";
 
 export type BatteryCapacityPoint = CapacityPoint & {
@@ -290,5 +297,39 @@ export const idlePeriods = cache(
         and v.end_km - v.start_km < 1
       order by v.start_date desc
     `;
+  },
+);
+
+export const chargeLevelTrend = cache(
+  async (carId: number, from: Date | null): Promise<LevelTrendPoint[]> => {
+    await connection();
+    return chargeLevelTrendQuery(database(), carId, from ?? new Date(0));
+  },
+);
+
+export const projectedRanges = cache(
+  async (
+    carId: number,
+    from: Date | null,
+  ): Promise<{ byTemperature: RangeGroup[]; byLevel: RangeGroup[] }> => {
+    await connection();
+    const kind = await getRangeKind();
+    const since = from ?? new Date(0);
+    const [byTemperature, byLevel] = await Promise.all([
+      rangeByTemperatureQuery(database(), carId, since, kind),
+      rangeByLevelQuery(database(), carId, since, kind),
+    ]);
+    return { byTemperature, byLevel };
+  },
+);
+
+export const stateTimes = cache(
+  async (
+    carId: number,
+    from: Date | null,
+    until: Date,
+  ): Promise<StateTime[]> => {
+    await connection();
+    return stateTimesQuery(database(), carId, from ?? new Date(0), until);
   },
 );

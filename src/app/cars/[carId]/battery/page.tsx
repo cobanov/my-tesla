@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { AxisFormat } from "@/components/charts/axis-format";
 import { niceDomain } from "@/components/charts/nice-domain";
 import { SeriesChart } from "@/components/charts/series-chart";
 import { Metric } from "@/components/metric";
@@ -8,11 +9,14 @@ import { PeriodLinks } from "@/components/period-links";
 import {
   batteryNow,
   capacityHistory,
+  chargeLevelTrend,
   chargeLevels,
   chargeTotals,
   idlePeriods,
   levelTime,
   longChargeKwh,
+  projectedRanges,
+  stateTimes,
 } from "@/lib/battery-data";
 import {
   assessAsleep,
@@ -42,6 +46,12 @@ import {
   readPeriod,
   type IdlePeriod,
 } from "@/lib/insights";
+import {
+  levelTrendRows,
+  rangeByLevel,
+  rangeByTemperature,
+  stateShares,
+} from "@/lib/trends";
 import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
 
@@ -54,6 +64,8 @@ const colors = {
   range: "var(--chart-1)",
   start: "var(--chart-3)",
   end: "var(--charge)",
+  level: "var(--chart-1)",
+  usable: "var(--chart-4)",
 };
 
 function HealthBar({
@@ -110,6 +122,49 @@ function ShareRow({
         />
       </div>
     </li>
+  );
+}
+
+function RangeCurve({
+  title,
+  data,
+  xKey,
+  xFormat,
+  xLabel,
+  f,
+}: {
+  title: string;
+  data: { range: number }[];
+  xKey: string;
+  xFormat: AxisFormat;
+  xLabel: string;
+  f: Formatter;
+}) {
+  return (
+    <div>
+      <h3 className="mb-2 text-xs text-subtle">{title}</h3>
+      {data.length > 1 ? (
+        <SeriesChart
+          data={data}
+          xKey={xKey}
+          xFormat={xFormat}
+          xLabel={xLabel}
+          chartStyle={f.chartStyle}
+          series={[
+            {
+              key: "range",
+              label: "Range",
+              color: colors.range,
+              unit: f.units.distance,
+            },
+          ]}
+          yDomain={niceDomain(data.map((row) => row.range))}
+          height={150}
+        />
+      ) : (
+        <PanelNote>No record yet.</PanelNote>
+      )}
+    </div>
   );
 }
 
@@ -176,16 +231,29 @@ export default async function BatteryPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [capacity, latest, totals, levels, charges, idle, minimumKwh] =
-    await Promise.all([
-      capacityHistory(car.id),
-      batteryNow(car.id),
-      chargeTotals(car.id),
-      levelTime(car.id, from),
-      chargeLevels(car.id, from),
-      idlePeriods(car.id, from),
-      longChargeKwh(car.id),
-    ]);
+  const [
+    capacity,
+    latest,
+    totals,
+    levels,
+    charges,
+    idle,
+    minimumKwh,
+    levelTrend,
+    ranges,
+    states,
+  ] = await Promise.all([
+    capacityHistory(car.id),
+    batteryNow(car.id),
+    chargeTotals(car.id),
+    levelTime(car.id, from),
+    chargeLevels(car.id, from),
+    idlePeriods(car.id, from),
+    longChargeKwh(car.id),
+    chargeLevelTrend(car.id, from),
+    projectedRanges(car.id, from),
+    stateTimes(car.id, from, now),
+  ]);
 
   const {
     estimate,
@@ -210,6 +278,10 @@ export default async function BatteryPage({
   }));
   const periodLabel =
     periods.find((candidate) => candidate.id === period)?.label ?? "";
+  const levelSeries = levelTrendRows(levelTrend);
+  const rangeByOutside = rangeByTemperature(ranges.byTemperature, f);
+  const rangeByBattery = rangeByLevel(ranges.byLevel, f);
+  const stateTime = stateShares(states);
 
   return (
     <PageTransition>
@@ -385,6 +457,40 @@ export default async function BatteryPage({
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4">
+        <Panel title="Charge level (%)">
+          {levelSeries.rows.length > 1 ? (
+            <SeriesChart
+              data={levelSeries.rows}
+              xKey="at"
+              xFormat="day"
+              chartStyle={f.chartStyle}
+              series={[
+                {
+                  key: "level",
+                  label: "Battery",
+                  color: colors.level,
+                  unit: "%",
+                  kind: "area",
+                },
+                ...(levelSeries.usableDiffers
+                  ? [
+                      {
+                        key: "usable",
+                        label: "Usable",
+                        color: colors.usable,
+                        unit: "%",
+                      },
+                    ]
+                  : []),
+              ]}
+              yDomain={[0, 100]}
+              yFormat="percent"
+            />
+          ) : (
+            <PanelNote>No record yet.</PanelNote>
+          )}
+        </Panel>
+
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Panel
             title="Time at each level"
@@ -410,6 +516,39 @@ export default async function BatteryPage({
               <PanelNote>No record yet.</PanelNote>
             )}
           </Panel>
+          <Panel
+            title="Time in each state"
+            action={
+              stateTime.hours ? (
+                <span className="text-xs text-subtle tabular">
+                  {f.number(stateTime.hours)} h recorded
+                </span>
+              ) : undefined
+            }
+          >
+            {stateTime.hours ? (
+              <>
+                <ul className="space-y-4">
+                  {stateTime.states.map((row) => (
+                    <ShareRow
+                      key={row.state}
+                      label={row.label}
+                      share={row.share}
+                      detail={f.span(row.seconds / 60)}
+                    />
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-subtle">
+                  Online includes driving and charging.
+                </p>
+              </>
+            ) : (
+              <PanelNote>No record yet.</PanelNote>
+            )}
+          </Panel>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Panel
             title="Charge start and end levels"
             action={
@@ -452,6 +591,29 @@ export default async function BatteryPage({
                 TeslaMate sets the battery type in its car settings, under LFP
                 battery.
               </p>
+            </div>
+          </Panel>
+          <Panel
+            title={`Projected range (${f.units.distance})`}
+            action={<span className="text-xs text-subtle">At 100%</span>}
+          >
+            <div className="space-y-6">
+              <RangeCurve
+                title={`By outside temperature (${f.units.temperature})`}
+                data={rangeByOutside}
+                xKey="temperature"
+                xFormat="number"
+                xLabel="Outside"
+                f={f}
+              />
+              <RangeCurve
+                title="By battery level"
+                data={rangeByBattery}
+                xKey="level"
+                xFormat="percent"
+                xLabel="Battery"
+                f={f}
+              />
             </div>
           </Panel>
         </div>
