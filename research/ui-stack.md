@@ -154,11 +154,11 @@ Checked on 2026-10-01. Tesla's compositor draws a car from option codes: `https:
 2. A badge that ends in `d` picks the all-wheel-drive trim.
 3. `bkba_opt=1` gives a transparent PNG, 1440 x 810.
 4. An unknown code returns HTTP 412. The page hides the image when it fails to load.
-5. Akamai returns 403 to curl and Node on a development machine, and 200 to Chrome. So the browser loads the render directly, with `unoptimized` on `next/image`. Tesla sees the browser address and the car configuration.
+5. The browser loads the render directly, with `unoptimized` on `next/image`. Tesla sees the browser address and the car configuration. Akamai refuses a browser `User-Agent` sent by curl or Node.js, not the tools themselves. [Car images](car-images.md) explains why My Tesla keeps the direct link.
 6. The codes `MTY68`, `MTY78`, and `MTY85` also render with the Aperture wheels, and look the same at this angle. One of them can be the Model Y Standard from late 2025. The table keeps the verified `MTY61`.
 7. Checked on 2026-10-14 with the names that TeslaMate users report in [vide/matedroid](https://github.com/vide/matedroid/blob/main/docs/ASSETS.md). TeslaMate writes some names in two ways, such as `BlackDiamond` and `StealthGray`, and it can add an ending to a wheel name, such as `Pinwheel18CapKit` and `Apollo19MetallicShadow`. The table matches the start of the wheel name, the longest name first.
 8. A wheel name can fit two generations: `Uberturbine21` is the 2020-2024 Model Y Performance and the 2025 one. The first generation with both the color and the wheel wins, and the older one comes first. A white 2025 Performance then shows the older body.
-9. An unknown wheel shows the usual wheels of the generation, when the color fits one generation only. With a color of two generations, the car shows no image.
+9. An unknown wheel shows the usual wheels of the newest generation that has the color.
 10. The 138 addresses that the table makes for these names were loaded: 136 gave a render. Marine Blue with the 18 inch wheels gives HTTP 412, and Tesla does not sell it.
-11. `v1/compositor` answers 200 with a black shape for a color that it does not know, such as `PN01` on a Model S. Model S, Model X, and Cybertruck have no table: `v1/compositor` draws the body from before 2021.
+11. `v1/compositor` answers 200 with a black shape for a color that it does not know, such as `PN01` on a Model S. Checked on 2026-10-18: Model S, Model X, and the Cybertruck have tables too, and [Car images](car-images.md) lists every model, color, and wheel with its source and result.
 
