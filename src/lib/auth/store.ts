@@ -1,4 +1,5 @@
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync } from "node:sqlite";
+import { inTransaction, openDatabase } from "../sqlite";
 import {
   hashSecret,
   joinToken,
@@ -158,38 +159,11 @@ export class AuthStore {
   private readonly db: DatabaseSync;
 
   constructor(path: string) {
-    this.db = new DatabaseSync(path);
-    this.db.exec("pragma foreign_keys = on; pragma busy_timeout = 5000;");
-    if (path !== ":memory:") this.db.exec("pragma journal_mode = wal;");
-    this.migrate();
-  }
-
-  private migrate(): void {
-    let pending = true;
-    while (pending) {
-      pending = this.transaction(() => {
-        const version = Number(
-          (this.db.prepare("pragma user_version").get() as Row).user_version,
-        );
-        const sql = migrations[version];
-        if (sql === undefined) return false;
-        this.db.exec(sql);
-        this.db.exec(`pragma user_version = ${version + 1}`);
-        return true;
-      });
-    }
+    this.db = openDatabase(path, migrations);
   }
 
   private transaction<T>(work: () => T): T {
-    this.db.exec("begin immediate");
-    try {
-      const result = work();
-      this.db.exec("commit");
-      return result;
-    } catch (error) {
-      this.db.exec("rollback");
-      throw error;
-    }
+    return inTransaction(this.db, work);
   }
 
   userCount(): number {
