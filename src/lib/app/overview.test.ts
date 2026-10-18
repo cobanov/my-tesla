@@ -18,6 +18,7 @@ const car: Car = {
   wheelType: null,
   trimBadging: null,
   efficiencyKwhPerKm: 0.136,
+  lfpBattery: false,
 };
 
 const snapshot: CarSnapshot = {

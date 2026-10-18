@@ -181,14 +181,15 @@ export const chargeLevels = cache(
   async (
     carId: number,
     from: Date | null,
-  ): Promise<{ startLevel: number; endLevel: number }[]> => {
+  ): Promise<{ startLevel: number; endLevel: number; endAt: Date }[]> => {
     await connection();
     const since = (from ?? new Date(0)).toISOString();
     const { relation: sessions } = await chargeSessions(carId);
-    return database()<{ startLevel: number; endLevel: number }[]>`
+    return database()<{ startLevel: number; endLevel: number; endAt: Date }[]>`
       select
         start_battery_level::int as "startLevel",
-        end_battery_level::int as "endLevel"
+        end_battery_level::int as "endLevel",
+        end_date at time zone 'UTC' as "endAt"
       from ${sessions} cp
       where car_id = ${carId}
         and end_date is not null

@@ -26,6 +26,7 @@ export type Car = {
   wheelType: string | null;
   trimBadging: string | null;
   efficiencyKwhPerKm: number | null;
+  lfpBattery: boolean;
 };
 
 export type CarSnapshot = {
@@ -109,7 +110,10 @@ export const listCars = cache(async (): Promise<Car[]> => {
       exterior_color as "exteriorColor",
       wheel_type as "wheelType",
       trim_badging as "trimBadging",
-      efficiency::float8 as "efficiencyKwhPerKm"
+      efficiency::float8 as "efficiencyKwhPerKm",
+      coalesce((
+        select lfp_battery from car_settings where id = cars.settings_id
+      ), false) as "lfpBattery"
     from cars
     order by display_priority nulls last, id
   `;

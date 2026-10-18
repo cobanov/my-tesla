@@ -28,6 +28,7 @@ import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import {
   batteryFigures,
+  chargeAdvice,
   idleWatts,
   levelChargeHistogram,
   missingChargesText,
@@ -200,6 +201,7 @@ export default async function BatteryPage({
   );
   const trackedHours = levels.reduce((sum, row) => sum + row.seconds, 0) / 3600;
   const histogram = levelChargeHistogram(charges);
+  const advice = chargeAdvice(car.lfpBattery, charges, now);
   const drain = drainRate(idle);
   const capacitySeries = capacity.map((point) => ({
     at: point.at.getTime(),
@@ -443,6 +445,14 @@ export default async function BatteryPage({
             ) : (
               <PanelNote>No record yet.</PanelNote>
             )}
+            <div className="mt-4 space-y-1 text-xs text-subtle">
+              <p>{advice.advice}</p>
+              {advice.detail && <p>{advice.detail}</p>}
+              <p>
+                TeslaMate sets the battery type in its car settings, under LFP
+                battery.
+              </p>
+            </div>
           </Panel>
         </div>
 
