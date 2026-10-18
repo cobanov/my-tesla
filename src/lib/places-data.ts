@@ -64,8 +64,16 @@ function sinceOf(from: Date | null) {
   return (from ?? new Date(0)).toISOString();
 }
 
+function untilOf(to: Date | null) {
+  return to?.toISOString() ?? "infinity";
+}
+
 export const visitedPlaces = cache(
-  async (carId: number, from: Date | null): Promise<VisitedPlace[]> => {
+  async (
+    carId: number,
+    from: Date | null,
+    to: Date | null = null,
+  ): Promise<VisitedPlace[]> => {
     await connection();
     const style = await getPlaceStyle();
     const rows = await database()<
@@ -101,6 +109,7 @@ export const visitedPlaces = cache(
       left join geofences g on g.id = a.end_geofence_id
       left join addresses ad on ad.id = a.end_address_id
       where a.end_date >= (${sinceOf(from)}::timestamptz at time zone 'UTC')
+        and a.end_date < (${untilOf(to)}::timestamptz at time zone 'UTC')
         and (a.end_geofence_id is not null or a.end_address_id is not null)
       group by 1
       order by visits desc, "parkedS" desc

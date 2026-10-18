@@ -79,6 +79,10 @@ function sinceOf(from: Date | null) {
   return (from ?? new Date(0)).toISOString();
 }
 
+function untilOf(to: Date | null) {
+  return to?.toISOString() ?? "infinity";
+}
+
 function usedEnergy(kind: RangeKind) {
   return database()`
     greatest(
@@ -95,9 +99,11 @@ export const statsBuckets = cache(
     unit: BucketUnit,
     timeZone: string,
     weekStartsSunday = false,
+    to: Date | null = null,
   ): Promise<StatsBucket[]> => {
     await connection();
     const since = sinceOf(from);
+    const until = untilOf(to);
     const shift = unit === "week" && weekStartsSunday ? 1 : 0;
     const [kind, { relation: sessions }] = await Promise.all([
       getRangeKind(),
@@ -120,7 +126,10 @@ export const statsBuckets = cache(
           ) - make_interval(days => ${shift}) as first,
           date_trunc(
             ${unit},
-            (now() at time zone ${timeZone}) + make_interval(days => ${shift})
+            (least(
+              now(),
+              ${until}::timestamptz - interval '1 microsecond'
+            ) at time zone ${timeZone}) + make_interval(days => ${shift})
           ) - make_interval(days => ${shift}) as last
       ),
       buckets as (
@@ -151,6 +160,7 @@ export const statsBuckets = cache(
         where d.car_id = ${carId}
           and d.end_date is not null
           and d.start_date >= (${since}::timestamptz at time zone 'UTC')
+          and d.start_date < (${until}::timestamptz at time zone 'UTC')
         group by 1
       ),
       c as (
@@ -165,6 +175,7 @@ export const statsBuckets = cache(
         from ${sessions} cp
         where car_id = ${carId}
           and start_date >= (${since}::timestamptz at time zone 'UTC')
+          and start_date < (${until}::timestamptz at time zone 'UTC')
         group by 1
       )
       select
@@ -185,7 +196,11 @@ export const statsBuckets = cache(
 );
 
 export const driveTotals = cache(
-  async (carId: number, from: Date | null): Promise<DriveTotals> => {
+  async (
+    carId: number,
+    from: Date | null,
+    to: Date | null = null,
+  ): Promise<DriveTotals> => {
     await connection();
     const used = usedEnergy(await getRangeKind());
     const [row] = await database()<DriveTotals[]>`
@@ -201,13 +216,18 @@ export const driveTotals = cache(
       where d.car_id = ${carId}
         and d.end_date is not null
         and d.start_date >= (${sinceOf(from)}::timestamptz at time zone 'UTC')
+        and d.start_date < (${untilOf(to)}::timestamptz at time zone 'UTC')
     `;
     return row;
   },
 );
 
 export const periodChargeTotals = cache(
-  async (carId: number, from: Date | null): Promise<ChargeTotals> => {
+  async (
+    carId: number,
+    from: Date | null,
+    to: Date | null = null,
+  ): Promise<ChargeTotals> => {
     await connection();
     const { relation: sessions } = await chargeSessions(carId);
     const [row] = await database()<ChargeTotals[]>`
@@ -220,6 +240,7 @@ export const periodChargeTotals = cache(
       where car_id = ${carId}
         and charge_energy_added > 0.01
         and start_date >= (${sinceOf(from)}::timestamptz at time zone 'UTC')
+        and start_date < (${untilOf(to)}::timestamptz at time zone 'UTC')
     `;
     return row;
   },
@@ -319,7 +340,11 @@ export const softwareUpdates = cache(
 );
 
 export const longestDrives = cache(
-  async (carId: number, from: Date | null): Promise<LongDrive[]> => {
+  async (
+    carId: number,
+    from: Date | null,
+    to: Date | null = null,
+  ): Promise<LongDrive[]> => {
     await connection();
     const style = await getPlaceStyle();
     const rows = await database()<
@@ -347,6 +372,7 @@ export const longestDrives = cache(
         and d.end_date is not null
         and d.distance is not null
         and d.start_date >= (${sinceOf(from)}::timestamptz at time zone 'UTC')
+        and d.start_date < (${untilOf(to)}::timestamptz at time zone 'UTC')
       order by d.distance desc
       limit 5
     `;
