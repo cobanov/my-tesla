@@ -21,8 +21,10 @@ Other self-hosted apps sign people in themselves: the first visit creates the ro
 7. Settings stay keyed by the email of the account, as in the Cloudflare Access time, so they carry over. An account without them starts from the Settings under `owner`.
 8. A signed-in person pairs a phone from Settings. The page shows a QR code with the server address and a single-use code that lasts 90 seconds and changes every minute. The phone claims the code and gets a device token that works only after the person allows it on the page. The phone and the page show the same 4-digit number from the token, so a code that someone else used first does not look like the person's own phone. The device token lasts 90 days, renews when used, and can be revoked from the list of sessions.
 9. A script reads the API with a token that the person makes in the account page. It is a device token without a phone, shown once.
-10. Demo mode keeps working without accounts.
-11. The Cloudflare Access check of decision 0010 stays as an option. The email header and the service token in the QR code go away.
+10. The admin invites people with a link that works once, for 3 days, for one email. The server keeps only a hash of it. An invited person is a member: a member sees every car and keeps their own Settings, but cannot invite or remove anyone. The admin removes a member with every session, phone, and script token in one transaction. The first admin cannot be removed, and the last admin cannot be removed.
+11. A lost password is reset with `node reset-password.mjs EMAIL` in the container. It prints a link that works once, for 30 minutes, keeps only a hash, and signs out every session of the account. The page does not sign the person in: they sign in with the new password.
+12. Demo mode keeps working without accounts.
+13. The Cloudflare Access check of decision 0010 stays as an option. The email header and the service token in the QR code go away.
 
 `research/auth.md` gives the reasons, the comparison with other self-hosted apps, and the sources.
 

@@ -30,6 +30,16 @@ The sign-in page asks for the email and the password. A wrong email and a wrong 
 
 A session lasts 30 days and renews while you use it. **Account**, the round button with your initial in the header, shows every browser, phone, and script token with its last use and address. Each can be signed out there. A new password signs out every other session.
 
+## People
+
+The admin adds people under **Account**, **People**:
+
+1. Type the email of the person and press **Make an invite link**. The link shows once.
+2. Send the link to the person. It works once, for 3 days, and only for that email. The list shows each open invite with a **Revoke** button.
+3. The person opens the link, types a name and a password, and is signed in as a member.
+
+A member sees every car, keeps their own Settings, pairs phones, and makes script tokens. Only the admin invites and removes people. **Remove** deletes the account with every browser session, phone, and script token in one step, so the person is signed out everywhere at once. The Settings stay under the email, and a new invite for the same email gets them back. The first admin, who made the setup, can never be removed.
+
 ## Phones
 
 The mobile app signs in from Settings on the web:
@@ -62,7 +72,15 @@ The check of [decision 0010](decisions/0010-verify-access-token.md) stays as an 
 
 ## A lost password
 
-The app sends no email, so it cannot reset a password. To start over, stop the container, delete `auth.sqlite` from the data volume, and start it again. The log then prints a new setup link. The Settings stay in their file.
+The app sends no email. A person with access to the server makes a reset link for one account instead:
+
+```bash
+docker exec my-tesla node reset-password.mjs you@example.com
+```
+
+The command prints a link on the `SITE_URL` address. The link works once, for 30 minutes. It sets a new password and signs out every browser, phone, and script token of that account, then the person signs in again. The other accounts do not change. Without an email, or with an unknown one, the command lists the emails of the accounts.
+
+To start over completely, stop the container, delete `auth.sqlite` from the data volume, and start it again. The log then prints a new setup link. The Settings stay in their file.
 
 ## Server actions and the host name
 

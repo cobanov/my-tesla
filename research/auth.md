@@ -37,6 +37,9 @@ Fresh setup pages are scanned: Wordfence counted about 7,500 scans a day for ope
 | Setup | No user means every page goes to `/setup`. The server prints a one-time setup link with a token in its log. The first admin is created in a transaction that checks again that no user exists. After that, `/setup` answers 404. | Coolify and Home Assistant show the flow. The token closes the race that Coolify warns about, as Jupyter and Rancher do. |
 | Phone pairing | The web page shows a QR code with the address and a 256-bit code that lasts 90 s and changes every 60 s. The phone claims it once and gets a pending device token. The web page asks "Allow this phone?" with a 4-digit number from the token, and the phone shows the same number. Only then does the token work. | RFC 10027 calls a signed-in page that hands its session to a phone "session transfer". Its main risk is a code that someone else sees or forwards, so the approval turns a leaked code into a request that the person must accept. |
 | Phone storage | The token in the Keychain or the Keystore through `expo-secure-store` | OWASP MASWE-0003 |
+| Invites | The admin makes a link for one email: 256 bits, only the SHA-256 kept, single use, 3 days, revocable, and a new invite for the same email replaces the old one. The person sets the name and the password and becomes a member. | Coolify invites last 3 days and need no mail server when the admin copies the link. Binding the link to the email keeps a forwarded link from making an account for someone else's address. |
+| Removal | One transaction deletes the user, and the foreign keys delete the sessions, phones, script tokens, pairing codes, and reset links. The first admin and the last admin cannot be removed. | Coolify does not delete root, and Gitea keeps the last admin. Push alerts stop because each phone token belongs to a session. |
+| Lost password | `docker exec my-tesla node reset-password.mjs EMAIL` prints a reset link: 256 bits, only the SHA-256 kept, single use, 30 minutes. It signs out every session of the account and does not sign the person in. The pages with a token send `Referrer-Policy: no-referrer`. | Coolify (`php artisan root:reset-password`), Immich (`immich-admin reset-admin-password`), and Gitea (`gitea admin user change-password`) reset from the container, because they cannot rely on mail. A link keeps the new password out of the shell history. The OWASP Forgot Password cheat sheet asks for single-use, expiring tokens, `no-referrer`, the end of the old sessions, and no automatic sign-in. |
 
 ## Sources
 
@@ -47,10 +50,11 @@ Fresh setup pages are scanned: Wordfence counted about 7,500 scans a day for ope
 - [Better Auth advisories](https://github.com/better-auth/better-auth/security), [Better Auth with Next.js](https://better-auth.com/docs/integrations/next)
 - [Coolify: create the root user](https://coolify.io/docs/knowledge-base/create-root-user-with-env), [Coolify CreateNewUser](https://github.com/coollabsio/coolify/blob/main/app/Actions/Fortify/CreateNewUser.php), [Immich users](https://docs.immich.app/administration/user-management), [Home Assistant auth API](https://contributors.home-assistant.io/core/internals/auth-api/), [Jellyfin Quick Connect](https://github.com/jellyfin/jellyfin/blob/master/Emby.Server.Implementations/QuickConnect/QuickConnectManager.cs), [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/), [Wordfence 2017](https://www.wordfence.com/blog/2017/07/wpsetup-attack/)
 - [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/)
+- [OWASP Forgot Password](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html), [Coolify: reset the root password](https://coolify.io/docs/core/backup-and-recovery/reset-root-password), [Immich server commands](https://immich.app/docs/features/server-commands)
 - The Next.js 16 guides in `node_modules/next/dist/docs/`: authentication, authentication with Cache Components, data security, and proxy.
 
 ## Open
 
-1. Invite links and the removal of users. The store keeps roles from the start.
-2. A passkey or a second factor. A password of 15 characters is the only factor for now.
-3. An email to the user when a phone pairs. The app sends no mail yet, so the device list shows each new phone.
+1. A passkey or a second factor. A password of 15 characters is the only factor for now.
+2. An email to the user when a phone pairs. The app sends no mail yet, so the device list shows each new phone.
+3. A second admin. Members cannot be promoted yet, so the first admin is the only one.

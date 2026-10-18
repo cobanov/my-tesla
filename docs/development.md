@@ -66,7 +66,7 @@ Create the read-only role first. Read [Connect to the TeslaMate database](teslam
 ALLOWED_DEV_ORIGINS=my-laptop.local bun run dev -- -H 0.0.0.0
 ```
 
-Keep the dev server on a private network. It has no login.
+Keep the dev server on a private network. It shows the stack traces and the source of every page.
 
 ## Two servers on one folder
 

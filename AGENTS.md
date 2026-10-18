@@ -10,7 +10,7 @@ The app shows the data that TeslaMate records. It reads the TeslaMate PostgreSQL
 1. Connect only as a read-only role. Refuse the `teslamate` and `postgres` users.
 2. Open every session with `default_transaction_read_only` on and a statement timeout.
 3. Keep all database access on the server. No database value reaches the browser without a server module.
-4. Treat the data as a location history. The app has no login, so the docs require an authenticating proxy.
+4. Treat the data as a location history. Every page and API call needs an account session, except `/api/health` and the sign-in pages. Read decision 0023 before a change to `src/lib/auth/` or `src/proxy.ts`.
 5. Subscribe to MQTT only with a read-only broker user. Keep the values in memory, and send no car value through the live stream.
 6. Follow the Tesla visual style. Read `research/ui-stack.md` and decision 0002 before a UI change.
 

@@ -52,7 +52,7 @@ The new TeslaMate version can change a table. Read [Upgrading](upgrading.md).
 
 ## No setup link, or a lost password
 
-The setup link is in the server log of the first start without an account: `docker logs my-tesla 2>&1 | grep "setup?token"`. Each restart before the setup prints a new one. For a lost password, read [Accounts and sign-in](authentication.md#a-lost-password).
+The setup link is in the server log of the first start without an account: `docker logs my-tesla 2>&1 | grep "setup?token"`. Each restart before the setup prints a new one. For a lost password, run `docker exec my-tesla node reset-password.mjs you@example.com` and open the link it prints. [Accounts and sign-in](authentication.md#a-lost-password) has the details.
 
 ## Sign-in does not stay
 
