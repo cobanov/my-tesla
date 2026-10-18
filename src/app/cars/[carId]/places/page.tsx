@@ -6,6 +6,7 @@ import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
+import { VisitedPlaces } from "@/components/visited-places";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
@@ -19,7 +20,6 @@ import {
 } from "@/lib/places-data";
 import { placesFigures } from "@/lib/places-figures";
 import { toElevation } from "@/lib/units";
-import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
 
 export const instant = false;
@@ -138,52 +138,13 @@ export default async function PlacesPage({
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Panel title="Most visited" className="lg:col-span-3">
           {top.length ? (
-            <ol className="space-y-4">
-              {top.map((place, index) => (
-                <li key={place.key} className="flex items-start gap-4">
-                  <span className="w-4 pt-0.5 text-sm text-subtle tabular">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="truncate text-sm font-medium">
-                        {place.label}
-                      </span>
-                      <span className="shrink-0 text-sm tabular">
-                        {place.visits}{" "}
-                        <span className="text-muted-foreground">
-                          {place.visits === 1 ? "visit" : "visits"}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-[width] duration-700 ease-tesla starting:w-0!",
-                          chargingKeys.has(place.key)
-                            ? "bg-charge"
-                            : "bg-primary",
-                        )}
-                        style={{
-                          width: `${(place.visits / mostVisits) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1.5 truncate text-xs text-subtle tabular">
-                      {[
-                        place.city && place.city !== place.label
-                          ? place.city
-                          : null,
-                        `${f.span(place.parkedS / 60)} parked`,
-                        `last visit ${f.dayInline(place.lastAt, now)}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <VisitedPlaces
+              places={top}
+              mostVisits={mostVisits}
+              chargingKeys={chargingKeys}
+              f={f}
+              now={now}
+            />
           ) : (
             <PanelNote>No record yet.</PanelNote>
           )}

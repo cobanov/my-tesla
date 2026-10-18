@@ -5,12 +5,11 @@ import Link from "next/link";
 import { niceDomain } from "@/components/charts/nice-domain";
 import { ScatterPoints } from "@/components/charts/scatter-points";
 import { SeriesChart } from "@/components/charts/series-chart";
-import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
+import { StatsTotals } from "@/components/stats-totals";
 import { WeekHeatmap } from "@/components/week-heatmap";
-import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import {
@@ -37,7 +36,6 @@ import {
   efficiencyBands,
   efficiencyScatter,
   pressureRows,
-  statsTotals,
   updateDays,
   widestEfficiency,
 } from "@/lib/stats-figures";
@@ -108,11 +106,6 @@ export default async function StatsPage({
     recentTireLeaks(car.id, timeZone),
   ]);
 
-  const { whPerKm, distanceTotal, costPer100 } = statsTotals(
-    drives,
-    charges.cost,
-    f,
-  );
   const speeds = speedBands(speedRows, edges.shown);
   const widestSpeed = widestEfficiency(speeds, f);
   const bands = efficiencyBands(efficiency, f, preferences.temperature === "f");
@@ -153,74 +146,7 @@ export default async function StatsPage({
         <PeriodLinks base={carPath(car, "/stats")} active={period} />
       </div>
 
-      <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-        <Metric
-          size="lg"
-          label="Distance"
-          value={f.number(distanceTotal)}
-          unit={f.units.distance}
-          detail={`${drives.drives} ${drives.drives === 1 ? "drive" : "drives"}`}
-        />
-        <Metric
-          size="lg"
-          label="Driving time"
-          value={f.duration(drives.minutes)}
-        />
-        <Metric
-          size="lg"
-          label="Energy used"
-          value={f.number(drives.usedKwh)}
-          unit="kWh"
-        />
-        <Metric
-          size="lg"
-          label="Efficiency"
-          value={f.efficiencyNumber(whPerKm)}
-          unit={f.units.efficiency}
-          assessment={assessConsumption(
-            whPerKm,
-            ratedWhPerKm(car),
-            f,
-            drives.distanceKm,
-          )}
-        />
-      </dl>
-
-      <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-        <Metric
-          label="Charged"
-          value={f.number(charges.addedKwh)}
-          unit="kWh"
-          detail={`${charges.sessions} ${charges.sessions === 1 ? "session" : "sessions"}`}
-        />
-        <Metric
-          label="Charging cost"
-          value={f.cost(charges.cost)}
-          detail={
-            costPer100 === null
-              ? undefined
-              : `${f.cost(costPer100)} per 100 ${f.units.distance}`
-          }
-        />
-        <Metric
-          label="Top speed"
-          value={
-            drives.speedMaxKmh === null
-              ? "—"
-              : f.number(f.speedValue(drives.speedMaxKmh) ?? 0)
-          }
-          unit={f.units.speed}
-        />
-        <Metric
-          label="Longest drive"
-          value={
-            drives.longestKm === null
-              ? "—"
-              : f.number(f.distanceValue(drives.longestKm) ?? 0)
-          }
-          unit={f.units.distance}
-        />
-      </dl>
+      <StatsTotals car={car} drives={drives} charges={charges} f={f} />
 
       <div className="mt-12 grid grid-cols-1 gap-4">
         <Panel
