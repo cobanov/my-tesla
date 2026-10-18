@@ -41,3 +41,30 @@ export function costPer100Km(
 ): number | null {
   return cost === null || distanceKm <= 0 ? null : (cost / distanceKm) * 100;
 }
+
+type TypeTotals = {
+  fast: boolean;
+  sessions: number;
+  addedKwh: number;
+  cost: number | null;
+  costedKwh: number;
+};
+
+export function chargeInsightTotals(types: TypeTotals[], drivenKm: number) {
+  const costs = types
+    .map((type) => type.cost)
+    .filter((cost): cost is number => cost !== null);
+  const cost = costs.length
+    ? costs.reduce((sum, value) => sum + value, 0)
+    : null;
+  const costedKwh = types.reduce((sum, type) => sum + type.costedKwh, 0);
+  return {
+    ac: types.find((type) => !type.fast),
+    dc: types.find((type) => type.fast),
+    sessions: types.reduce((sum, type) => sum + type.sessions, 0),
+    addedKwh: types.reduce((sum, type) => sum + type.addedKwh, 0),
+    cost,
+    perKwh: costPerKwh(cost, costedKwh),
+    perKm: costPer100Km(cost, drivenKm),
+  };
+}

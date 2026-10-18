@@ -16,67 +16,50 @@ import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import type { Formatter } from "@/lib/format";
 import {
-  buildTimeline,
   dayWindow,
   localDayKey,
   parseDayKey,
   shiftDayKey,
-  timelineItems,
-  type TimelineItem,
 } from "@/lib/insights";
 import { dayRecords } from "@/lib/timeline-data";
+import { timelineView, type TimelineRow } from "@/lib/timeline-view";
 import { cn } from "@/lib/utils";
-import { ongoingText } from "@/lib/vehicle";
 import { getFormatter } from "@/lib/viewer";
 
 export const instant = false;
 
 export const metadata: Metadata = { title: "Timeline" };
 
-const minuteMs = 60_000;
-
 function ItemRow({
-  item,
+  row,
   basePath,
   f,
 }: {
-  item: TimelineItem;
+  row: TimelineRow;
   basePath: string;
   f: Formatter;
 }) {
-  const durationOf = (ms: number) => f.duration(ms / minuteMs);
-  const open = item.kind === "charge" && item.charge.end === null;
-  const time = `${f.clock(item.start)} – ${open ? "Now" : f.clock(item.end)}`;
-  const length = item.end.getTime() - item.start.getTime();
-  let icon: ReactNode;
-  let title: string;
-  let detail: string;
-  let href: string | null = null;
-  let dot: string;
-  if (item.kind === "drive") {
-    icon = <Route className="size-4" />;
-    title = `Drive to ${item.drive.to}`;
-    detail = `${f.distance(item.drive.distanceKm)} · ${durationOf(length)} · from ${item.drive.from}`;
-    href = `${basePath}/drives/${item.drive.id}`;
-    dot = "bg-primary text-primary-foreground";
-  } else if (item.kind === "charge") {
-    icon = <BatteryCharging className="size-4" />;
-    title = `${open ? "Charging" : "Charged"} at ${item.charge.place}`;
-    detail = `${open ? ongoingText : `+${f.energy(item.charge.energyAddedKwh)}`} · ${durationOf(length)} · ${item.charge.fast ? "DC" : "AC"}`;
-    href = `${basePath}/charging/${item.charge.id}`;
-    dot = "bg-charge text-primary-foreground";
-  } else {
-    icon = <Moon className="size-4" />;
-    title = item.place ? `Parked at ${item.place}` : "Parked";
-    detail = [
-      item.asleepMs ? `asleep ${durationOf(item.asleepMs)}` : null,
-      item.awakeMs ? `awake ${durationOf(item.awakeMs)}` : null,
-      item.offlineMs ? `offline ${durationOf(item.offlineMs)}` : null,
-    ]
-      .filter(Boolean)
-      .join(" · ");
-    dot = "bg-accent text-muted-foreground";
-  }
+  const { item, time, title, detail, target } = row;
+  const href =
+    target?.kind === "drive"
+      ? `${basePath}/drives/${target.id}`
+      : target?.kind === "charge"
+        ? `${basePath}/charging/${target.id}`
+        : null;
+  const icon: ReactNode =
+    item.kind === "drive" ? (
+      <Route className="size-4" />
+    ) : item.kind === "charge" ? (
+      <BatteryCharging className="size-4" />
+    ) : (
+      <Moon className="size-4" />
+    );
+  const dot =
+    item.kind === "drive"
+      ? "bg-primary text-primary-foreground"
+      : item.kind === "charge"
+        ? "bg-charge text-primary-foreground"
+        : "bg-accent text-muted-foreground";
   const body = (
     <>
       <span
@@ -167,30 +150,14 @@ export default async function TimelinePage({
   const day = requested && requested <= today ? requested : today;
   const window = dayWindow(day, timeZone);
   const records = await dayRecords(car.id, window.start, window.end);
-  const segments = buildTimeline({ ...records, ...window, now });
-  const items = timelineItems(segments).filter(
-    (item) => item.end.getTime() - item.start.getTime() >= minuteMs,
-  );
-  const sum = (kind: string) =>
-    segments
-      .filter((segment) => segment.kind === kind)
-      .reduce(
-        (total, segment) =>
-          total + segment.end.getTime() - segment.start.getTime(),
-        0,
-      );
-  const driven = records.drives.reduce(
-    (total, drive) => total + (drive.distanceKm ?? 0),
-    0,
-  );
-  const charged = records.charges.reduce(
-    (total, charge) => total + (charge.energyAddedKwh ?? 0),
-    0,
-  );
-  const covered = segments.reduce(
-    (total, segment) => total + segment.end.getTime() - segment.start.getTime(),
-    0,
-  );
+  const {
+    segments,
+    rows,
+    drivenKm: driven,
+    chargedKwh: charged,
+    drivingMin,
+    asleepPercent,
+  } = timelineView(records, window, now, f);
   const base = carPath(car, "/timeline");
   const label = f.day(window.start, now);
 
@@ -235,10 +202,7 @@ export default async function TimelinePage({
           unit={f.units.distance}
           detail={`${records.drives.length} ${records.drives.length === 1 ? "drive" : "drives"}`}
         />
-        <Metric
-          label="Driving time"
-          value={f.duration(sum("drive") / minuteMs)}
-        />
+        <Metric label="Driving time" value={f.duration(drivingMin)} />
         <Metric
           label="Charged"
           value={f.number(charged, 1)}
@@ -247,7 +211,7 @@ export default async function TimelinePage({
         />
         <Metric
           label="Asleep"
-          value={covered ? Math.round((sum("asleep") / covered) * 100) : 0}
+          value={asleepPercent}
           unit="%"
           detail="of the recorded time"
         />
@@ -266,7 +230,7 @@ export default async function TimelinePage({
         </div>
       </section>
 
-      {items.length ? (
+      {rows.length ? (
         <ol
           className={cn(
             "relative mt-8 space-y-1 before:absolute before:top-6 before:bottom-6 before:left-[1.75rem] before:w-px before:bg-border",
@@ -275,10 +239,10 @@ export default async function TimelinePage({
               : "sm:before:left-[9.75rem]",
           )}
         >
-          {items.map((item) => (
+          {rows.map((row) => (
             <ItemRow
-              key={`${item.kind}-${item.start.getTime()}`}
-              item={item}
+              key={`${row.item.kind}-${row.item.start.getTime()}`}
+              row={row}
               basePath={carPath(car)}
               f={f}
             />
