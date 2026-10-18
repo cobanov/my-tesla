@@ -13,6 +13,7 @@ import { periodStart, periods, readPeriod } from "@/lib/insights";
 import { placesOnMap } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import {
+  areasVisited,
   chargingPlaces,
   frequentRoutes,
   geofenceList,
@@ -21,10 +22,13 @@ import {
 import { placesFigures } from "@/lib/places-figures";
 import { toElevation } from "@/lib/units";
 import { getFormatter, getPreferences } from "@/lib/viewer";
+import type { VisitedArea } from "@/lib/visited-areas";
 
 export const instant = false;
 
 export const metadata: Metadata = { title: "Places" };
+
+const shownAreas = 10;
 
 export default async function PlacesPage({
   params,
@@ -42,11 +46,12 @@ export default async function PlacesPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [visited, charging, geofences, routes] = await Promise.all([
+  const [visited, charging, geofences, routes, areas] = await Promise.all([
     visitedPlaces(car.id, from),
     chargingPlaces(car.id, from),
     geofenceList(),
     frequentRoutes(car.id, from, f.timeZone),
+    areasVisited(car.id, from),
   ]);
 
   const {
@@ -236,6 +241,24 @@ export default async function PlacesPage({
       </Panel>
 
       <section className="mt-14">
+        <h2 className="text-2xl font-medium">Visited</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The countries, states, and cities where a drive or a charge started or
+          ended.
+        </p>
+        <dl className="mt-6 grid grid-cols-3 gap-x-6">
+          <Metric size="lg" label="Countries" value={areas.countries.length} />
+          <Metric size="lg" label="States" value={areas.states.length} />
+          <Metric size="lg" label="Cities" value={areas.cities.length} />
+        </dl>
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <AreaList title="Top countries" areas={areas.countries} />
+          <AreaList title="Top states" areas={areas.states} />
+          <AreaList title="Top cities" areas={areas.cities} />
+        </div>
+      </section>
+
+      <section className="mt-14">
         <h2 className="text-2xl font-medium">Saved places</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           TeslaMate names a place and sets its charging cost with a geofence.
@@ -290,5 +313,46 @@ export default async function PlacesPage({
         )}
       </section>
     </PageTransition>
+  );
+}
+
+function AreaList({ title, areas }: { title: string; areas: VisitedArea[] }) {
+  const shown = areas.slice(0, shownAreas);
+  const mostPlaces = Math.max(1, ...shown.map((area) => area.places));
+  return (
+    <Panel title={title}>
+      {shown.length ? (
+        <ol className="space-y-4">
+          {shown.map((area) => (
+            <li key={area.key}>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="truncate text-sm font-medium">
+                  {area.name}
+                </span>
+                <span className="shrink-0 text-sm tabular">
+                  {area.places}{" "}
+                  <span className="text-muted-foreground">
+                    {area.places === 1 ? "place" : "places"}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-700 ease-tesla starting:w-0!"
+                  style={{ width: `${(area.places / mostPlaces) * 100}%` }}
+                />
+              </div>
+              {area.within && (
+                <p className="mt-1.5 truncate text-xs text-subtle">
+                  {area.within}
+                </p>
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <PanelNote>No record yet.</PanelNote>
+      )}
+    </Panel>
   );
 }

@@ -9,6 +9,8 @@ import {
 } from "./frequent-routes-sql";
 import { placeLabel } from "./vehicle";
 import { getPlaceStyle, getRangeKind } from "./viewer";
+import { visitedAreas } from "./visited-areas";
+import { visitedAreasQuery } from "./visited-areas-sql";
 
 type Place = {
   geofence: string | null;
@@ -206,3 +208,12 @@ export const frequentRoutes = cache(
     }));
   },
 );
+
+export const areasVisited = cache(async (carId: number, from: Date | null) => {
+  await connection();
+  const rows = await visitedAreasQuery(database(), {
+    carId,
+    since: from ?? new Date(0),
+  });
+  return visitedAreas(rows);
+});
