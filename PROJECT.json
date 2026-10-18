@@ -6,7 +6,8 @@
     "org_id": "019fde50-6654-7c03-81a5-2b4aa937b624",
     "project": "TeslaMate",
     "project_id": "01a0f415-7d17-72f0-bd9b-251690511fb7",
-    "tool": "elliptic"
+    "tool": "obsidian",
+    "tasks": "projects/teslamate/tasks"
   },
   "remote": "git@github.com:woosal1337/my-tesla.git",
   "machines": {
