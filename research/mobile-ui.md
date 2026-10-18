@@ -19,6 +19,7 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 | Header fonts | `headerTitleStyle` and `headerLargeTitleStyle` set Inter | iOS 26 headers ignore the theme fonts in SDK 58. |
 | Lists | A ScrollView with sticky day headings | Native tabs scroll a ScrollView to the top and pop the stack when the active tab is pressed again. They do not do this for a FlatList. A list holds at most 50 rows. |
 | Links from an alert | `router.navigate` to a known route only, after the car is chosen | The notification data comes from outside the app, so the app accepts only the routes in its own list. |
+| Pairing link from the camera | The QR code is a `mytesla://connect?…` link. When the system camera opens it, Connect shows the server address with **Connect** and **Cancel**, and claims the code only after a press. | Expo Router opens a deep link as the route with its query as search params. A link can come from any app or web page, so the app never acts on it alone: the press, the single-use code, and the approval on the web with the matching number keep a stray link from signing the phone in somewhere else. |
 | Two controls | One full-width segmented control for Battery, Stats, and Places. The period is a compact control in the section that it changes. | Apple uses a segmented control for closely related views. Two stacked controls of the same weight confuse. `Stack.Toolbar` would need `@expo/ui` on Android. |
 
 ## Components

@@ -60,3 +60,19 @@ export function pairingOf(text: string): Pairing | null {
   const car = params.get("car") ?? "";
   return { url, code, carId: /^\d{1,9}$/.test(car) ? Number(car) : null };
 }
+
+export function pairingOfLink(
+  params: Record<string, string | string[] | undefined>,
+): Pairing | null {
+  const single = (name: string) => {
+    const value = params[name];
+    return typeof value === "string" ? value : "";
+  };
+  return pairingOf(
+    `${pairingPrefix}${new URLSearchParams({
+      url: single("url"),
+      car: single("car"),
+      code: single("code"),
+    })}`,
+  );
+}

@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Device from "expo-device";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { ApiError, request } from "@/api/client";
@@ -12,7 +13,7 @@ import { Screen } from "@/components/screen";
 import { TeslaMark } from "@/components/tesla-mark";
 import { Text } from "@/components/text";
 import { useConnectionState } from "@/connection/connection-provider";
-import { pairingOf, type Pairing } from "@/connection/server";
+import { pairingOf, pairingOfLink, type Pairing } from "@/connection/server";
 import { space } from "@/theme/tokens";
 
 const demoUrl = "https://mytesla.chele.bi";
@@ -59,8 +60,40 @@ function WaitingPanel({
   );
 }
 
+function LinkPanel({
+  pairing,
+  busy,
+  onConnect,
+  onCancel,
+}: {
+  pairing: Pairing;
+  busy: boolean;
+  onConnect: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Panel title="Sign in from the code">
+      <Text>
+        The camera opened a My Tesla code for {hostOf(pairing.url)}. Connect
+        only if you scanned it on your own screen. The page then asks you to
+        allow this phone.
+      </Text>
+      <Button label="Connect" busy={busy} disabled={busy} onPress={onConnect} />
+      <Button
+        label="Cancel"
+        kind="secondary"
+        disabled={busy}
+        onPress={onCancel}
+      />
+    </Panel>
+  );
+}
+
 export default function ConnectScreen() {
   const { save } = useConnectionState();
+  const fromLink = pairingOfLink(useLocalSearchParams());
+  const [doneCode, setDoneCode] = useState<string | null>(null);
+  const linked = fromLink && fromLink.code !== doneCode ? fromLink : null;
   const [problem, setProblem] = useState<string | null>(null);
   const [waiting, setWaiting] = useState<Waiting | null>(null);
   const [, requestCamera] = useCameraPermissions();
@@ -87,7 +120,10 @@ export default function ConnectScreen() {
         account: answer.user.name,
       };
     },
-    onSuccess: setWaiting,
+    onSuccess: (next, pairing) => {
+      setDoneCode(pairing.code);
+      setWaiting(next);
+    },
     onError: (error) => setProblem(error.message),
   });
   const { mutate: claimCode } = claim;
@@ -180,6 +216,16 @@ export default function ConnectScreen() {
       </View>
       {waiting ? (
         <WaitingPanel waiting={waiting} onCancel={() => setWaiting(null)} />
+      ) : linked ? (
+        <LinkPanel
+          pairing={linked}
+          busy={claim.isPending}
+          onConnect={() => {
+            setProblem(null);
+            claimCode(linked);
+          }}
+          onCancel={() => setDoneCode(linked.code)}
+        />
       ) : (
         <>
           <Button
@@ -199,7 +245,7 @@ export default function ConnectScreen() {
           {problem}
         </Text>
       ) : null}
-      {waiting ? null : (
+      {waiting || linked ? null : (
         <Button
           label="Open the demo"
           kind="secondary"
