@@ -6,7 +6,7 @@ import { refresh } from "next/cache";
 import { encode } from "uqr";
 import { pairingLink, qrPath, requestOrigin } from "../app/pairing";
 import { findCar } from "../queries";
-import { siteUrl } from "../site";
+import { SiteUrlError, siteUrl } from "../site";
 import { waitText } from "./limits";
 import {
   hashPassword,
@@ -77,6 +77,44 @@ const busy = {
   error: "Too many sign-ins at once. Try again in a moment.",
 };
 
+const tooManyToday =
+  "Too many failed tries from this network today. Try again tomorrow.";
+
+const deadInvite =
+  "This invite link does not work. Ask the admin for a new one.";
+
+const deadReset =
+  "This reset link does not work. Make a new one on the server.";
+
+async function linkOrigin(): Promise<string | null> {
+  try {
+    return (
+      siteUrl(process.env)?.href.replace(/\/$/, "") ??
+      requestOrigin(await headers())
+    );
+  } catch (error) {
+    if (error instanceof SiteUrlError) return null;
+    throw error;
+  }
+}
+
+async function newPasswordHash(
+  form: FormData,
+): Promise<{ hash: string } | { error: string }> {
+  const password = text(form, "password");
+  const weak = passwordProblem(password);
+  if (weak) return { error: weak };
+  if (password !== text(form, "confirm")) {
+    return { error: "The two passwords differ." };
+  }
+  try {
+    return { hash: await hashPassword(password) };
+  } catch (error) {
+    if (error instanceof PasswordBusyError) return busy;
+    throw error;
+  }
+}
+
 export async function signIn(
   _previous: FormResult,
   form: FormData,
@@ -123,10 +161,7 @@ export async function setUp(
   if (authStore().userCount() > 0) notFound();
   const from = await address();
   if (from && limits.address().blocked(from, Date.now())) {
-    return {
-      error:
-        "Too many failed tries from this network today. Try again tomorrow.",
-    };
+    return { error: tooManyToday };
   }
   if (!isSetupToken(text(form, "token").trim())) {
     if (from) limits.address().fail(from, Date.now());
@@ -137,19 +172,15 @@ export async function setUp(
   }
   const name = text(form, "name").trim();
   const email = text(form, "email").trim().toLowerCase();
-  const password = text(form, "password");
   const values = { name, email };
   if (!name || name.length > 80) return { error: "Type your name.", values };
   if (!emailPattern.test(email)) {
     return { error: "Type a valid email.", values };
   }
-  const weak = passwordProblem(password);
-  if (weak) return { error: weak, values };
-  if (password !== text(form, "confirm")) {
-    return { error: "The two passwords differ.", values };
-  }
+  const password = await newPasswordHash(form);
+  if ("error" in password) return { error: password.error, values };
   const user = authStore().createFirstAdmin(
-    { email, name, passwordHash: await hashPassword(password) },
+    { email, name, passwordHash: password.hash },
     Date.now(),
   );
   if (!user) return { error: "An admin account exists already. Sign in." };
@@ -166,6 +197,113 @@ async function requireWeb() {
   const signedIn = await currentSession();
   if (!signedIn || signedIn.session.kind !== "web") redirect("/login");
   return signedIn;
+}
+
+async function requireAdmin() {
+  const signedIn = await requireWeb();
+  if (signedIn.user.role !== "admin") redirect("/account");
+  return signedIn;
+}
+
+export async function joinWithInvite(
+  _previous: FormResult,
+  form: FormData,
+): Promise<FormResult> {
+  const from = await address();
+  if (from && limits.address().blocked(from, Date.now())) {
+    return { error: tooManyToday };
+  }
+  const token = text(form, "token").trim();
+  if (!authStore().inviteByToken(token, Date.now())) {
+    if (from) limits.address().fail(from, Date.now());
+    return { error: deadInvite };
+  }
+  const name = text(form, "name").trim();
+  const values = { name };
+  if (!name || name.length > 80) return { error: "Type your name.", values };
+  const password = await newPasswordHash(form);
+  if ("error" in password) return { error: password.error, values };
+  const user = authStore().acceptInvite(
+    token,
+    { name, passwordHash: password.hash },
+    Date.now(),
+  );
+  if (!user) return { error: deadInvite, values };
+  console.info(`My Tesla: ${user.email} joined with an invite.`);
+  const { token: session } = authStore().createSession(
+    { userId: user.id, kind: "web", status: "active", ip: from },
+    Date.now(),
+  );
+  await setSessionCookie(session);
+  redirect("/");
+}
+
+export async function resetPassword(
+  _previous: FormResult,
+  form: FormData,
+): Promise<FormResult> {
+  const from = await address();
+  if (from && limits.address().blocked(from, Date.now())) {
+    return { error: tooManyToday };
+  }
+  const token = text(form, "token").trim();
+  if (!authStore().passwordResetUser(token, Date.now())) {
+    if (from) limits.address().fail(from, Date.now());
+    return { error: deadReset };
+  }
+  const password = await newPasswordHash(form);
+  if ("error" in password) return { error: password.error };
+  const user = authStore().resetPassword(token, password.hash, Date.now());
+  if (!user) return { error: deadReset };
+  console.info(`My Tesla: the password of ${user.email} is reset.`);
+  succeeded({ account: `login:${user.email.toLowerCase()}`, address: from });
+  return {
+    error: null,
+    done: "The password is changed, and every session and phone of the account is signed out. Sign in with the new password.",
+  };
+}
+
+export async function createInvite(
+  _previous: FormResult,
+  form: FormData,
+): Promise<FormResult> {
+  const { user } = await requireAdmin();
+  const email = text(form, "email").trim().toLowerCase();
+  const values = { email };
+  if (!emailPattern.test(email)) {
+    return { error: "Type a valid email.", values };
+  }
+  const origin = await linkOrigin();
+  if (!origin) {
+    return { error: "Set SITE_URL to the public address.", values };
+  }
+  const made = authStore().createInvite(email, user.id, Date.now());
+  if (!made) {
+    return { error: "An account with this email exists already.", values };
+  }
+  refresh();
+  return {
+    error: null,
+    done: `${origin}/invite?token=${made.token}`,
+    values,
+  };
+}
+
+export async function revokeInvite(inviteId: string): Promise<void> {
+  await requireAdmin();
+  if (typeof inviteId !== "string") return;
+  authStore().deleteInvite(inviteId);
+  refresh();
+}
+
+export async function removeMember(userId: string): Promise<void> {
+  const { user } = await requireAdmin();
+  if (typeof userId !== "string" || userId === user.id) return;
+  const target = authStore().userById(userId);
+  if (target && authStore().removeUser(userId) === "removed") {
+    console.info(`My Tesla: ${user.email} removed ${target.email}.`);
+  }
+  refresh();
 }
 
 export async function signOut(): Promise<void> {
@@ -268,13 +406,11 @@ export async function pairingCode(carId: unknown): Promise<PairingCode> {
       ? await findCar(carId)
       : null;
   if (!car) return { ok: false, message: "The server does not know this car." };
+  const url = await linkOrigin();
+  if (!url) {
+    return { ok: false, message: "Set SITE_URL to the public address." };
+  }
   try {
-    const url =
-      siteUrl(process.env)?.href.replace(/\/$/, "") ??
-      requestOrigin(await headers());
-    if (!url) {
-      return { ok: false, message: "Set SITE_URL to the public address." };
-    }
     const { code, expiresAt } = authStore().createPairingCode(
       user.id,
       session.id,

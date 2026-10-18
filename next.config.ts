@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         ],
       },
+      {
+        source: "/:page(setup|invite|reset)",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
     ];
   },
 };

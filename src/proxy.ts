@@ -13,7 +13,13 @@ import { isDemoMode } from "@/lib/demo/mode";
 const access = readAccessConfig(process.env);
 const keys = access ? accessKeys(access) : null;
 const readOnly = new Set(["GET", "HEAD", "OPTIONS"]);
-const accountPaths = new Set(["/login", "/setup", "/account"]);
+const accountPaths = new Set([
+  "/login",
+  "/setup",
+  "/account",
+  "/invite",
+  "/reset",
+]);
 
 function refused(api: boolean, status: number, message: string) {
   return api

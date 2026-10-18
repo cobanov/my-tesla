@@ -26,6 +26,8 @@ export function isPublicPath(path: string): boolean {
   return (
     path === "/login" ||
     path === "/setup" ||
+    path === "/invite" ||
+    path === "/reset" ||
     path === "/api/app/pair" ||
     path === "/api/app/pair/status" ||
     path === "/manifest.webmanifest" ||

@@ -1,12 +1,12 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { passwordLength } from "@/lib/auth/password-rules";
 import {
   changePassword,
+  createInvite,
   createScriptToken,
-  revokeSession,
   signOut,
   signOutOthers,
   type FormResult,
@@ -57,18 +57,107 @@ export function PasswordForm() {
   );
 }
 
-export function RevokeButton({ id, label }: { id: string; label: string }) {
+export function RevokeButton({
+  action,
+  label,
+  children,
+}: {
+  action: () => Promise<void>;
+  label: string;
+  children: string;
+}) {
   const [pending, startTransition] = useTransition();
   return (
     <button
       type="button"
       disabled={pending}
       aria-label={label}
-      onClick={() => startTransition(() => revokeSession(id))}
+      onClick={() => startTransition(action)}
       className={quietButton}
     >
-      Sign out
+      {children}
     </button>
+  );
+}
+
+export function RemoveMemberButton({
+  name,
+  action,
+}: {
+  name: string;
+  action: () => Promise<void>;
+}) {
+  const [asking, setAsking] = useState(false);
+  const [pending, startTransition] = useTransition();
+  if (!asking) {
+    return (
+      <button
+        type="button"
+        aria-label={`Remove ${name}`}
+        onClick={() => setAsking(true)}
+        className={quietButton}
+      >
+        Remove
+      </button>
+    );
+  }
+  return (
+    <div
+      role="group"
+      aria-label={`Remove ${name} and sign them out everywhere?`}
+      className="flex shrink-0 gap-2"
+    >
+      <button
+        type="button"
+        autoFocus
+        onClick={() => setAsking(false)}
+        className={quietButton}
+      >
+        Keep
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => startTransition(action)}
+        className={`${quietButton} text-destructive`}
+      >
+        Remove {name}
+      </button>
+    </div>
+  );
+}
+
+export function InviteForm() {
+  const [state, action] = useActionState(createInvite, initial);
+  return (
+    <div className="space-y-5">
+      <form action={action} className="space-y-5">
+        <TextField
+          onCard
+          label="Email of the person"
+          name="email"
+          type="email"
+          autoComplete="off"
+          defaultValue={state.done ? "" : state.values?.email}
+          required
+          hint="The link works once, for 3 days, and only for this email."
+        />
+        <FormMessage error={state.error} />
+        <div className="sm:w-56">
+          <SubmitButton>Make an invite link</SubmitButton>
+        </div>
+      </form>
+      {state.done ? (
+        <div role="status" className="space-y-2 rounded-lg bg-background p-4">
+          <p className="text-sm font-medium">
+            Send this link to {state.values?.email}. It shows only once.
+          </p>
+          <code className="block text-xs break-all select-all">
+            {state.done}
+          </code>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

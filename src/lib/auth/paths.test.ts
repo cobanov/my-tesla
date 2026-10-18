@@ -39,8 +39,11 @@ describe("bearerToken", () => {
 });
 
 describe("isPublicPath", () => {
-  test("opens only sign-in, setup, pairing, and the icons", () => {
+  test("opens only sign-in, setup, invites, resets, pairing, and the icons", () => {
     expect(isPublicPath("/login")).toBe(true);
+    expect(isPublicPath("/invite")).toBe(true);
+    expect(isPublicPath("/reset")).toBe(true);
+    expect(isPublicPath("/account")).toBe(false);
     expect(isPublicPath("/api/app/pair")).toBe(true);
     expect(isPublicPath("/icon.svg")).toBe(true);
     expect(isPublicPath("/cars/rika")).toBe(false);

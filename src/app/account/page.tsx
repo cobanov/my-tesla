@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import {
+  InviteForm,
   PasswordForm,
+  RemoveMemberButton,
   RevokeButton,
   ScriptTokenForm,
   SignOutButton,
@@ -11,6 +13,7 @@ import {
 } from "@/components/auth/account-forms";
 import { BackLink } from "@/components/back-link";
 import { Panel } from "@/components/panel";
+import { removeMember, revokeInvite, revokeSession } from "@/lib/auth/actions";
 import { authStore, currentSession } from "@/lib/auth/session";
 import type { Session } from "@/lib/auth/store";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -41,6 +44,10 @@ export default async function AccountPage() {
     Promise.resolve(authStore().listSessions(user.id, now.getTime())),
   ]);
   const active = sessions.filter((session) => session.status === "active");
+  const admin = user.role === "admin";
+  const people = admin ? authStore().listUsers() : [];
+  const invites = admin ? authStore().listInvites(now.getTime()) : [];
+  const rootId = admin ? authStore().rootId() : null;
   const when = (time: number) =>
     `${f.dayInline(new Date(time), now)} at ${f.clock(new Date(time))}`;
 
@@ -50,7 +57,7 @@ export default async function AccountPage() {
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            {user.role === "admin" ? "Admin" : "Member"} · {user.email}
+            {admin ? "Admin" : "Member"} · {user.email}
           </p>
           <h1 className="mt-1 text-[32px] leading-[1.2] font-medium md:text-[40px]">
             {user.name}
@@ -101,15 +108,80 @@ export default async function AccountPage() {
                   </div>
                   {!mine && (
                     <RevokeButton
-                      id={session.id}
+                      action={revokeSession.bind(null, session.id)}
                       label={`Sign out ${sessionTitle(session)}`}
-                    />
+                    >
+                      Sign out
+                    </RevokeButton>
                   )}
                 </li>
               );
             })}
           </ul>
         </Panel>
+
+        {admin && (
+          <Panel title="People">
+            <p className="max-w-md text-sm text-muted-foreground">
+              Everyone here sees every car and keeps their own Settings. Only an
+              admin invites and removes people.
+            </p>
+            <ul className="mt-2 divide-y divide-border">
+              {people.map((person) => (
+                <li
+                  key={person.id}
+                  className="flex items-center justify-between gap-4 py-4"
+                >
+                  <div className="min-w-0 text-sm">
+                    <p className="font-medium">
+                      {person.name}
+                      {person.id === user.id && (
+                        <span className="ml-2 text-xs font-normal text-good">
+                          You
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-0.5 truncate text-muted-foreground">
+                      {person.email} ·{" "}
+                      {person.role === "admin" ? "Admin" : "Member"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-subtle">
+                      Joined {when(person.createdAt)}
+                    </p>
+                  </div>
+                  {person.id !== user.id && person.id !== rootId && (
+                    <RemoveMemberButton
+                      name={person.name}
+                      action={removeMember.bind(null, person.id)}
+                    />
+                  )}
+                </li>
+              ))}
+              {invites.map((invite) => (
+                <li
+                  key={invite.id}
+                  className="flex items-center justify-between gap-4 py-4"
+                >
+                  <div className="min-w-0 text-sm">
+                    <p className="truncate font-medium">{invite.email}</p>
+                    <p className="mt-0.5 text-muted-foreground">
+                      Invited · the link works until {when(invite.expiresAt)}
+                    </p>
+                  </div>
+                  <RevokeButton
+                    action={revokeInvite.bind(null, invite.id)}
+                    label={`Revoke the invite for ${invite.email}`}
+                  >
+                    Revoke
+                  </RevokeButton>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 max-w-sm">
+              <InviteForm />
+            </div>
+          </Panel>
+        )}
 
         <Panel title="Tokens for scripts">
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
