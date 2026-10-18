@@ -46,6 +46,13 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 | Remote images | `expo-image` with `cachePolicy="memory-disk"` and a 330 ms fade on the first load only | The car image comes from the Tesla compositor with `max-age=60`. React Native `Image` follows that header on iOS and fetched the 290 KB image again after a minute and at each start. `expo-image` keeps it in memory and on disk. |
 | Period changes | `placeholderData: keepPreviousData` | The old panels stay while the next period loads. |
 
+## Live updates
+
+| Topic | Decision | Reason |
+|---|---|---|
+| Change signal | The Overview and a charge read `/api/cars/{carId}/live`, the server-sent event stream of the web, through `expo/fetch` with the phone token, and refetch their query on an `event: change`, at most once every 2 s. | React Native has no `EventSource`, and a library would add a dependency for a few lines. SDK 58 installs `expo/fetch` as the global fetch with a streaming body on iOS and Android, and Hermes gives `TextDecoder`. The stream sends only "something changed", never a value, so the answer still comes from the formatted app API. |
+| Life cycle | The stream runs only while the screen is focused and the app is active, reconnects after 5 s, and stops for good on 204 (no MQTT feed), 401, 403, or 404. | A hidden tab or a phone in the pocket should hold no connection. The 30 s poll stays as the fallback when the stream is closed. |
+
 ## Charts
 
 A small `react-native-svg` chart (SDK 58 bundles 15.16.0), not a chart library.
@@ -92,7 +99,8 @@ The server sends each chart as points in the user's units, the axis domains, the
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [React Native Pressable](https://reactnative.dev/docs/pressable), [accessibility](https://reactnative.dev/docs/accessibility), [AccessibilityInfo](https://reactnative.dev/docs/accessibilityinfo), [text style props](https://reactnative.dev/docs/text-style-props)
 - [Expo React Compiler guide](https://docs.expo.dev/guides/react-compiler/), [Expo color themes](https://docs.expo.dev/develop/user-interface/color-themes/)
-- [TanStack Query for React Native](https://tanstack.com/query/latest/docs/framework/react/react-native)
+- [TanStack Query for React Native](https://tanstack.com/query/latest/docs/framework/react/react-native), [query invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation)
+- [Expo `expo/fetch` streaming](https://docs.expo.dev/versions/latest/sdk/expo/), [Expo Router linking](https://docs.expo.dev/router/basics/navigation/), [server-sent events in the HTML standard](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 - [React Native Appearance](https://reactnative.dev/docs/appearance), [Expo storage guide](https://docs.expo.dev/develop/user-interface/store-data/), [Expo SQLite kv-store](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/), [expo-image](https://docs.expo.dev/versions/v58.0.0/sdk/image/), [expo-camera](https://docs.expo.dev/versions/v58.0.0/sdk/camera/), [React Native image cache control](https://reactnative.dev/docs/images#cache-control-ios-only), [Expo Router stack search bar](https://docs.expo.dev/versions/v58.0.0/sdk/router/stack/)
 - [Nielsen Norman Group: skeleton screens](https://www.nngroup.com/articles/skeleton-screens/)
 - [victory-native releases](https://github.com/FormidableLabs/victory-native-xl/releases), [gifted-charts issue 789](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/issues/789), [Skia bundle size](https://github.com/wcandillon/react-native-skia/blob/2.x/apps/docs/docs/getting-started/bundle-size.md)

@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Linking, Platform, StyleSheet, View } from "react-native";
+import { useLiveChanges } from "@/api/live";
 import { useOverview } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Battery } from "@/components/battery";
@@ -187,6 +188,7 @@ function OverviewContent({ page }: { page: OverviewPage }) {
 export default function OverviewScreen() {
   const { cars, car, choose } = useCar();
   const overview = useOverview(car.id);
+  useLiveChanges(car.id, ["overview", car.id]);
   const refresh = useRefresh(overview);
   return (
     <Screen refreshing={refresh.refreshing} onRefresh={refresh.onRefresh}>
