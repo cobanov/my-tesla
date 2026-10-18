@@ -8,6 +8,7 @@ import { LocationMap, MapsOff } from "@/components/maps";
 import { BatteryPanel } from "@/components/overview/battery-panel";
 import { CarRender } from "@/components/overview/car-render";
 import { LivePanel } from "@/components/overview/live-panel";
+import { LockHistory } from "@/components/overview/lock-history";
 import { RecentCard } from "@/components/overview/recent-card";
 import { Stat } from "@/components/overview/stat";
 import { TireCard } from "@/components/overview/tire-card";
@@ -16,6 +17,7 @@ import { assessBatteryLevel, assessTirePressure } from "@/lib/assessment";
 import { carImageUrl } from "@/lib/car-image";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
+import { lockHistory } from "@/lib/history/recorder";
 import { buildTimeline, dayWindow, localDayKey } from "@/lib/insights";
 import { getLive } from "@/lib/live/live";
 import { mapThemeOf } from "@/lib/preferences";
@@ -76,6 +78,7 @@ export default async function OverviewPage({
   const chargingNow =
     liveNow?.charging.state === "Charging" ? liveNow.charging : null;
   const showLive = show.live && live !== null;
+  const history = show.live ? lockHistory(car.id, now.getTime()) : null;
   const showMaps = preferences.maps === "show";
   const mapTheme = mapThemeOf(preferences);
   const todaySegments = buildTimeline({ ...todayRecords, ...today, now });
@@ -194,6 +197,15 @@ export default async function OverviewPage({
               now={now}
               f={f}
               className="mt-12"
+            />
+          )}
+
+          {history && (
+            <LockHistory
+              events={history}
+              now={now}
+              f={f}
+              className={showLive ? "mt-4" : "mt-12"}
             />
           )}
 

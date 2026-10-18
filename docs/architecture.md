@@ -56,6 +56,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/app/api/app/cars/[carId]/` | The app API routes. They read through the same `src/lib/` modules as the pages. Read [API](api.md#app-api). |
 | `src/lib/push/events.ts`, `devices.ts` | Pure logic for push alerts: the event list, the rule that compares two live views, the device parser, and the Expo messages. Full test cover. Read [decision 0020](decisions/0020-mobile-app-and-push-alerts.md). |
 | `src/lib/push/device-store.ts`, `alerts.ts`, `src/instrumentation.ts` | The push device file next to the Settings file, and the watcher that the server starts at boot when `MQTT_URL` is set. It sends each alert through the Expo push service. Server only. |
+| `src/lib/history/` | The lock and Sentry Mode history: `store.ts` keeps the changes in `history.sqlite`, `changes.ts` finds a change between two live views, both with tests, and `recorder.ts` saves each change from the MQTT feed. `src/lib/sqlite.ts` holds the open, migration, and transaction code that the account store shares. Read [decision 0024](decisions/0024-lock-and-sentry-history.md). |
 | `src/app/api/push/route.ts`, `src/app/api/cars.json/route.ts` | The push device endpoints and the car list for the mobile app. Read [API](api.md). |
 | `src/lib/json-file.ts` | Reads a JSON file, and writes it through one queue, to a temporary file, then a rename. The Settings and the push devices use it. Server only. |
 | `mobile/` | The Expo app for iOS and Android. It reads the JSON endpoints through the same proxy. Read [Mobile app](mobile.md). |
@@ -81,7 +82,7 @@ The settings change how the server renders, not what it reads. The root layout a
 
 ## Runtime and deployment
 
-The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings and `auth.sqlite` in `/data`, checks `/api/health`, and holds `reset-password.mjs` for a lost password. The container joins the Docker network of the TeslaMate database. A reverse proxy or a tunnel with HTTPS sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
+The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings, `auth.sqlite`, and `history.sqlite` in `/data`, checks `/api/health`, and holds `reset-password.mjs` for a lost password. The container joins the Docker network of the TeslaMate database. A reverse proxy or a tunnel with HTTPS sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
 
 ## Decisions
 

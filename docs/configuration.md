@@ -69,3 +69,5 @@ The server keeps the Settings in memory for up to 1 minute, with Next.js Cache C
 Back up the file with the rest of your TeslaMate data. It holds only display choices, no car data and no secrets.
 
 With [push alerts](mobile.md#push-alerts), the server also writes `push-devices.json` in the same folder. It holds the push token and the chosen alerts of each phone.
+
+With `MQTT_URL`, the server also writes `history.sqlite` in the same folder: each change of the lock state and of Sentry Mode, for 366 days. The Overview shows the changes of the last 7 days. [Decision 0024](decisions/0024-lock-and-sentry-history.md) explains it.
