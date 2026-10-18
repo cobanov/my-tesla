@@ -1,15 +1,17 @@
 "use client";
 
 import { LocateFixed, MapPinOff } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Map,
   MapControls,
+  MapGeoJSON,
   MapMarker,
   MapRoute,
   MarkerContent,
   MarkerTooltip,
   useMap,
+  type MapGeoJSONProps,
 } from "@/components/ui/map";
 import type { MapPlace, TripMarker } from "@/lib/map-points";
 import { routeBounds, type LngLat } from "@/lib/route";
@@ -292,6 +294,42 @@ export function TripMap({
           </MarkerTooltip>
         </MapMarker>
       ))}
+    </Map>
+  );
+}
+
+const roadPaint: MapGeoJSONProps["linePaint"] = {
+  "line-color": electricBlue,
+  "line-width": 2,
+  "line-opacity": 0.75,
+};
+
+export function DrivenMap({
+  roads,
+  theme,
+}: {
+  roads: LngLat[][];
+  theme?: MapTheme;
+}) {
+  const geometry = useMemo(
+    (): GeoJSON.MultiLineString => ({
+      type: "MultiLineString",
+      coordinates: roads,
+    }),
+    [roads],
+  );
+  const bounds = routeBounds(roads.flat());
+  if (!bounds) return null;
+  return (
+    <Map
+      bounds={bounds}
+      fitBoundsOptions={{ padding: 40, maxZoom: 14 }}
+      theme={theme}
+      {...quietMap}
+    >
+      <CollapsedAttribution />
+      <MapControls position="top-right" showZoom />
+      <MapGeoJSON data={geometry} fillPaint={false} linePaint={roadPaint} />
     </Map>
   );
 }

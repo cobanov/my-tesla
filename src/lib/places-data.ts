@@ -3,10 +3,12 @@ import { connection } from "next/server";
 import { cache } from "react";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
+import { drivenPointsQuery } from "./driven-roads-sql";
 import {
   frequentRoutesQuery,
   type FrequentRouteRow,
 } from "./frequent-routes-sql";
+import { drivenPointLimit, drivenRoads, type LngLat } from "./route";
 import { placeLabel } from "./vehicle";
 import { getPlaceStyle, getRangeKind } from "./viewer";
 import { visitedAreas } from "./visited-areas";
@@ -217,3 +219,14 @@ export const areasVisited = cache(async (carId: number, from: Date | null) => {
   });
   return visitedAreas(rows);
 });
+
+export const drivenRoadMap = cache(
+  async (carId: number): Promise<LngLat[][]> => {
+    await connection();
+    const points = await drivenPointsQuery(database(), {
+      carId,
+      sampleSize: drivenPointLimit,
+    });
+    return drivenRoads(points);
+  },
+);

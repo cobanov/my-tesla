@@ -107,6 +107,19 @@ Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with me
 
 Sources: [Apple segmented controls](https://developer.apple.com/design/human-interface-guidelines/segmented-controls), [WCAG 2.2 reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow), [WCAG 2.2 target size (minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [WAI-ARIA `aria-current`](https://www.w3.org/TR/wai-aria-1.2/#aria-current), and the Next.js 16.3.8 `page.md` guide on `searchParams` in `node_modules/next/dist/docs/`.
 
+## Every road driven
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with maps on and off.
+
+1. **One layer.** `DrivenMap` in `src/components/maps.tsx` draws all drives as one `MultiLineString` through the mapcn `MapGeoJSON` part: one GeoJSON source and one line layer, 2 px Electric Blue at 75% opacity, with no markers. The trip map keeps one `MapRoute` for each drive, which adds a source and a layer for each line and does not scale to a lifetime. MapLibre cuts a GeoJSON source into tiles in its worker and simplifies each line there with Douglas-Peucker, `tolerance` 0.375 by default.
+2. **Sampled on the server.** The page never sends every position. Drives between the same two places, about 500 m cells in either direction, keep their three latest drives. The query then takes every nth position of those drives, so that about 10,000 remain, plus the start and end of each drive. The server drops points closer than 50 m to the last kept one and thins each drive by the same share until the map holds at most 10,000 points. A drive that falls under two points is left out. The demo sends 3,730 points, and a generated history of 2,400 days with 406,281 positions sends 3,754.
+3. **Lifetime.** The map shows all records whatever the period of the page, and says so. The counts and lists of countries, states, and cities follow the period.
+4. **Maps off.** With maps off in Settings, the page runs no position query and sends no coordinate. The card shows the same note as the other maps.
+5. **Access.** The map is a picture of the roads. The counts and the lists of countries, states, and cities next to it carry its information as text, and the card heading names it (WCAG 1.1.1). The zoom buttons give a single-pointer way to zoom, and cooperative gestures keep one finger and the scroll wheel for the page (WCAG 2.5.7).
+6. **Open.** Older roads between two places that the car now drives another way do not show. The query reads the positions of the chosen drives twice, once to count and once to sample.
+
+Sources: [MapLibre style spec, sources](https://maplibre.org/maplibre-style-spec/sources/), [Mapbox, working with large GeoJSON sources](https://docs.mapbox.com/help/troubleshooting/working-with-large-geojson-data/), [WCAG 2.2 Understanding 1.1.1 Non-text Content](https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html), [WCAG 2.2 Understanding 2.5.7 Dragging Movements](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements), [TeslaMate Grafana dashboards Visited and Locations](https://github.com/teslamate-org/teslamate/tree/main/grafana/dashboards).
+
 ## Rejected
 
 | Option | Reason |

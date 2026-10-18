@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChargerBadge } from "@/components/charger-badge";
-import { MapsOff, PlacesMap } from "@/components/maps";
+import { DrivenMap, MapsOff, PlacesMap } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
@@ -15,6 +15,7 @@ import { mapThemeOf } from "@/lib/preferences";
 import {
   areasVisited,
   chargingPlaces,
+  drivenRoadMap,
   frequentRoutes,
   geofenceList,
   visitedPlaces,
@@ -46,13 +47,16 @@ export default async function PlacesPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [visited, charging, geofences, routes, areas] = await Promise.all([
-    visitedPlaces(car.id, from),
-    chargingPlaces(car.id, from),
-    geofenceList(),
-    frequentRoutes(car.id, from, f.timeZone),
-    areasVisited(car.id, from),
-  ]);
+  const mapsShown = preferences.maps === "show";
+  const [visited, charging, geofences, routes, areas, roads] =
+    await Promise.all([
+      visitedPlaces(car.id, from),
+      chargingPlaces(car.id, from),
+      geofenceList(),
+      frequentRoutes(car.id, from, f.timeZone),
+      areasVisited(car.id, from),
+      mapsShown ? drivenRoadMap(car.id) : [],
+    ]);
 
   const {
     top,
@@ -256,6 +260,21 @@ export default async function PlacesPage({
           <AreaList title="Top states" areas={areas.states} />
           <AreaList title="Top cities" areas={areas.cities} />
         </div>
+        <section className="mt-4 overflow-hidden rounded-xl bg-card">
+          <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-5 md:px-6 md:pt-6">
+            <h2 className="text-sm text-muted-foreground">Every road driven</h2>
+            <span className="text-xs text-subtle">All records</span>
+          </header>
+          <div className="mt-4 h-[420px]">
+            {!mapsShown ? (
+              <MapsOff />
+            ) : roads.length ? (
+              <DrivenMap roads={roads} theme={mapThemeOf(preferences)} />
+            ) : (
+              <PanelNote>No drive yet.</PanelNote>
+            )}
+          </div>
+        </section>
       </section>
 
       <section className="mt-14">

@@ -46,6 +46,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/year-review-sql.ts`, `year-review.ts` | The year in review: the years with drives or charges in the user's time zone, and the biggest charge of a year through the charge sessions relation (SQL, with PGlite tests), plus the year from the address, the local start and end of a year, the busiest day or month, and the month name (pure, with tests). The Stats queries and the visited places take an optional end date for the year. |
 | `src/lib/frequent-routes-sql.ts` | The frequent routes: drives grouped by start and end place, where a place is a geofence or a grid cell of about 500 m. PGlite tests. Read [decision 0015](decisions/0015-frequent-routes.md). |
 | `src/lib/visited-areas-sql.ts`, `visited-areas.ts` | The countries, states, and cities visited: the addresses where a drive or a charge of the period started or ended, counted as the TeslaMate Locations dashboard counts them (SQL, with PGlite tests), and the lists by country, state, and city, where a city keeps its state so that two towns of one name stay apart (pure, with tests). |
+| `src/lib/driven-roads-sql.ts` | The positions for the map of every road driven: the three latest drives between each pair of places, about 500 m cells in either direction, every nth position of them, and the start and end of each drive. PGlite tests. `src/lib/route.ts` groups them by drive, drops points closer than 50 m, and caps the map at 10,000 points. Read [the UI stack research](../research/ui-stack.md#every-road-driven). |
 | `src/lib/tire-leak.ts`, `speed-bands.ts` | Pure logic: the slow-leak test, which compares each tire with the median of the other three so that temperature cancels out, and the consumption by speed band. Full test cover. |
 | `src/lib/drive-sessions-sql.ts` | One SQL relation for the Drives list, a drive page, the drives CSV, and the trips: it fills a drive that TeslaMate left open from its positions. PGlite tests. Read [decision 0018](decisions/0018-drives-left-open.md). |
 | `src/lib/trip-legs-sql.ts`, `trip-data.ts` | The trips: one SQL pass joins the drives of a car into trips, with the stop limits of teslamate-mcp (SQL, with PGlite tests), and the server module that loads the drives and the charges of those trips, also for the Drives tab. Read [decision 0017](decisions/0017-trips-from-drives.md) and [decision 0019](decisions/0019-drives-list-trips.md). |
@@ -67,10 +68,10 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/sql-template.ts` | The postgres.js tag interface on top of PGlite: parameters, nested fragments, and identifiers. Pure, with tests. |
 | `src/components/landing/`, `src/lib/github.ts`, `src/lib/project.ts` | The landing page of the demo site, the cached GitHub star count, and the project links. |
 | `tools/demo/` | The seed tool for the PostgreSQL demo database. Read [decision 0003](decisions/0003-demo-database.md). |
-| `src/lib/route.ts`, `maplibre-asset.ts` | Pure logic: route sampling and bounds, and the allowed MapLibre worker files. |
+| `src/lib/route.ts`, `maplibre-asset.ts` | Pure logic: route sampling, thinning, the point cap, and bounds, and the allowed MapLibre worker files. |
 | `src/app/maplibre/[version]/[file]/route.ts` | Serves the MapLibre worker and its shared chunk from `node_modules`, with an immutable cache for the installed version only. |
 | `src/app/cars/[carId]/drives/[driveId]/page.tsx` | The drive page with the route map. |
-| `src/components/maps.tsx` | The location map, the route map, and the places map on mapcn. |
+| `src/components/maps.tsx` | The location map, the route map, the trip map, the places map, and the map of every road driven on mapcn. |
 | `src/components/` | Client parts: splash, tab navigation, car switcher, pending state, animated numbers, and live refresh. `ui/` holds generated shadcn/ui files. |
 
 ## Data flow
