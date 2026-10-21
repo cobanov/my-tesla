@@ -4,6 +4,12 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-10-21
+
+### Fixed
+
+- **Show fewer** under the lock history sits below the full list, not between the first rows and the rest.
+
 ## [2.0.1] - 2026-10-21
 
 ### Changed
@@ -203,7 +209,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/woosal1337/my-tesla/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/woosal1337/my-tesla/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...v2.0.0
 [1.9.0]: https://github.com/woosal1337/my-tesla/compare/v1.8.0...v1.9.0
