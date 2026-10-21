@@ -12,6 +12,7 @@ const variants = StyleSheet.create({
   label: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
   caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 16 },
   strong: { fontFamily: fonts.medium, fontSize: 15, lineHeight: 22 },
+  menu: { fontFamily: fonts.medium, fontSize: 17, lineHeight: 22 },
   value: {
     fontFamily: fonts.medium,
     fontSize: 20,
@@ -37,6 +38,7 @@ const defaultTones: Record<Variant, keyof Palette> = {
   label: "mutedForeground",
   caption: "subtle",
   strong: "foreground",
+  menu: "foreground",
   value: "foreground",
   heading: "foreground",
   title: "foreground",

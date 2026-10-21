@@ -13,7 +13,7 @@ function Tabs() {
       tintColor={palette.foreground}
       labelStyle={{ fontFamily: fonts.medium, color: palette.subtle }}
     >
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="(overview)">
         <NativeTabs.Trigger.Label>Overview</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="gauge.with.dots.needle.67percent"

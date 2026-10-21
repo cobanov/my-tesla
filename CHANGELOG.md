@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Changed
+
+- The Overview of the mobile app follows the Tesla app: the car on a lit stage with callouts for the battery and range, the lock and Sentry Mode, and the charge; the car name with a chevron that switches the car; a row of quick actions (Timeline, Report, Year, Maps); and a menu of rows with a one-line summary each, which open Drives, Charging, Battery, Stats, Places, Location, Status, and Settings. On a wide screen the menu is a sidebar beside the car. The Live card, the lock history, Today, the tires, and the car stats moved to the Status screen, and the map to the Location screen. The link rows of Drives, Charging, and Insights share the same menu row with an icon. `GET /api/app/cars/{carId}/overview` gains `callouts` and `menu`.
+
 ## [2.1.0] - 2026-10-22
 
 ### Added

@@ -45,7 +45,7 @@ mobile/src/
 
 ## Navigation
 
-1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with five tabs: Overview, Drives, Charging, Insights, Settings. Insights switches Battery, Stats, and Places with a segmented control. The period control shows in the section that has `period: true`, or at the top when no section has it. Five is the limit: Android allows five tabs at most, and Apple asks for three to five. Add no tab without a decision record.
+1. The tab bar is `NativeTabs` from `expo-router/native-tabs` with five tabs: Overview, Drives, Charging, Insights, Settings. The Overview is the group folder `(overview)/` with its own stack: `index` (no header) at `/`, `status`, and `location`. Its menu rows open the other tabs with `router.navigate`, and `/insights?kind=stats` opens Insights on one kind. Insights switches Battery, Stats, and Places with a segmented control. The period control shows in the section that has `period: true`, or at the top when no section has it. Five is the limit: Android allows five tabs at most, and Apple asks for three to five. Add no tab without a decision record.
 2. Every tab with more than one screen is a folder with a `_layout.tsx` that renders a `Stack` and exports `unstable_settings = { anchor: "index" }`.
 3. The list screen of a tab uses a large title (`headerLargeTitleEnabled: true`). A detail screen sets its title from its data with `<Stack.Screen options={{ title }} />` inside the screen.
 4. Every `Stack` uses `screenOptions={useStackOptions()}` from `src/navigation/header.ts`, so the headers use Inter and the palette.
@@ -81,7 +81,8 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `Stat`, `StatGrid` | An `AppStat` from the server: a label, a value with its tone, and a detail. A value with a note opens the explanation on press. |
 | `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. Pass `selected` for the chosen row of a choice list. |
 | `DayList` | A list grouped by day with sticky headings, and optional `actions` under the summary |
-| `LinkRow` | A row with a chevron that opens another screen of the same tab, such as Timeline from Drives |
+| `MenuRow`, `LinkRow` | A row with an icon, a title, and a one-line summary, the row of the Overview menu and of the sidebar. `LinkRow` is the same row with a chevron, for another screen of the same tab, such as Timeline from Drives |
+| `CarTitle`, `CarStage`, `QuickActions` | The head of the Overview: the car name with the chevron that switches the car, the battery glyph with the state; the car on its glow with the callouts from the server; and the row of icon buttons under it. Read [decision 0025](../docs/decisions/0025-the-tesla-app-layout.md). |
 | `InsightBody`, `PeriodControl` | The hero, the hero blocks, and the sections of an insight page, for Insights, Charging insights, and the year in review |
 | `DriveListRow` | A trip or a charge row of a drive list, for Drives and the Report |
 | `ExportButton` | Downloads an export of the server with the phone token and opens the share sheet. `src/api/export-file.ts` checks the path and the file name. |
@@ -112,7 +113,7 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 1. The app starts dark. `src/theme/appearance.ts` keeps the choice of the phone (System, Light, or Dark) and applies it with `Appearance.setColorScheme` before the first screen. `useColorScheme()` and `usePalette()` follow it.
 2. Colors come only from `usePalette()`. `src/theme/palette.ts` copies `src/app/globals.css`, and `palette.test.ts` fails when they differ. Change the web token first.
 3. Two font weights only: Inter 400 (`fonts.regular`) and Inter 500 (`fonts.medium`).
-4. Cards have a 12 pt radius (`radius.card`) and `borderCurve: "continuous"`. Controls have a 4 pt radius (`radius.control`). No shadows, no card borders, no gradients.
+4. Cards have a 12 pt radius (`radius.card`) and `borderCurve: "continuous"`. Controls have a 4 pt radius (`radius.control`). No shadows, no card borders, no gradients, except the one radial glow of `CarStage` under the car, which [decision 0025](../docs/decisions/0025-the-tesla-app-layout.md) allows.
 5. Numbers that change or line up use `fontVariant: ["tabular-nums"]`.
 6. Spacing comes from `space` in `src/theme/tokens.ts`.
 7. Keep `StyleSheet.create` for layout, and pass palette colors inline: `[styles.card, { backgroundColor: palette.card }]`.

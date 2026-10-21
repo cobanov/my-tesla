@@ -1,9 +1,10 @@
 import type { PeriodId } from "@contract";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { useInsight, type InsightKind } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { InsightBody, PeriodControl } from "@/components/insight-body";
+import { icons } from "@/components/icons";
 import { LinkRow } from "@/components/link-row";
 import { QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
@@ -16,10 +17,14 @@ const kinds = [
   { id: "places", label: "Places" },
 ] as const;
 
-export default function InsightsScreen() {
+function isKind(value: unknown): value is InsightKind {
+  return kinds.some((entry) => entry.id === value);
+}
+
+function Insights({ initialKind }: { initialKind: InsightKind }) {
   const router = useRouter();
   const { car } = useCar();
-  const [kind, setKind] = useState<InsightKind>("battery");
+  const [kind, setKind] = useState<InsightKind>(initialKind);
   const [period, setPeriod] = useState<PeriodId | null>(null);
   const insight = useInsight(car.id, kind, period);
   const refresh = useRefresh(insight);
@@ -33,6 +38,7 @@ export default function InsightsScreen() {
       />
       {kind === "stats" ? (
         <LinkRow
+          icon={icons.year}
           title="Year in review"
           subtitle="Totals, records, and top places of one year"
           onPress={() => router.push("/insights/year")}
@@ -53,4 +59,10 @@ export default function InsightsScreen() {
       </QueryView>
     </Screen>
   );
+}
+
+export default function InsightsScreen() {
+  const { kind } = useLocalSearchParams<{ kind?: string }>();
+  const initialKind = isKind(kind) ? kind : "battery";
+  return <Insights key={initialKind} initialKind={initialKind} />;
 }

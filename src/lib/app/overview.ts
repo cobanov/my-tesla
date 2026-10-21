@@ -21,6 +21,8 @@ import {
 import type {
   AppValue,
   LiveIcon,
+  OverviewCallout,
+  OverviewMenuRow,
   OverviewPage,
   RecentRecord,
 } from "./contract";
@@ -39,6 +41,15 @@ export type OverviewInput = {
   show: Preferences["overview"];
   showMaps: boolean;
 };
+
+function joined(parts: (string | null | false | undefined)[]): string | null {
+  const kept = parts.filter((part): part is string => Boolean(part));
+  return kept.length ? kept.join(" · ") : null;
+}
+
+function recordLine(record: RecentRecord): string {
+  return `${record.title} · ${record.detail}`;
+}
 
 function historyIcon(event: HistoryEvent): LiveIcon {
   if (event.kind === "locked") return event.value ? "lock" : "lock-open";
@@ -110,6 +121,137 @@ export function overviewPage(
   const range = f.distanceValue(snapshot.rangeKm);
   const tires = liveNow?.tires ?? snapshot.tires;
   const hasPosition = snapshot.latitude !== null && snapshot.longitude !== null;
+  const batteryText =
+    snapshot.batteryLevel === null ? null : `${snapshot.batteryLevel}%`;
+  const rangeText =
+    range === null
+      ? null
+      : `${f.number(Math.round(range))} ${f.units.distance}`;
+  const odometer = f.distanceValue(snapshot.odometerKm);
+  const odometerText =
+    odometer === null
+      ? "—"
+      : `${f.number(Math.round(odometer))} ${f.units.distance}`;
+  const seenText = lastSeen
+    ? `Last seen ${f.dayInline(lastSeen, now)} at ${f.clock(lastSeen)}`
+    : "Never seen";
+  const caption = batteryCaption({
+    level: snapshot.batteryLevel,
+    usableLevel: snapshot.usableBatteryLevel,
+    charging,
+    limitPercent: chargingNow?.limitPercent,
+  });
+  const tiles = liveNow && live?.hasValues ? liveTiles(liveNow, f) : [];
+  const powerText =
+    chargingNow?.powerKw === null || chargingNow?.powerKw === undefined
+      ? null
+      : `${f.number(chargingNow.powerKw, 1)} kW`;
+  const callouts: OverviewCallout[] = hasData
+    ? [
+        {
+          key: "battery",
+          side: "left",
+          label: "Battery",
+          value: joined([batteryText, rangeText]) ?? "—",
+          tone: charging ? "charge" : "normal",
+        },
+        liveNow && liveNow.locked !== null
+          ? {
+              key: "lock",
+              side: "top",
+              label: "Security",
+              value:
+                joined([
+                  liveNow.locked ? "Locked" : "Unlocked",
+                  liveNow.sentryMode === true && "Sentry Mode on",
+                ]) ?? "—",
+              tone: liveNow.locked ? "normal" : "warning",
+            }
+          : {
+              key: "seen",
+              side: "top",
+              label: "Last seen",
+              value: f.relative(lastSeen, now),
+              tone: "normal",
+            },
+        chargingNow
+          ? {
+              key: "charging",
+              side: "right",
+              label: "Charging",
+              value:
+                joined([
+                  powerText,
+                  chargingNow.limitPercent === null
+                    ? null
+                    : `to ${Math.round(chargingNow.limitPercent)}%`,
+                ]) ?? "Charging",
+              tone: "charge",
+            }
+          : liveNow?.charging.pluggedIn
+            ? {
+                key: "plug",
+                side: "right",
+                label: "Charge port",
+                value: "Plugged in",
+                tone: "normal",
+              }
+            : {
+                key: "odometer",
+                side: "right",
+                label: "Odometer",
+                value: odometerText,
+                tone: "normal",
+              },
+      ]
+    : [];
+  const menu: OverviewMenuRow[] = [
+    {
+      key: "drives",
+      title: "Drives",
+      subtitle: input.lastDrive
+        ? recordLine(lastDriveRecord(input.lastDrive, f, now))
+        : "No drive yet",
+    },
+    {
+      key: "charging",
+      title: "Charging",
+      subtitle: chargingNow
+        ? joined(["Charging now", powerText])
+        : input.lastCharge
+          ? recordLine(lastChargeRecord(input.lastCharge, f, now))
+          : "No charge yet",
+    },
+    {
+      key: "battery",
+      title: "Battery",
+      subtitle: hasData ? joined([batteryText, rangeText, caption]) : null,
+    },
+    {
+      key: "stats",
+      title: "Stats",
+      subtitle: hasData ? `Odometer ${odometerText}` : null,
+    },
+    { key: "places", title: "Places", subtitle: "Visited and charging places" },
+    ...(hasData && hasPosition
+      ? [{ key: "location" as const, title: "Location", subtitle: seenText }]
+      : []),
+    ...(live
+      ? [
+          {
+            key: "status" as const,
+            title: "Status",
+            subtitle: tiles.length
+              ? tiles
+                  .slice(0, 3)
+                  .map((tile) => tile.title)
+                  .join(" · ")
+              : "No live values yet",
+          },
+        ]
+      : []),
+    { key: "settings", title: "Settings", subtitle: null },
+  ];
   return {
     car: {
       id: car.id,
@@ -122,6 +264,8 @@ export function overviewPage(
       tone: activity.tone,
       updated: `Updated ${f.relative(lastSeen, now).toLowerCase()}`,
     },
+    callouts,
+    menu,
     empty: hasData
       ? null
       : `TeslaMate fills this page after ${car.name} wakes up and sends its first position.`,
@@ -133,28 +277,15 @@ export function overviewPage(
             snapshot.batteryLevel === null ? "—" : `${snapshot.batteryLevel}%`,
             assessBatteryLevel(snapshot.batteryLevel, charging),
           ),
-          range:
-            range === null
-              ? "—"
-              : `${f.number(Math.round(range))} ${f.units.distance}`,
-          caption: batteryCaption({
-            level: snapshot.batteryLevel,
-            usableLevel: snapshot.usableBatteryLevel,
-            charging,
-            limitPercent: chargingNow?.limitPercent,
-          }),
+          range: rangeText ?? "—",
+          caption,
           tone: batteryTone(snapshot.batteryLevel, charging),
           fullAt: chargingNow?.fullAt?.toISOString() ?? null,
         }
       : null,
     stats: hasData
       ? [
-          appStat(
-            "Odometer",
-            f.distanceValue(snapshot.odometerKm) === null
-              ? "—"
-              : `${f.number(Math.round(f.distanceValue(snapshot.odometerKm) ?? 0))} ${f.units.distance}`,
-          ),
+          appStat("Odometer", odometerText),
           appStat("Outside", f.temperature(snapshot.outsideTemp), {
             detail:
               snapshot.climateOn === null
@@ -171,12 +302,10 @@ export function overviewPage(
       hasData && show.live && live
         ? {
             connected: live.connected,
-            tiles: live.hasValues
-              ? liveTiles(live.view, f).map((tile) => ({
-                  ...tile,
-                  fullAt: tile.fullAt?.toISOString() ?? null,
-                }))
-              : [],
+            tiles: tiles.map((tile) => ({
+              ...tile,
+              fullAt: tile.fullAt?.toISOString() ?? null,
+            })),
             notices: liveNotices(live),
             empty: live.hasValues
               ? null
@@ -215,9 +344,7 @@ export function overviewPage(
         ? {
             latitude: snapshot.latitude ?? 0,
             longitude: snapshot.longitude ?? 0,
-            lastSeen: lastSeen
-              ? `Last seen ${f.dayInline(lastSeen, now)} at ${f.clock(lastSeen)}`
-              : "Never seen",
+            lastSeen: seenText,
           }
         : null,
     lastDrive:

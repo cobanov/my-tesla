@@ -14,6 +14,18 @@ export const icons = {
   },
   charge: { ios: "bolt.fill", android: "bolt" },
   stop: { ios: "parkingsign.circle.fill", android: "local_parking" },
+  chevronDown: { ios: "chevron.down", android: "expand_more" },
+  chevronUp: { ios: "chevron.up", android: "expand_less" },
+  battery: { ios: "battery.75percent", android: "battery_5_bar" },
+  stats: { ios: "chart.bar.fill", android: "bar_chart" },
+  places: { ios: "mappin.and.ellipse", android: "location_on" },
+  location: { ios: "location.fill", android: "near_me" },
+  status: { ios: "lock.shield.fill", android: "security" },
+  settings: { ios: "gearshape.fill", android: "settings" },
+  timeline: { ios: "clock.fill", android: "schedule" },
+  report: { ios: "doc.text.fill", android: "description" },
+  maps: { ios: "map.fill", android: "map" },
+  year: { ios: "calendar", android: "calendar_month" },
 } as const satisfies Record<string, IconName>;
 
 export const liveIcons: Record<LiveIcon, IconName> = {

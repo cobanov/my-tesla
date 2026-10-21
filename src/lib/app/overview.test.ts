@@ -108,6 +108,45 @@ describe("overviewPage", () => {
     expect(page.location?.lastSeen).toBe("Last seen today at 17:55");
   });
 
+  test("draws the callouts and the menu from the snapshot", () => {
+    const page = overviewPage(input, f, now);
+    expect(page.callouts).toEqual([
+      {
+        key: "battery",
+        side: "left",
+        label: "Battery",
+        value: "62% · 271 km",
+        tone: "normal",
+      },
+      {
+        key: "seen",
+        side: "top",
+        label: "Last seen",
+        value: "5 min ago",
+        tone: "normal",
+      },
+      {
+        key: "odometer",
+        side: "right",
+        label: "Odometer",
+        value: "4,287 km",
+        tone: "normal",
+      },
+    ]);
+    expect(page.menu.map((row) => row.key)).toEqual([
+      "drives",
+      "charging",
+      "battery",
+      "stats",
+      "places",
+      "location",
+      "settings",
+    ]);
+    expect(page.menu[0]?.subtitle).toBe("No drive yet");
+    expect(page.menu[2]?.subtitle).toBe("62% · 271 km · Rated range");
+    expect(page.menu[5]?.subtitle).toBe("Last seen today at 17:55");
+  });
+
   test("shows the live tiles with the end of the charge as a time", () => {
     const view = liveView(
       {
@@ -126,6 +165,19 @@ describe("overviewPage", () => {
     );
     const charging = page.live?.tiles.find((tile) => tile.key === "charging");
     expect(charging?.fullAt).toBe("2026-10-17T17:00:00.000Z");
+    expect(
+      page.callouts.map((callout) => [callout.key, callout.value]),
+    ).toEqual([
+      ["battery", "62% · 271 km"],
+      ["lock", "Locked"],
+      ["charging", "Charging"],
+    ]);
+    expect(page.menu.find((row) => row.key === "status")?.subtitle).toContain(
+      "Locked",
+    );
+    expect(page.menu.find((row) => row.key === "charging")?.subtitle).toBe(
+      "Charging now",
+    );
     expect(page.battery?.caption).toBe("Charging");
     expect(page.battery?.fullAt).toBe("2026-10-17T17:00:00.000Z");
   });
