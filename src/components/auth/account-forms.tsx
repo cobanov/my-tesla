@@ -11,6 +11,7 @@ import {
   signOutOthers,
   type FormResult,
 } from "@/lib/auth/actions";
+import { CopyField } from "@/components/copy-field";
 import { FormMessage, SubmitButton, TextField } from "./fields";
 
 const initial: FormResult = { error: null };
@@ -148,13 +149,15 @@ export function InviteForm() {
         </div>
       </form>
       {state.done ? (
-        <div role="status" className="space-y-2 rounded-lg bg-background p-4">
+        <div role="status" className="space-y-3 rounded-lg bg-background p-4">
           <p className="text-sm font-medium">
-            Send this link to {state.values?.email}. It shows only once.
+            Invite link for {state.values?.email}
           </p>
-          <code className="block text-xs break-all select-all">
-            {state.done}
-          </code>
+          <CopyField label="invite link" value={state.done} />
+          <p className="text-xs text-subtle">
+            Send it to them yourself. It shows only once here, works once, and
+            expires in 3 days.
+          </p>
         </div>
       ) : null}
     </div>
@@ -209,15 +212,12 @@ export function ScriptTokenForm() {
         </div>
       </form>
       {state.done ? (
-        <div role="status" className="space-y-2 rounded-lg bg-background p-4">
-          <p className="text-sm font-medium">
-            Copy the token for {state.values?.name} now. It shows only once.
-          </p>
-          <code className="block text-xs break-all select-all">
-            {state.done}
-          </code>
+        <div role="status" className="space-y-3 rounded-lg bg-background p-4">
+          <p className="text-sm font-medium">Token for {state.values?.name}</p>
+          <CopyField label="token" value={state.done} />
           <p className="text-xs text-subtle">
-            Send it as <code>Authorization: Bearer &lt;token&gt;</code>.
+            It shows only once. Send it as{" "}
+            <code>Authorization: Bearer &lt;token&gt;</code>.
           </p>
         </div>
       ) : null}

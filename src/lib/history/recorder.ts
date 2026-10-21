@@ -11,7 +11,7 @@ import { HistoryStore, type HistoryEvent, type LastValues } from "./store";
 const keepMs = 366 * 24 * 60 * 60 * 1000;
 const pruneEveryMs = 60 * 60 * 1000;
 const shownMs = 7 * 24 * 60 * 60 * 1000;
-const shownEvents = 12;
+const shownEvents = 50;
 
 function historyEnabled(): boolean {
   return !isDemoMode() && readMqttConfig(process.env) !== null;

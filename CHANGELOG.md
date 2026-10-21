@@ -4,6 +4,11 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Changed
+
+- The Overview shows the last 5 lock and Sentry Mode changes, with a button under them that shows the rest of the last 7 days, up to 50, on the web and in the app.
+- The invite link, the script token, and the calendar link show in a field with a copy button.
+
 ## [2.0.0] - 2026-10-21
 
 ### Added
