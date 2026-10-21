@@ -128,7 +128,7 @@ The database host name stays `database`, because the TeslaMate service has that 
 
 ## Method 4: From source
 
-You need Node.js 24 and Bun 1.3.14.
+You need Node.js 24 and Bun 1.4.3.
 
 ```bash
 git clone https://github.com/woosal1337/my-tesla.git

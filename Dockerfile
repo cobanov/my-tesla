@@ -1,5 +1,5 @@
 FROM node:24-bookworm-slim AS base
-COPY --from=oven/bun:1.3.14-slim /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.3-slim /usr/local/bin/bun /usr/local/bin/bun
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 

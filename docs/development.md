@@ -4,7 +4,7 @@
 
 | Tool | Version | Source of the version |
 |---|---|---|
-| Bun | 1.3.14 | `packageManager` in `package.json` |
+| Bun | 1.4.3 | `packageManager` in `package.json` |
 | Node.js | 24 | CI and the container image |
 | Python | 3.11 or newer | Runs `tools/quality.py` and the Python comment check |
 | pre-commit | 4.6.2 | Installs the Git hooks |

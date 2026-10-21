@@ -8,7 +8,7 @@ Research date: 2026-09-30
 |---|---|---|
 | Runtime | Node.js 24 LTS | Next.js 16.3.8 needs 20.9 or newer. 24 is the active LTS line. |
 | Framework | Next.js 16.3.8, App Router, `src/` directory | The current release. Server components keep the database on the server. |
-| Package manager and tests | Bun 1.3.14 | The owner's choice for the whole project. `bun test` removes the need for Vitest. |
+| Package manager and tests | Bun 1.4.3 | The owner's choice for the whole project. `bun test` removes the need for Vitest. |
 | Language | TypeScript 5.9.3 | `create-next-app` pins `^5`. TypeScript 7.0.2 is out, but the source gate needs the compiler API of version 5. |
 | Styles | Tailwind CSS 4.3.3 | Chosen by the scaffolder. The Tesla theme builds on it. |
 | Database client | postgres 3.4.9 | Pure JavaScript, runs on Node.js and Bun, and sets session options at connect time. |
@@ -66,4 +66,4 @@ Open questions:
 
 1. Upgrade Bun to 1.4.2 on every machine and in CI together.
 2. ESLint 10 is out. `create-next-app` still installs ESLint 9.
-3. The image uses `node:24-bookworm-slim` with the Bun binary from `oven/bun:1.3.14-slim` for the build.
+3. The image uses `node:24-bookworm-slim` with the Bun binary from `oven/bun:1.4.3-slim` for the build.

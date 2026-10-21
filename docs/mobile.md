@@ -22,7 +22,7 @@ Every list refreshes when you pull it down. The Overview and a charge also refre
 | Tool | Version | Use |
 |---|---|---|
 | Expo SDK | 58 (React Native 0.88, React 19.3) | The app runtime, from `mobile/package.json` |
-| Bun | 1.3.14 | Installs the packages and runs the tests |
+| Bun | 1.4.3 | Installs the packages and runs the tests |
 | EAS CLI | 25 or newer | Cloud builds, push credentials, store uploads |
 | Xcode | 27 or newer | Local iOS builds and the iOS Simulator |
 | Android Studio | Current | Local Android builds and the emulator |

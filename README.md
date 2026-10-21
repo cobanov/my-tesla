@@ -144,7 +144,7 @@ The full guide is [Installation](docs/installation.md).
 | TeslaMate | 4.3.0 is tested. The app reads the TeslaMate schema directly, so check [Upgrading](docs/upgrading.md) after a TeslaMate upgrade. |
 | PostgreSQL | The database that TeslaMate uses |
 | Docker | Any version with Compose v2, for the container image |
-| Node.js and Bun | Node.js 24 and Bun 1.3.14, only to run from source |
+| Node.js and Bun | Node.js 24 and Bun 1.4.3, only to run from source |
 
 ## Status
 
