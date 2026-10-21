@@ -1,11 +1,5 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  Lock,
-  LockOpen,
-  ShieldCheck,
-  ShieldOff,
-} from "lucide-react";
+import { Lock, LockOpen, ShieldCheck, ShieldOff } from "lucide-react";
+import { ShowMore } from "@/components/show-more";
 import type { Formatter } from "@/lib/format";
 import { historyText } from "@/lib/history/changes";
 import type { HistoryEvent } from "@/lib/history/store";
@@ -77,7 +71,21 @@ export function LockHistory({
     <section className={cn("rounded-xl bg-card p-5", className)}>
       <h2 className="text-sm text-muted-foreground">Locks and Sentry Mode</h2>
       {events.length ? (
-        <>
+        <ShowMore
+          count={rest.length}
+          more={
+            <ul className="divide-y divide-border border-t border-border">
+              {rest.map((event) => (
+                <EventRow
+                  key={`${event.kind}-${event.at}`}
+                  event={event}
+                  now={now}
+                  f={f}
+                />
+              ))}
+            </ul>
+          }
+        >
           <ul className="mt-3 divide-y divide-border">
             {first.map((event) => (
               <EventRow
@@ -88,32 +96,7 @@ export function LockHistory({
               />
             ))}
           </ul>
-          {rest.length > 0 && (
-            <details className="group border-t border-border">
-              <summary className="flex h-10 cursor-pointer list-none items-center justify-center gap-1 text-sm font-medium text-muted-foreground transition-tesla hover:text-foreground [&::-webkit-details-marker]:hidden">
-                <ChevronDown aria-hidden className="size-4 group-open:hidden" />
-                <ChevronUp
-                  aria-hidden
-                  className="hidden size-4 group-open:block"
-                />
-                <span className="group-open:hidden">
-                  Show {rest.length} more
-                </span>
-                <span className="hidden group-open:inline">Show fewer</span>
-              </summary>
-              <ul className="divide-y divide-border border-t border-border">
-                {rest.map((event) => (
-                  <EventRow
-                    key={`${event.kind}-${event.at}`}
-                    event={event}
-                    now={now}
-                    f={f}
-                  />
-                ))}
-              </ul>
-            </details>
-          )}
-        </>
+        </ShowMore>
       ) : (
         <p className="mt-3 text-sm text-subtle">
           No change in the last 7 days. My Tesla records each lock and Sentry
