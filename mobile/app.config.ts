@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: development ? "My Tesla Dev" : "My Tesla",
   slug: "my-tesla",
   owner: process.env.EAS_OWNER ?? "woosal",
-  version: "0.1.0",
+  version: "1.0.0",
   scheme: development ? "mytesla-dev" : "mytesla",
   orientation: "portrait",
   icon: "./assets/icon.png",
