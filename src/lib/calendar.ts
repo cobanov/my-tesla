@@ -19,6 +19,23 @@ function escapeText(value: string): string {
     .replace(/\r?\n/g, "\\n");
 }
 
+export const calendarScopes = [
+  { id: "all", label: "Drives and charges" },
+  { id: "drives", label: "Drives only" },
+  { id: "charges", label: "Charges only" },
+] as const;
+
+export type CalendarScope = (typeof calendarScopes)[number]["id"];
+
+export function calendarScope(value: unknown): CalendarScope {
+  const found = calendarScopes.find((scope) => scope.id === value);
+  return found ? found.id : "all";
+}
+
+export function calendarName(car: string, scope: CalendarScope): string {
+  return scope === "all" ? car : `${car} ${scope}`;
+}
+
 export function icsStamp(date: Date): string {
   return date
     .toISOString()

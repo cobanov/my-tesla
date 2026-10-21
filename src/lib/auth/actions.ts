@@ -26,6 +26,7 @@ import {
   limits,
   setSessionCookie,
 } from "./session";
+import { calendarScope } from "../calendar";
 
 export type FormResult = {
   error: string | null;
@@ -402,6 +403,7 @@ export type CalendarLink =
 
 export async function createCalendarLink(
   carId: unknown,
+  show: unknown,
 ): Promise<CalendarLink> {
   const { user } = await requireWeb();
   const car =
@@ -423,7 +425,10 @@ export async function createCalendarLink(
     },
     Date.now(),
   );
-  const url = `${origin}/api/cars/${car.id}/calendar.ics?token=${token}`;
+  const scope = calendarScope(show);
+  const url = `${origin}/api/cars/${car.id}/calendar.ics?token=${token}${
+    scope === "all" ? "" : `&show=${scope}`
+  }`;
   return { ok: true, url, subscribe: url.replace(/^https?:/, "webcal:") };
 }
 

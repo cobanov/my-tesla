@@ -4,6 +4,12 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-22
+
+### Added
+
+- The calendar link can show drives and charges, drives only, or charges only. Settings, **Calendar**, has the choice, and the link keeps it as `show=`.
+
 ## [2.0.2] - 2026-10-21
 
 ### Fixed
@@ -209,7 +215,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.2...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/woosal1337/my-tesla/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/woosal1337/my-tesla/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/woosal1337/my-tesla/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...v2.0.0

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   calendarFeed,
+  calendarName,
+  calendarScope,
   chargeEvent,
   driveEvent,
   foldLine,
@@ -34,6 +36,18 @@ const charge = {
   endLevel: 80,
   cost: 6.1,
 } as Charge & { endAt: Date };
+
+describe("calendarScope", () => {
+  test("reads a known scope and falls back to everything", () => {
+    expect(calendarScope("drives")).toBe("drives");
+    expect(calendarScope("charges")).toBe("charges");
+    expect(calendarScope("all")).toBe("all");
+    expect(calendarScope(null)).toBe("all");
+    expect(calendarScope("trips")).toBe("all");
+    expect(calendarName("Juniper", "all")).toBe("Juniper");
+    expect(calendarName("Juniper", "charges")).toBe("Juniper charges");
+  });
+});
 
 describe("icsStamp", () => {
   test("writes UTC without separators or milliseconds", () => {
