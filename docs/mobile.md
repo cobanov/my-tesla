@@ -124,6 +124,22 @@ The server keeps the tokens in `push-devices.json` next to the Settings file. Si
 
 The app needs no change. It reads the list from the server.
 
+## Store builds
+
+`mobile/eas.json` has the `production` profile for the stores. EAS Build makes both apps in the cloud:
+
+```bash
+cd mobile
+bun x eas-cli build --platform android --profile production
+bun x eas-cli build --platform ios --profile production
+```
+
+- **Android** signs with the keystore that EAS keeps for the project. The first build made it.
+- **iOS** uses `credentialsSource: local`, so the build reads `mobile/credentials.json`, which Git ignores. The file points at the `.p12` of the Apple Distribution certificate and at the App Store provisioning profile of `bi.chele.mytesla`. The private key and the `.p12` password are in the vault as `MYTESLA_IOS_DIST_KEY_B64` and `MYTESLA_IOS_DIST_P12_PASSWORD`; the profile downloads from the Apple Developer portal. `eas build --non-interactive` cannot create a distribution certificate itself, so the certificate, the bundle identifier with its push capability, and the profile were made through the App Store Connect API.
+- The app version is `version` in `app.config.ts`. EAS keeps the build number and the version code (`appVersionSource: remote`) and raises them on each production build.
+
+A store build connects to any server through the pairing code, so one build serves every install. Submit with `eas submit` once the app record exists in App Store Connect and Google Play.
+
 ## Code layout
 
 `mobile/AGENTS.md` describes each folder and the rules for the code. The main parts:
