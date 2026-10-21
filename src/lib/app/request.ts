@@ -47,6 +47,9 @@ export async function readJsonBody(request: Request): Promise<unknown> {
   if (!request.headers.get("content-type")?.startsWith("application/json")) {
     return undefined;
   }
+  if (Number(request.headers.get("content-length")) > maxBodyLength) {
+    return undefined;
+  }
   const text = await request.text();
   if (text.length > maxBodyLength) return undefined;
   try {

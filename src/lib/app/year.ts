@@ -15,7 +15,7 @@ import { busiest, monthName } from "../year-review";
 import { buildChart } from "./chart";
 import type { AppRecord, YearPage } from "./contract";
 import { chartBlock, panel } from "./panels";
-import { visitedRecords } from "./places";
+import { record, visitedRecords } from "./places";
 import { statsHero } from "./stats";
 
 export type YearInput = {
@@ -32,22 +32,6 @@ export type YearInput = {
 };
 
 const shownPlaces = 5;
-
-function yearRecord(
-  input: Pick<AppRecord, "key" | "title"> & Partial<AppRecord>,
-): AppRecord {
-  return {
-    rank: null,
-    badge: null,
-    value: null,
-    detail: null,
-    note: null,
-    bar: null,
-    target: null,
-    links: [],
-    ...input,
-  };
-}
 
 export function yearPage(
   input: YearInput,
@@ -78,14 +62,14 @@ export function yearPage(
   const places = placesFigures(input.visited, []);
   const records: AppRecord[] = [
     busiestMonth &&
-      yearRecord({
+      record({
         key: "month",
         title: `Busiest month: ${monthName(busiestMonth.at, f.timeZone)}`,
         value: f.distance(busiestMonth.distanceKm),
         detail: `${f.duration(busiestMonth.minutes)} driving`,
       }),
     busiestDay &&
-      yearRecord({
+      record({
         key: "day",
         title: `Busiest day: ${f.day(busiestDay.at, now)}`,
         value: f.distance(busiestDay.distanceKm),
@@ -93,7 +77,7 @@ export function yearPage(
         target: { kind: "day", day: localDayKey(busiestDay.at, f.timeZone) },
       }),
     longest &&
-      yearRecord({
+      record({
         key: "drive",
         title: `Longest drive: ${longest.from} → ${longest.to}`,
         value: f.distance(longest.distanceKm),
@@ -101,7 +85,7 @@ export function yearPage(
         target: { kind: "drive", id: longest.id },
       }),
     charge &&
-      yearRecord({
+      record({
         key: "charge",
         title: `Biggest charge: ${charge.place}`,
         value: f.energy(charge.addedKwh),

@@ -34,7 +34,7 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-function record(
+export function record(
   input: Pick<AppRecord, "key" | "title"> & Partial<AppRecord>,
 ): AppRecord {
   return {

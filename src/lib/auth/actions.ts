@@ -342,8 +342,15 @@ export async function changePassword(
   if (next !== text(form, "confirm")) {
     return { error: "The two new passwords differ." };
   }
+  let hash: string;
+  try {
+    hash = await hashPassword(next);
+  } catch (error) {
+    if (error instanceof PasswordBusyError) return busy;
+    throw error;
+  }
   succeeded(attempt);
-  authStore().setPassword(user.id, await hashPassword(next), Date.now());
+  authStore().setPassword(user.id, hash, Date.now());
   authStore().deleteOtherSessions(user.id, session.id);
   refresh();
   return {

@@ -78,7 +78,7 @@ describe("calendarFeed", () => {
     expect(feed).toContain("UID:drive-2-7@my-tesla\r\n");
     expect(feed).toContain("DTSTART:20261017T080000Z\r\n");
     expect(feed).toContain("DTEND:20261017T084500Z\r\n");
-    expect(feed).toContain("SUMMARY:Home → Office\\, Floor 3\; Gate B\r\n");
+    expect(feed).toContain("SUMMARY:Home → Office\\, Floor 3\\; Gate B\r\n");
     expect(feed).toContain(
       "URL:https://tesla.example.com/cars/juniper/drives/7\r\n",
     );

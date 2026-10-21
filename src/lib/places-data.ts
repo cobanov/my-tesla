@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { connection } from "next/server";
 import { cache } from "react";
 import { chargeSessions } from "./charge-sessions";
@@ -213,13 +214,19 @@ export const areasVisited = cache(async (carId: number, from: Date | null) => {
   return visitedAreas(rows);
 });
 
+async function cachedDrivenRoads(carId: number): Promise<LngLat[][]> {
+  "use cache";
+  cacheLife("hours");
+  const points = await drivenPointsQuery(database(), {
+    carId,
+    sampleSize: drivenPointLimit,
+  });
+  return drivenRoads(points);
+}
+
 export const drivenRoadMap = cache(
   async (carId: number): Promise<LngLat[][]> => {
     await connection();
-    const points = await drivenPointsQuery(database(), {
-      carId,
-      sampleSize: drivenPointLimit,
-    });
-    return drivenRoads(points);
+    return cachedDrivenRoads(carId);
   },
 );

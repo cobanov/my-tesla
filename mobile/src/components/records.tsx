@@ -76,7 +76,9 @@ function Record({ row, stack }: { row: AppRecord; stack: TabStack }) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={recordLabel(row)}
-          onPress={() => router.push(targetHref(target, stack))}
+          onPress={() =>
+            router.push(targetHref(target, stack), { withAnchor: true })
+          }
           style={({ pressed }) => [styles.press, pressed && styles.pressed]}
         >
           {body}
@@ -94,7 +96,11 @@ function Record({ row, stack }: { row: AppRecord; stack: TabStack }) {
               accessibilityRole="link"
               accessibilityLabel={link.label}
               hitSlop={12}
-              onPress={() => router.push(targetHref(link.target, stack))}
+              onPress={() =>
+                router.push(targetHref(link.target, stack), {
+                  withAnchor: true,
+                })
+              }
             >
               <Text variant="caption" tone="primary">
                 {link.label}

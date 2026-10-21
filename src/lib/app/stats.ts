@@ -148,11 +148,6 @@ export function statsPage(
   now: Date,
 ): InsightPage {
   const { drives, charges } = input;
-  const { whPerKm, distanceTotal, costPer100 } = statsTotals(
-    drives,
-    charges.cost,
-    f,
-  );
   const unit = bucketUnit(period);
   const bucketNote = `Per ${unit}`;
   const odometerSeries = odometerRows(input.odometer, f);

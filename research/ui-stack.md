@@ -93,6 +93,17 @@ Checked on 2026-10-13 against the Checklist Design checklists for a data table, 
 5. **Charger badge.** `ChargerBadge` draws the AC or DC label on every page.
 6. **Open.** The lists show the last 50 drives and charges without paging. The subtle text color is under 4.5:1 on the cards. Reset to defaults has no confirmation. Each needs a product decision.
 
+## Sign-in forms and the calendar panel
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light.
+
+1. **One card.** `AuthCard` holds the setup, sign-in, invite, and reset forms: one column, the title and one sentence of intro, the form, and the error or the result under it. Apple's and Material's sign-in guidance both ask for one task per screen and no navigation around it, so the card has no tab bar and no car switcher.
+2. **Fields.** `TextField` in `auth/fields.tsx` pairs each input with a visible label through `htmlFor` and `useId`, and puts the hint in `aria-describedby`, not inside the label, so a screen reader reads the name first (WCAG 2.2, 1.3.1 and 3.3.2). The `autoComplete` tokens `username`, `current-password`, and `new-password` let password managers fill and save. The password rule shows before the first try, because WCAG 3.3.2 asks for the instruction up front.
+3. **Submit.** `SubmitButton` reads `useFormStatus` and disables itself while the action runs, with the same height and the Tesla blue of the other primary buttons. The result message is a live region (`role="status"`), the error an `alert`.
+4. **Calendar panel.** `CalendarLinkPanel` follows the pairing panel of Settings: one button makes the link, the link shows once with a `webcal:` subscribe link, and a sentence says that the link is a key. The link is never kept in the page after a reload.
+
+Sources: [Apple HIG, Entering data](https://developer.apple.com/design/human-interface-guidelines/entering-data), [Material 3, Text fields](https://m3.material.io/components/text-fields/guidelines), [WCAG 2.2, 3.3.2 Labels or Instructions](https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions), [React, useFormStatus](https://react.dev/reference/react-dom/hooks/useFormStatus).
+
 ## Year in review
 
 Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with metric and with US settings.
