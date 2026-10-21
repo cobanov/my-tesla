@@ -5,6 +5,7 @@ import { useCharges } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { ChargerBadge } from "@/components/charger-badge";
 import { DayList } from "@/components/day-list";
+import { icons } from "@/components/icons";
 import { LinkRow } from "@/components/link-row";
 import { ListRow, RowTime } from "@/components/list-row";
 import { EmptyState, QueryView } from "@/components/query-view";
@@ -93,6 +94,7 @@ export default function ChargingScreen() {
       summary={[car.name, ...charges.data.summary]}
       actions={
         <LinkRow
+          icon={icons.stats}
           title="Charging insights"
           subtitle="Curves, charging times, and places"
           onPress={() => router.push("/charging/insights")}

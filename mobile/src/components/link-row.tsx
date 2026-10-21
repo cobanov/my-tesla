@@ -1,25 +1,24 @@
-import { usePalette } from "@/theme/use-palette";
-import { Icon } from "./icon";
-import { icons } from "./icons";
-import { ListRow } from "./list-row";
+import type { IconName } from "./icons";
+import { MenuRow } from "./menu-row";
 
 export function LinkRow({
+  icon,
   title,
   subtitle,
   onPress,
 }: {
+  icon: IconName;
   title: string;
   subtitle: string;
   onPress: () => void;
 }) {
-  const palette = usePalette();
   return (
-    <ListRow
-      label={`${title}, ${subtitle}`}
+    <MenuRow
+      icon={icon}
       title={title}
       subtitle={subtitle}
+      chevron
       onPress={onPress}
-      end={<Icon name={icons.chevron} color={palette.subtle} size={14} />}
     />
   );
 }

@@ -3,6 +3,7 @@ import { useDrives } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { DayList } from "@/components/day-list";
 import { DriveListRow } from "@/components/drive-row";
+import { icons } from "@/components/icons";
 import { LinkRow } from "@/components/link-row";
 import { EmptyState, QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
@@ -13,11 +14,13 @@ function DrivesLinks() {
   return (
     <>
       <LinkRow
+        icon={icons.timeline}
         title="Timeline"
         subtitle="One day at a time"
         onPress={() => router.push("/drives/timeline")}
       />
       <LinkRow
+        icon={icons.report}
         title="Report"
         subtitle="Totals and exports for a date range"
         onPress={() => router.push("/drives/report")}

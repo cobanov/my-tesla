@@ -89,6 +89,8 @@ export const overviewPage = (value: unknown) =>
     (shape) =>
       isRecord(shape.car) &&
       isRecord(shape.activity) &&
+      Array.isArray(shape.callouts) &&
+      Array.isArray(shape.menu) &&
       Array.isArray(shape.stats),
   );
 

@@ -72,9 +72,18 @@ describe("screen shapes", () => {
     expect(driveList({ summary: [], sections: [] })).not.toBeNull();
     expect(driveList({ summary: [] })).toBeNull();
     expect(
-      overviewPage({ car, activity: { label: "Online" }, stats: [] }),
+      overviewPage({
+        car,
+        activity: { label: "Online" },
+        callouts: [],
+        menu: [],
+        stats: [],
+      }),
     ).not.toBeNull();
     expect(overviewPage({ car })).toBeNull();
+    expect(
+      overviewPage({ car, activity: { label: "Online" }, stats: [] }),
+    ).toBeNull();
     expect(
       chargeDetail({ title: "Home", hero: [], charts: [] }),
     ).not.toBeNull();

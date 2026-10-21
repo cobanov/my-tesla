@@ -306,9 +306,35 @@ export type RecentRecord = {
   target: AppTarget;
 };
 
+export type OverviewMenuKey =
+  | "drives"
+  | "charging"
+  | "battery"
+  | "stats"
+  | "places"
+  | "location"
+  | "status"
+  | "settings";
+
+export type OverviewMenuRow = {
+  key: OverviewMenuKey;
+  title: string;
+  subtitle: string | null;
+};
+
+export type OverviewCallout = {
+  key: string;
+  side: "left" | "top" | "right";
+  label: string;
+  value: string;
+  tone: LiveTone;
+};
+
 export type OverviewPage = {
   car: { id: number; name: string; variant: string; image: string | null };
   activity: { label: string; tone: ActivityTone; updated: string };
+  callouts: OverviewCallout[];
+  menu: OverviewMenuRow[];
   empty: string | null;
   battery: {
     level: number | null;
