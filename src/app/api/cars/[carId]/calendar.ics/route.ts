@@ -1,6 +1,13 @@
 import { connection } from "next/server";
 import { apiUnauthorized, calendarSession } from "@/lib/auth/session";
-import { calendarFeed, chargeEvent, driveEvent } from "@/lib/calendar";
+import {
+  calendarFeed,
+  calendarName,
+  calendarScope,
+  chargeEvent,
+  driveEvent,
+  type CalendarScope,
+} from "@/lib/calendar";
 import { carPath } from "@/lib/car-slug";
 import { isDemoMode } from "@/lib/demo/mode";
 import { exportCharges, exportDrives, findCar } from "@/lib/queries";
@@ -9,15 +16,15 @@ import { asViewer, getFormatter } from "@/lib/viewer";
 
 const yearMs = 366 * 24 * 60 * 60 * 1000;
 
-async function feed(carId: string): Promise<Response> {
+async function feed(carId: string, scope: CalendarScope): Promise<Response> {
   const car = /^\d{1,5}$/.test(carId) ? await findCar(Number(carId)) : null;
   if (!car) return new Response(null, { status: 404 });
   const now = new Date();
   const range = { start: new Date(now.getTime() - yearMs), end: now };
   const [f, drives, charges] = await Promise.all([
     getFormatter(),
-    exportDrives(car, range),
-    exportCharges(car.id, range),
+    scope === "charges" ? [] : exportDrives(car, range),
+    scope === "drives" ? [] : exportCharges(car.id, range),
   ]);
   const site = siteUrl(process.env);
   const link = (path: string) =>
@@ -39,13 +46,16 @@ async function feed(carId: string): Promise<Response> {
         : [],
     ),
   ];
-  return new Response(calendarFeed(car.name, events, now), {
-    headers: {
-      "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `inline; filename="${car.slug}.ics"`,
-      "Cache-Control": "private, no-store",
+  return new Response(
+    calendarFeed(calendarName(car.name, scope), events, now),
+    {
+      headers: {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": `inline; filename="${car.slug}.ics"`,
+        "Cache-Control": "private, no-store",
+      },
     },
-  });
+  );
 }
 
 export async function GET(
@@ -54,7 +64,9 @@ export async function GET(
 ) {
   await connection();
   const { carId } = await context.params;
-  const token = new URL(request.url).searchParams.get("token");
+  const search = new URL(request.url).searchParams;
+  const token = search.get("token");
+  const scope = calendarScope(search.get("show"));
   if (token !== null && !isDemoMode()) {
     const signedIn = calendarSession(token, Date.now());
     if (!signedIn) {
@@ -63,9 +75,9 @@ export async function GET(
         headers: { "Cache-Control": "no-store" },
       });
     }
-    return asViewer(signedIn.user.email, () => feed(carId));
+    return asViewer(signedIn.user.email, () => feed(carId, scope));
   }
   const denied = await apiUnauthorized();
   if (denied) return denied;
-  return feed(carId);
+  return feed(carId, scope);
 }

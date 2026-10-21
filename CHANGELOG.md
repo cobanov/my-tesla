@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Added
+
+- The calendar link can show drives and charges, drives only, or charges only. Settings, **Calendar**, has the choice, and the link keeps it as `show=`.
+
 ## [2.0.2] - 2026-10-21
 
 ### Fixed

@@ -4,6 +4,8 @@ import { CalendarPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { createCalendarLink, type CalendarLink } from "@/lib/auth/actions";
 import { CopyField } from "@/components/copy-field";
+import { calendarScopes, type CalendarScope } from "@/lib/calendar";
+import { Select, SettingRow } from "./controls";
 
 const buttonClass =
   "inline-flex h-10 items-center justify-center gap-2 rounded px-5 text-sm font-medium transition-tesla disabled:opacity-60";
@@ -16,6 +18,7 @@ export function CalendarLinkPanel({
   carName: string;
 }) {
   const [link, setLink] = useState<CalendarLink | null>(null);
+  const [scope, setScope] = useState<CalendarScope>("all");
   const [pending, startTransition] = useTransition();
   return (
     <div className="space-y-4 py-5">
@@ -24,11 +27,25 @@ export function CalendarLinkPanel({
         year, and checks for new ones every hour. Anyone with the link sees
         them, so keep it private. Account lists each link and can revoke it.
       </p>
+      <SettingRow
+        label="Show in the calendar"
+        hint="Each link keeps its own choice. Make one link for each calendar."
+        control={
+          <Select
+            label="Show in the calendar"
+            value={scope}
+            options={calendarScopes}
+            onChange={setScope}
+          />
+        }
+      />
       <button
         type="button"
         disabled={pending}
         onClick={() =>
-          startTransition(async () => setLink(await createCalendarLink(carId)))
+          startTransition(async () =>
+            setLink(await createCalendarLink(carId, scope)),
+          )
         }
         className={`${buttonClass} bg-background hover:bg-accent`}
       >

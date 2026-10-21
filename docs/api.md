@@ -62,10 +62,10 @@ A calendar app subscribes to `/api/cars/{carId}/calendar.ics` and shows each dri
 
 A calendar app cannot send a header, so the feed takes a token in its address:
 
-1. Open Settings for a car, then **Calendar**, and press **Make a calendar link**.
+1. Open Settings for a car, then **Calendar**, choose what the calendar shows (drives and charges, drives only, or charges only), and press **Make a calendar link**.
 2. Press **Subscribe in the calendar app**, or copy the `https` link into the calendar app, for example Google Calendar, **From URL**.
 
-The link holds a token for the feed of that account. It works only for `calendar.ics`, never as a bearer token for the other endpoints, and the events use the Settings of the account. Anyone with the link sees the drives and charges, and proxies and calendar services may log it, so keep it private. **Account** lists each link as **Calendar** with its last use, and signs it out. A new password signs out every calendar link too. A browser that is signed in can also open the feed without a token.
+The choice travels in the link as `show=drives` or `show=charges`; without it the feed holds both, so one account can subscribe to a drives calendar and a charges calendar. The link holds a token for the feed of that account. It works only for `calendar.ics`, never as a bearer token for the other endpoints, and the events use the Settings of the account. Anyone with the link sees the drives and charges, and proxies and calendar services may log it, so keep it private. **Account** lists each link as **Calendar** with its last use, and signs it out. A new password signs out every calendar link too. A browser that is signed in can also open the feed without a token.
 
 ## Push alerts
 
