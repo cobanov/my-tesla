@@ -19,6 +19,8 @@ const car: Car = {
   wheelType: null,
   trimBadging: null,
   efficiencyKwhPerKm: 0.136,
+  lfpBattery: false,
+  modelYear: null,
 };
 
 const emptyStats: StatsInput = {
@@ -39,6 +41,7 @@ const emptyStats: StatsInput = {
   longest: [],
   speedRows: [],
   leaks: [],
+  odometer: [],
 };
 
 function blocksOf(page: InsightPage, title: string): AppBlock[] {
@@ -50,6 +53,27 @@ function blocksOf(page: InsightPage, title: string): AppBlock[] {
 }
 
 describe("statsPage", () => {
+  test("draws the odometer over the period", () => {
+    const page = statsPage(
+      {
+        ...emptyStats,
+        odometer: [
+          { at: new Date("2026-10-01T00:00:00Z"), km: 4000 },
+          { at: new Date("2026-10-10T00:00:00Z"), km: 4234.4 },
+        ],
+      },
+      car,
+      defaultPreferences,
+      "30d",
+      f,
+      now,
+    );
+    const odometer = page.sections
+      .flatMap((section) => section.panels)
+      .find((panel) => panel.title === "Odometer (km)");
+    expect(odometer?.blocks[0]?.kind).toBe("chart");
+  });
+
   test("names the period and leaves out the cost panel without costs", () => {
     const page = statsPage(emptyStats, car, defaultPreferences, "30d", f, now);
     expect(page.subtitle).toBe("Last 30 days");
@@ -144,7 +168,62 @@ describe("placesPage", () => {
     ],
     geofences: [],
     routes: [],
+    areas: { countries: [], states: [], cities: [] },
+    roads: [],
   };
+
+  test("counts the areas visited and draws every road only with maps on", () => {
+    const area = (name: string, places: number, within: string | null) => ({
+      key: name,
+      name,
+      within,
+      places,
+    });
+    const withAreas: PlacesInput = {
+      ...input,
+      areas: {
+        countries: [area("United States", 7, null)],
+        states: [area("Arizona", 7, "United States")],
+        cities: [area("Tempe", 4, "Arizona"), area("Mesa", 2, "Arizona")],
+      },
+      roads: [
+        [
+          [-111.9, 33.4],
+          [-111.8, 33.42],
+        ],
+      ],
+    };
+    const page = placesPage(withAreas, defaultPreferences, "30d", f, now, true);
+    expect(blocksOf(page, "Areas")[0]).toMatchObject({
+      kind: "stats",
+      stats: [
+        { label: "Countries", value: { text: "1" } },
+        { label: "States", value: { text: "1" } },
+        { label: "Cities", value: { text: "2" } },
+      ],
+    });
+    expect(blocksOf(page, "Top cities")[0]).toMatchObject({
+      kind: "records",
+      rows: [
+        { rank: 1, title: "Tempe", value: "4 places", detail: "Arizona" },
+        { rank: 2, title: "Mesa", bar: { share: 0.5 } },
+      ],
+    });
+    expect(blocksOf(page, "Every road driven")[0]).toMatchObject({
+      kind: "routes",
+    });
+    const hidden = placesPage(
+      withAreas,
+      defaultPreferences,
+      "30d",
+      f,
+      now,
+      false,
+    );
+    expect(blocksOf(hidden, "Every road driven")).toEqual([
+      { kind: "note", text: "Maps are off in Settings." },
+    ]);
+  });
 
   test("ranks the places and marks a place with charges", () => {
     const page = placesPage(input, defaultPreferences, "30d", f, now, true);

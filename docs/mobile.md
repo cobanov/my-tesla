@@ -7,15 +7,15 @@ The `mobile/` folder holds the My Tesla app for iOS and Android. It is an Expo p
 | Screen | Content |
 |---|---|
 | Connect | "Scan the code" reads the QR code from Settings on the web, waits until the person allows the phone there, signs in, and opens its car. "Open the demo" connects to the public demo. |
-| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, Today, the tire pressures with a slow-leak warning, the location on a map with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
-| Drives | The trips by day. A trip opens its route on a map with its start, stops, and end, and its legs. A drive opens its route on a map, its figures, and its speed, power, elevation, and battery charts. |
-| Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. The place of the charge shows on a map. Older and Newer step through the charges. |
-| Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. Places starts with a map of the visited and charging places. A longest drive or a frequent route opens its drive. |
+| Overview | The car image, name, and state, the battery and range with the time left of a charge, the odometer, the temperatures, the software version, the Live card, the lock and Sentry Mode history, Today with a link to the Timeline, the tire pressures with a slow-leak warning, the location on a map with "Open in Maps", and the last drive and charge. A car switcher shows with more than one car. |
+| Drives | The trips by day. A trip opens its route on a map with its start, stops, and end, and its legs. A drive opens its route on a map, its figures, its speed, power, elevation, and battery charts, and shares its GPX file. Timeline shows one day at a time. Report shows a range (the last 7 or 30 days, this month, or this year) with its totals, routes, trips and charges, and shares the drives and charges as CSV. |
+| Charging | The charges by day, with AC or DC and the levels. A charge opens its figures, the cost breakdown, the power curve, and the battery, power, voltage, and current charts. The place of the charge shows on a map. Older and Newer step through the charges. Charging insights shows the cost per kWh, the DC curves, the charging time between battery levels, when the car charges, and the top charging places. |
+| Insights | Battery, Stats, and Places, the same panels as on the web, with the period of each. Places starts with a map of the visited and charging places, and has the countries, states, and cities, and the map of every road driven. A longest drive or a frequent route opens its drive. Stats opens the year in review. |
 | Settings | The theme of this phone (System, Light, or Dark, Dark at first), a preview of the units, the Settings of the web that change the app (units, date and time, numbers, charging cost, location with the maps and their theme, and the Overview cards), the alerts that this phone gets with a test alert, and the account with Sign out |
 
 The server formats every value with the Settings of the person who signs in: units, number style, date and clock format, currency, time zone, place names, and the Overview cards. Change them in the Settings tab or on the web. Both change the same Settings. The phone keeps the car list, the last Settings, and the theme, so the Settings tab opens at once and without a network. Read [API](api.md#app-api).
 
-Every list refreshes when you pull it down. The Overview and a charge also refresh every 30 s while they are on screen. A value in green or red explains itself when you press it.
+Every list refreshes when you pull it down. With the MQTT feed, the Overview and a charge refresh within a few seconds of a change in the car, through the change stream of the web, and every 30 s while they are on screen. A value in green or red explains itself when you press it.
 
 ## Tools
 
@@ -25,7 +25,7 @@ Every list refreshes when you pull it down. The Overview and a charge also refre
 | Bun | 1.4.3 | Installs the packages and runs the tests |
 | EAS CLI | 25 or newer | Cloud builds, push credentials, store uploads |
 | Xcode | 27 or newer | Local iOS builds and the iOS Simulator |
-| Android Studio | Current | Local Android builds and the emulator |
+| Android SDK | Platform 36 and 37, build tools 37, NDK 27.1, JDK 17 | Local Android builds and the emulator. Android Studio installs them, or the command-line tools: `brew install openjdk@17` and `brew install --cask android-commandlinetools`, then `sdkmanager` for the packages above and an `arm64-v8a` system image. Set `JAVA_HOME` to JDK 17 and `ANDROID_HOME` to the SDK. |
 
 Push alerts do not work in Expo Go, so the app runs as a development build.
 
@@ -56,7 +56,9 @@ The root quality gates also lint and type-check `mobile/`, so the commit hook ne
    APP_VARIANT=development bun run start
    ```
 
-3. In the app, open the demo, or type the address of your server.
+3. In the app, open the demo, or pair it with your server.
+
+On the Android emulator, `localhost` is the emulator itself. Run `adb reverse tcp:3000 tcp:3000` so that a server address with `localhost` reaches your computer, and run it again after `adb` restarts: Maestro restarts it. A pairing code also opens from the command line, which helps on a simulator without a camera: `xcrun simctl openurl booted "mytesla-dev://connect?…"` on iOS, or `adb shell am start -a android.intent.action.VIEW -d "mytesla-dev://connect?…"` on Android, with the query of the QR code.
 
 `APP_VARIANT=development` gives the app its own name, "My Tesla Dev", its own bundle ID, `bi.chele.mytesla.dev`, and the scheme `mytesla-dev`, so it sits next to a store build.
 
@@ -76,7 +78,7 @@ The phone signs in as a person, from Settings on the web. It never sees the pass
 
 1. Set `SITE_URL` on the server to the address that the phone uses. Without it, the code holds the address that the browser uses.
 2. On the web, sign in, open Settings for a car, then **Mobile app**, and press **Pair a phone**.
-3. In the app, press **Scan the code**.
+3. In the app, press **Scan the code**. The camera app of the phone also opens the code: the app then shows the server address and waits for **Connect**.
 4. The web page asks whether to allow the phone, with its name, its system, and its address. Press **Allow**. The app opens the car of the code.
 
 The code holds the server address, the car, and a single-use code that lasts 90 seconds, and the page shows a new one every minute. The phone gets its own token. The app keeps it in the Keychain or the Android Keystore through `expo-secure-store`, for this device only, and sends it as `Authorization: Bearer`. It lasts 90 days after its last use. **Account** on the web lists the phone and signs it out. The app then shows the Connect screen again. **Sign out** in the Settings tab of the app also ends the token on the server. [Decision 0023](decisions/0023-native-accounts.md) explains the design.

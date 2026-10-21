@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-21
+
 ### Added
 
 - Accounts in the app itself. A new install prints a one-time setup link in its log, and the first account is the admin. Every page and API call then needs a sign-in. Passwords use Argon2id, sessions last 30 days, sign-in is rate limited, and **Account** lists every browser, phone, and script token with a sign-out button. Read [Accounts and sign-in](docs/authentication.md) and [decision 0023](docs/decisions/0023-native-accounts.md).
@@ -12,15 +14,28 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - Invites: the admin makes a link for one email under **Account**, **People**. It works once, for 3 days, and makes a member account. The admin can revoke an invite and remove a member, which signs the member out on every browser and phone at once.
 - `docker exec my-tesla node reset-password.mjs EMAIL` prints a one-time link that resets the password of one account within 30 minutes, without email, and signs out its sessions.
 
-- A mobile app for iOS and Android in `mobile/`, built with Expo SDK 58. It connects to a My Tesla server, with a Cloudflare Access service token when needed, and shows the Overview, the trips and drives, the charges, and the Battery, Stats, and Places insights of each car in the style of the dashboard, with charts. It uses the units and formats from Settings. Read [Mobile app](docs/mobile.md).
+- A mobile app for iOS and Android in `mobile/`, built with Expo SDK 58. It pairs with a My Tesla server from the QR code in Settings and shows the Overview, the trips and drives, the charges, and the Battery, Stats, and Places insights of each car in the style of the dashboard, with charts. It uses the units and formats from Settings. Read [Mobile app](docs/mobile.md).
 - Push alerts for the mobile app: charging started, complete, or stopped, a car left unlocked for 10 minutes, a software update, and a tire warning. They need the MQTT feed. Each phone chooses its alerts. [Decision 0020](docs/decisions/0020-mobile-app-and-push-alerts.md) explains the design, and [Privacy](docs/privacy.md) lists what the alerts send.
 - The launch animation of the web in the mobile app: the T-mark draws itself and fades into the app. While a screen loads, the mark breathes as on the web, instead of a spinner.
 - Maps in the mobile app, drawn with MapLibre and the CARTO styles of the web: the car on the Overview, the route of a drive, a trip with its stops, the place of a charge, and the Places map. Map theme in the app Settings changes them. [Decision 0022](docs/decisions/0022-maps-in-the-mobile-app.md) explains the choice.
 - A Settings tab in the mobile app. It changes the same Settings as the web, and the phone keeps the last Settings. The app starts in dark mode, and Settings has a theme choice for the phone.
 - `GET /api/cars.json` lists the cars, `/api/push` registers a phone for alerts, `/api/app/cars/{carId}/` gives the app its screens, formatted for the user, and `/api/app/settings` reads and changes the Settings. Read [API](docs/api.md).
 
+- `GET /api/cars/{carId}/calendar.ics`, a calendar feed of the drives and charges of the last year. Settings, **Calendar**, makes a private link for a calendar app, and Account can revoke it.
+- A history of locks and Sentry Mode from the MQTT feed, in `history.sqlite`. The Overview shows the changes of the last 7 days. Read [decision 0024](docs/decisions/0024-lock-and-sentry-history.md).
+- A year in review page under Stats: the totals, the distance per month, the records, and the top places of one calendar year, with a picker for each year that has data.
+- Places shows the countries, states, and cities visited, and a map of every road driven over all records.
+- Long-term trends: the charge level over time, time online, asleep, and offline, and the projected range at 100 % by outside temperature and by battery level on Battery, and the odometer over time on Stats.
+- The car image of the Model S, Model X, and Cybertruck, and more of the wheel names and colors that TeslaMate reports. The model year in the VIN rules out a car generation that was not built that year. `research/car-images.md` lists each combination.
+- `CARTO_BASEMAPS_KEY` adds a CARTO basemaps key to every map request of the web and the mobile app, ahead of the key rule that CARTO brings to vector maps.
+- The charge page shows the cable type and whether the battery heater ran.
+- The mobile app has the Timeline, the Report with CSV exports, Charging insights, and the year in review, shares a drive as GPX, and shows the lock history, the long-term trends, the visited areas, and the map of every road driven, as the web does.
+- The mobile app refreshes the Overview and a charge within seconds of a change in the car, through the live change stream, and opens the pairing code from the camera app of the phone.
+- Battery advice under the charge levels: a weekly full charge for an LFP battery, as Tesla recommends, and a daily limit of 80 to 90% for other cells, with the charges of the period.
+
 ### Changed
 
+- Charges without a TeslaMate cost follow the rules of TeslaMate before the price in Settings: free Supercharging costs 0, and a geofence price per minute or per kWh, with its session fee, gives the cost. The charge page names the rule and shows the price of the place.
 - **Breaking:** the app no longer reads the user from a proxy header. `IDENTITY_HEADER` is gone, and the Settings stay under the email of the account that signs in. Scripts that used a Cloudflare Access service token need a token from **Account**, and paired phones pair again.
 - With `MQTT_URL` set, the server connects to the broker when it starts, not at the first page.
 
@@ -181,7 +196,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...v2.0.0
 [1.9.0]: https://github.com/woosal1337/my-tesla/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/woosal1337/my-tesla/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/woosal1337/my-tesla/compare/v1.6.1...v1.7.0

@@ -1,16 +1,15 @@
-import { ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { niceDomain } from "@/components/charts/nice-domain";
 import { ScatterPoints } from "@/components/charts/scatter-points";
 import { SeriesChart } from "@/components/charts/series-chart";
-import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
+import { StatsTotals } from "@/components/stats-totals";
 import { WeekHeatmap } from "@/components/week-heatmap";
-import { assessConsumption, ratedWhPerKm } from "@/lib/assessment";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import {
@@ -25,6 +24,7 @@ import {
   driveTotals,
   efficiencyPoints,
   longestDrives,
+  odometerTrend,
   periodChargeTotals,
   pressureTrend,
   softwareUpdates,
@@ -37,10 +37,10 @@ import {
   efficiencyBands,
   efficiencyScatter,
   pressureRows,
-  statsTotals,
   updateDays,
   widestEfficiency,
 } from "@/lib/stats-figures";
+import { odometerRows } from "@/lib/trends";
 import { efficiencyDigits } from "@/lib/units";
 import { speedBands, speedEdges } from "@/lib/speed-bands";
 import { leakWarning } from "@/lib/tire-leak";
@@ -52,6 +52,7 @@ export const metadata: Metadata = { title: "Stats" };
 
 const colors = {
   distance: "var(--chart-1)",
+  odometer: "var(--chart-1)",
   used: "var(--chart-1)",
   charged: "var(--charge)",
   cost: "var(--charge)",
@@ -95,6 +96,7 @@ export default async function StatsPage({
     longest,
     speedRows,
     leaks,
+    odometer,
   ] = await Promise.all([
     statsBuckets(car.id, from, unit, timeZone, sundayFirst),
     driveTotals(car.id, from),
@@ -106,13 +108,9 @@ export default async function StatsPage({
     longestDrives(car.id, from),
     speedBandRows(car.id, from, edges.kmh),
     recentTireLeaks(car.id, timeZone),
+    odometerTrend(car.id, from),
   ]);
 
-  const { whPerKm, distanceTotal, costPer100 } = statsTotals(
-    drives,
-    charges.cost,
-    f,
-  );
   const speeds = speedBands(speedRows, edges.shown);
   const widestSpeed = widestEfficiency(speeds, f);
   const bands = efficiencyBands(efficiency, f, preferences.temperature === "f");
@@ -124,6 +122,7 @@ export default async function StatsPage({
       (value): value is number => value !== null,
     ),
   );
+  const odometerSeries = odometerRows(odometer, f);
   const pressureSeries = pressureRows(pressure, f);
   const pressureValues = pressureSeries.flatMap((point) =>
     [point.frontLeft, point.frontRight, point.rearLeft, point.rearRight].filter(
@@ -150,77 +149,20 @@ export default async function StatsPage({
             Stats
           </h1>
         </div>
-        <PeriodLinks base={carPath(car, "/stats")} active={period} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={carPath(car, "/stats/year")}
+            transitionTypes={["tab-forward"]}
+            className="inline-flex h-9 items-center gap-2 rounded bg-card px-3 text-sm font-medium transition-tesla hover:bg-accent"
+          >
+            <CalendarDays aria-hidden className="size-4" />
+            Year in review
+          </Link>
+          <PeriodLinks base={carPath(car, "/stats")} active={period} />
+        </div>
       </div>
 
-      <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-        <Metric
-          size="lg"
-          label="Distance"
-          value={f.number(distanceTotal)}
-          unit={f.units.distance}
-          detail={`${drives.drives} ${drives.drives === 1 ? "drive" : "drives"}`}
-        />
-        <Metric
-          size="lg"
-          label="Driving time"
-          value={f.duration(drives.minutes)}
-        />
-        <Metric
-          size="lg"
-          label="Energy used"
-          value={f.number(drives.usedKwh)}
-          unit="kWh"
-        />
-        <Metric
-          size="lg"
-          label="Efficiency"
-          value={f.efficiencyNumber(whPerKm)}
-          unit={f.units.efficiency}
-          assessment={assessConsumption(
-            whPerKm,
-            ratedWhPerKm(car),
-            f,
-            drives.distanceKm,
-          )}
-        />
-      </dl>
-
-      <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-        <Metric
-          label="Charged"
-          value={f.number(charges.addedKwh)}
-          unit="kWh"
-          detail={`${charges.sessions} ${charges.sessions === 1 ? "session" : "sessions"}`}
-        />
-        <Metric
-          label="Charging cost"
-          value={f.cost(charges.cost)}
-          detail={
-            costPer100 === null
-              ? undefined
-              : `${f.cost(costPer100)} per 100 ${f.units.distance}`
-          }
-        />
-        <Metric
-          label="Top speed"
-          value={
-            drives.speedMaxKmh === null
-              ? "—"
-              : f.number(f.speedValue(drives.speedMaxKmh) ?? 0)
-          }
-          unit={f.units.speed}
-        />
-        <Metric
-          label="Longest drive"
-          value={
-            drives.longestKm === null
-              ? "—"
-              : f.number(f.distanceValue(drives.longestKm) ?? 0)
-          }
-          unit={f.units.distance}
-        />
-      </dl>
+      <StatsTotals car={car} drives={drives} charges={charges} f={f} />
 
       <div className="mt-12 grid grid-cols-1 gap-4">
         <Panel
@@ -247,6 +189,32 @@ export default async function StatsPage({
               ]}
               yDomain={[0, "auto"]}
               height={240}
+            />
+          ) : (
+            <PanelNote>No record yet.</PanelNote>
+          )}
+        </Panel>
+
+        <Panel title={`Odometer (${f.units.distance})`}>
+          {odometerSeries.length > 1 ? (
+            <SeriesChart
+              data={odometerSeries}
+              xKey="at"
+              xFormat="day"
+              chartStyle={f.chartStyle}
+              series={[
+                {
+                  key: "odometer",
+                  label: "Odometer",
+                  color: colors.odometer,
+                  unit: f.units.distance,
+                  kind: "area",
+                },
+              ]}
+              yDomain={niceDomain(
+                odometerSeries.map((point) => point.odometer),
+              )}
+              height={220}
             />
           ) : (
             <PanelNote>No record yet.</PanelNote>

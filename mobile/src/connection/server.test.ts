@@ -3,6 +3,7 @@ import {
   authorization,
   isDeviceToken,
   pairingOf,
+  pairingOfLink,
   parseConnection,
   serverUrl,
 } from "./server";
@@ -76,5 +77,15 @@ describe("pairingOf", () => {
     expect(
       pairingOf("mytesla://connect?url=tesla.example.com&code=short"),
     ).toBeNull();
+  });
+});
+
+describe("pairingOfLink", () => {
+  test("reads the parameters of a camera link and refuses lists", () => {
+    expect(
+      pairingOfLink({ url: "https://tesla.example.com", car: "2", code }),
+    ).toEqual({ url: "https://tesla.example.com", code, carId: 2 });
+    expect(pairingOfLink({ url: ["a", "b"], code })).toBeNull();
+    expect(pairingOfLink({})).toBeNull();
   });
 });

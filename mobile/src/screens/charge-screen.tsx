@@ -1,5 +1,6 @@
 import { Stack, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
+import { useLiveChanges } from "@/api/live";
 import { useCharge } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Button } from "@/components/button";
@@ -24,6 +25,7 @@ export function ChargeScreen({ chargeId }: { chargeId: string }) {
   const router = useRouter();
   const { car } = useCar();
   const charge = useCharge(car.id, chargeId);
+  useLiveChanges(car.id, ["charge", car.id, chargeId]);
   const refresh = useRefresh(charge);
   const now = useNow(countdownMs);
   const step = (id: number) => router.setParams({ chargeId: String(id) });

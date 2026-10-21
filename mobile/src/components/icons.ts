@@ -29,4 +29,6 @@ export const liveIcons: Record<LiveIcon, IconName> = {
   download: { ios: "arrow.down.circle.fill", android: "download" },
   gauge: { ios: "gauge.with.dots.needle.67percent", android: "speed" },
   navigation: { ios: "location.fill", android: "navigation" },
+  shield: { ios: "shield.fill", android: "shield" },
+  "shield-off": { ios: "shield.slash.fill", android: "remove_moderator" },
 };

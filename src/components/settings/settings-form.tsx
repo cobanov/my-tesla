@@ -43,6 +43,7 @@ import {
   SettingsSection,
   Toggle,
 } from "./controls";
+import { CalendarLinkPanel } from "./calendar-link";
 import { PairingCodePanel } from "./pairing-code";
 
 const sections = [
@@ -55,6 +56,7 @@ const sections = [
   { id: "tabs", label: "Tabs" },
   { id: "overview", label: "Overview" },
   { id: "mobile", label: "Mobile app" },
+  { id: "calendar", label: "Calendar" },
 ];
 
 type Status = "idle" | "saving" | "saved" | "error";
@@ -586,6 +588,20 @@ export function SettingsForm({
               </p>
             ) : (
               <PairingCodePanel carId={car.id} carName={car.name} />
+            )}
+          </SettingsSection>
+
+          <SettingsSection
+            id="calendar"
+            title="Calendar"
+            description="Show the drives and charges in a calendar app."
+          >
+            {demo ? (
+              <p className="py-5 text-sm text-muted-foreground">
+                The calendar link needs your own server.
+              </p>
+            ) : (
+              <CalendarLinkPanel carId={car.id} carName={car.name} />
             )}
           </SettingsSection>
 

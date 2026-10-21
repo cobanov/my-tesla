@@ -1,14 +1,12 @@
-import { dirname, join } from "node:path";
+import { dataFile } from "../data-file";
 
 type Environment = Record<string, string | undefined>;
 
 export function authDatabasePath(environment: Environment): string {
-  const configured = environment.AUTH_DATABASE_FILE?.trim();
-  if (configured) return configured;
-  const preferences =
-    environment.PREFERENCES_FILE?.trim() ||
-    join(process.cwd(), ".data", "preferences.json");
-  return join(dirname(preferences), "auth.sqlite");
+  return (
+    environment.AUTH_DATABASE_FILE?.trim() ||
+    dataFile(environment, "auth.sqlite")
+  );
 }
 
 export function safeNext(value: string | null | undefined): string {
@@ -34,6 +32,10 @@ export function isPublicPath(path: string): boolean {
     path === "/robots.txt" ||
     /^\/(favicon\.ico|icon\.svg|apple-icon\.png)$/.test(path)
   );
+}
+
+export function isCalendarFeed(path: string): boolean {
+  return /^\/api\/cars\/\d{1,9}\/calendar\.ics$/.test(path);
 }
 
 export function sameSiteWrite(headers: Headers, host: string): boolean {

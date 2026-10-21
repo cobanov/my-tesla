@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { costPer100Km, costPerKwh, curveRows } from "./charge-insights";
+import {
+  chargeInsightTotals,
+  costPer100Km,
+  costPerKwh,
+  curveRows,
+} from "./charge-insights";
 
 describe("curveRows", () => {
   test("puts each session in its own column, one row for each level", () => {
@@ -44,5 +49,25 @@ describe("costs", () => {
     expect(costPerKwh(null, 40)).toBeNull();
     expect(costPerKwh(10, 0)).toBeNull();
     expect(costPer100Km(12, 0)).toBeNull();
+  });
+});
+
+describe("chargeInsightTotals", () => {
+  test("adds AC and DC, and prices only the energy with a cost", () => {
+    const totals = chargeInsightTotals(
+      [
+        { fast: false, sessions: 3, addedKwh: 60, cost: 12, costedKwh: 60 },
+        { fast: true, sessions: 1, addedKwh: 40, cost: null, costedKwh: 0 },
+      ],
+      500,
+    );
+    expect(totals.sessions).toBe(4);
+    expect(totals.addedKwh).toBe(100);
+    expect(totals.cost).toBe(12);
+    expect(totals.perKwh).toBeCloseTo(0.2, 6);
+    expect(totals.perKm).toBeCloseTo(2.4, 6);
+    expect(totals.ac?.sessions).toBe(3);
+    expect(totals.dc?.sessions).toBe(1);
+    expect(chargeInsightTotals([], 0).cost).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BasemapKeyProvider } from "@/components/basemap-key";
 import { CanonicalCarPath } from "@/components/canonical-car-path";
 import { CarSwitcher } from "@/components/car-switcher";
 import { DemoBanner } from "@/components/demo-banner";
@@ -10,6 +11,7 @@ import {
 } from "@/components/navigation-pending";
 import { TabBar, TabNav } from "@/components/tab-nav";
 import { currentSession } from "@/lib/auth/session";
+import { basemapKey } from "@/lib/basemap";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -41,46 +43,48 @@ export default async function CarLayout({
   }));
 
   return (
-    <MotionPreference reduced={preferences.motion === "reduced"}>
-      <NavigationPendingProvider>
-        <CanonicalCarPath slug={car.slug} />
-        {isDemoMode() && <DemoBanner />}
-        <header
-          style={{ viewTransitionName: "site-header" }}
-          className="sticky top-0 z-50 bg-background/75 backdrop-blur-xl"
-        >
-          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5">
-            <div className="flex min-w-0 items-center gap-2">
-              <Link
-                href={carPath(car)}
-                className="grid size-9 place-items-center rounded transition-tesla hover:bg-accent"
-              >
-                <HeaderMark />
-              </Link>
-              <CarSwitcher cars={options} currentId={car.id} />
-            </div>
-            <TabNav basePath={carPath(car)} visible={visible} />
-            <div className="flex justify-end lg:w-32">
-              {signedIn && (
+    <BasemapKeyProvider value={basemapKey(process.env)}>
+      <MotionPreference reduced={preferences.motion === "reduced"}>
+        <NavigationPendingProvider>
+          <CanonicalCarPath slug={car.slug} />
+          {isDemoMode() && <DemoBanner />}
+          <header
+            style={{ viewTransitionName: "site-header" }}
+            className="sticky top-0 z-50 bg-background/75 backdrop-blur-xl"
+          >
+            <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5">
+              <div className="flex min-w-0 items-center gap-2">
                 <Link
-                  href="/account"
-                  aria-label={`Account of ${signedIn.user.name}`}
-                  className="grid size-9 place-items-center rounded-full bg-card text-sm font-medium transition-tesla hover:bg-accent"
+                  href={carPath(car)}
+                  className="grid size-9 place-items-center rounded transition-tesla hover:bg-accent"
                 >
-                  {signedIn.user.name.trim().charAt(0).toUpperCase() || "?"}
+                  <HeaderMark />
                 </Link>
-              )}
+                <CarSwitcher cars={options} currentId={car.id} />
+              </div>
+              <TabNav basePath={carPath(car)} visible={visible} />
+              <div className="flex justify-end lg:w-32">
+                {signedIn && (
+                  <Link
+                    href="/account"
+                    aria-label={`Account of ${signedIn.user.name}`}
+                    className="grid size-9 place-items-center rounded-full bg-card text-sm font-medium transition-tesla hover:bg-accent"
+                  >
+                    {signedIn.user.name.trim().charAt(0).toUpperCase() || "?"}
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-5xl px-5 pb-32 md:pb-20">
-          {children}
-        </main>
-        <TabBar basePath={carPath(car)} visible={visible} />
-        {preferences.refresh !== "off" && (
-          <LiveRefresh intervalMs={Number(preferences.refresh) * 1000} />
-        )}
-      </NavigationPendingProvider>
-    </MotionPreference>
+          </header>
+          <main className="mx-auto w-full max-w-5xl px-5 pb-32 md:pb-20">
+            {children}
+          </main>
+          <TabBar basePath={carPath(car)} visible={visible} />
+          {preferences.refresh !== "off" && (
+            <LiveRefresh intervalMs={Number(preferences.refresh) * 1000} />
+          )}
+        </NavigationPendingProvider>
+      </MotionPreference>
+    </BasemapKeyProvider>
   );
 }

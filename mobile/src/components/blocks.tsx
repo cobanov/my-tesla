@@ -6,7 +6,7 @@ import { usePalette } from "@/theme/use-palette";
 import type { TabStack } from "@/navigation/targets";
 import { Chart } from "./chart";
 import { Heatmap } from "./heatmap";
-import { PlacesMap } from "./map";
+import { PlacesMap, RouteMap } from "./map";
 import { Notice } from "./notice";
 import { Records } from "./records";
 import { StatGrid } from "./stat";
@@ -156,6 +156,15 @@ export function Block({ block, stack }: { block: AppBlock; stack: TabStack }) {
       return <Notice text={block.text} />;
     case "map":
       return <PlacesMap places={block.places} />;
+    case "routes":
+      return (
+        <RouteMap
+          routes={block.routes}
+          markers={[]}
+          width={2}
+          label="Every road driven"
+        />
+      );
     case "note":
       return (
         <Text variant="label" tone="subtle" style={styles.note}>

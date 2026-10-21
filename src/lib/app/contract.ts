@@ -63,7 +63,8 @@ export type MapPlace = {
 export type AppTarget =
   | { kind: "drive"; id: number }
   | { kind: "trip"; id: number }
-  | { kind: "charge"; id: number };
+  | { kind: "charge"; id: number }
+  | { kind: "day"; day: string };
 
 export type CarIdentity = {
   id: number;
@@ -205,6 +206,7 @@ export type AppBlock =
     }
   | { kind: "progress"; share: number; start: string; end: string }
   | { kind: "map"; places: MapPlace[] }
+  | { kind: "routes"; routes: LngLat[][] }
   | { kind: "note"; text: string };
 
 export type AppPanel = {
@@ -230,6 +232,52 @@ export type InsightPage = {
   sections: AppSection[];
 };
 
+export type TimelinePage = {
+  day: string;
+  title: string;
+  previous: string;
+  next: string | null;
+  stats: AppStat[];
+  strip: {
+    segments: { kind: DayKind; start: number; end: number }[];
+    now: number;
+    hours: string[];
+  };
+  rows: {
+    key: string;
+    kind: "drive" | "charge" | "parked";
+    time: string;
+    title: string;
+    detail: string;
+    target: AppTarget | null;
+  }[];
+};
+
+export type AppExport = { label: string; path: string; file: string };
+
+export type ReportPage = {
+  subtitle: string | null;
+  from: string | null;
+  to: string | null;
+  presets: { label: string; from: string; to: string }[];
+  stats: AppStat[];
+  routes: LngLat[][] | null;
+  markers: MapMarker[];
+  sections: { title: string; rows: DriveRow[] }[];
+  notice: string | null;
+  exports: AppExport[];
+};
+
+export type YearPage = {
+  title: string;
+  subtitle: string | null;
+  year: number | null;
+  years: number[];
+  hero: AppStat[];
+  heroBlocks: AppBlock[];
+  sections: AppSection[];
+};
+
 export type LiveIcon =
   | "lock"
   | "lock-open"
@@ -242,7 +290,9 @@ export type LiveIcon =
   | "badge-check"
   | "download"
   | "gauge"
-  | "navigation";
+  | "navigation"
+  | "shield"
+  | "shield-off";
 
 export type LiveTone = "normal" | "active" | "charge" | "warning";
 
@@ -296,6 +346,15 @@ export type OverviewPage = {
     warnings: string[];
   } | null;
   location: { latitude: number; longitude: number; lastSeen: string } | null;
+  history:
+    | {
+        key: string;
+        icon: LiveIcon;
+        title: string;
+        when: string;
+        tone: LiveTone;
+      }[]
+    | null;
   lastDrive: RecentRecord | null;
   lastCharge: RecentRecord | null;
 };
@@ -315,6 +374,7 @@ export type SettingItem = {
 export type SettingsPage = {
   preview: AppStat[];
   groups: { title: string; note: string | null; items: SettingItem[] }[];
+  basemapKey?: string | null;
 };
 
 export type AppUser = { name: string; email: string; role: "admin" | "member" };

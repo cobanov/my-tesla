@@ -1,6 +1,9 @@
 import { costBreakdown } from "./charge-cost";
 import type { Formatter } from "./format";
 
+export type CostBasis =
+  "recorded" | "free" | "per_minute" | "per_kwh" | "price";
+
 type SessionInput = {
   fast: boolean;
   brand: string | null;
@@ -15,7 +18,40 @@ type SessionInput = {
   endRangeKm: number | null;
   cost: number | null;
   costEstimated: boolean;
+  costBasis: CostBasis | null;
+  billingType: "per_kwh" | "per_minute" | null;
+  costPerUnit: number | null;
+  sessionFee: number | null;
+  cable: string | null;
+  batteryHeater: boolean | null;
 };
+
+const cableNames: Record<string, string> = {
+  IEC: "IEC (Type 2)",
+  SAE: "SAE (North America)",
+  GB_AC: "GB/T AC",
+  GB_DC: "GB/T DC",
+};
+
+const costSources: Record<CostBasis, string> = {
+  recorded: "Recorded in TeslaMate",
+  free: "Free Supercharging",
+  per_minute: "Estimate from the geofence price",
+  per_kwh: "Estimate from the geofence price",
+  price: "Estimate from your price",
+};
+
+function tariffOf(session: SessionInput, f: Formatter): string | null {
+  const parts = [
+    session.costPerUnit === null
+      ? null
+      : `${f.cost(session.costPerUnit)} per ${session.billingType === "per_minute" ? "minute" : "kWh"}`,
+    session.sessionFee === null
+      ? null
+      : `${f.cost(session.sessionFee)} per session`,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" + ") : null;
+}
 
 type CurveInput = { level: number | null; power: number | null };
 
@@ -62,15 +98,35 @@ export function chargeFigures(session: SessionInput, f: Formatter) {
     kind: session.fast
       ? [session.brand, "DC fast charge"].filter(Boolean).join(" ")
       : `AC${session.phases ? `, ${session.phases} phase` : ""}`,
-    costSource: session.costEstimated
-      ? "Estimate from your price"
-      : "Recorded in TeslaMate",
-    breakdown: costBreakdown({
-      cost: session.cost,
-      addedKwh: added,
-      billedKwh: session.billedKwh,
-      rangeAdded,
-      levelsAdded,
-    }),
+    costSource: costSources[session.costBasis ?? "recorded"],
+    estimatedFrom:
+      session.costBasis === "price"
+        ? ("settings" as const)
+        : session.costBasis === "per_minute" || session.costBasis === "per_kwh"
+          ? ("geofence" as const)
+          : null,
+    perKwhSource:
+      session.costBasis === "price" ? "Your price" : "Cost ÷ energy billed",
+    tariff: tariffOf(session, f),
+    cable:
+      session.cable === null
+        ? null
+        : (cableNames[session.cable] ?? session.cable),
+    batteryHeater:
+      session.batteryHeater === null
+        ? null
+        : session.batteryHeater
+          ? "Used"
+          : "Not used",
+    breakdown:
+      session.costBasis === "free"
+        ? null
+        : costBreakdown({
+            cost: session.cost,
+            addedKwh: added,
+            billedKwh: session.billedKwh,
+            rangeAdded,
+            levelsAdded,
+          }),
   };
 }

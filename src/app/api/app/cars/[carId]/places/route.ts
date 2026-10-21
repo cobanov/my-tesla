@@ -2,7 +2,9 @@ import { placesPage } from "@/lib/app/places";
 import { appContext, appJson, appNotFound } from "@/lib/app/request";
 import { periodStart, readPeriod } from "@/lib/insights";
 import {
+  areasVisited,
   chargingPlaces,
+  drivenRoadMap,
   frequentRoutes,
   geofenceList,
   visitedPlaces,
@@ -20,15 +22,18 @@ export async function GET(
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [visited, charging, geofences, routes] = await Promise.all([
-    visitedPlaces(car.id, from),
-    chargingPlaces(car.id, from),
-    geofenceList(),
-    frequentRoutes(car.id, from, f.timeZone),
-  ]);
+  const [visited, charging, geofences, routes, areas, roads] =
+    await Promise.all([
+      visitedPlaces(car.id, from),
+      chargingPlaces(car.id, from),
+      geofenceList(),
+      frequentRoutes(car.id, from, f.timeZone),
+      areasVisited(car.id, from),
+      showMaps ? drivenRoadMap(car.id) : [],
+    ]);
   return appJson(
     placesPage(
-      { visited, charging, geofences, routes },
+      { visited, charging, geofences, routes, areas, roads },
       preferences,
       period,
       f,

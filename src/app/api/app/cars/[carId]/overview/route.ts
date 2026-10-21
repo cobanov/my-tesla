@@ -1,6 +1,7 @@
 import { overviewPage } from "@/lib/app/overview";
 import { appContext, appJson, appNotFound } from "@/lib/app/request";
 import { carImageUrl } from "@/lib/car-image";
+import { lockHistory } from "@/lib/history/recorder";
 import { dayWindow, localDayKey } from "@/lib/insights";
 import { getLive } from "@/lib/live/live";
 import { carSnapshot, recentCharges, recentDrives } from "@/lib/queries";
@@ -38,6 +39,7 @@ export async function GET(
         today: today ? { ...today, ...window } : null,
         live,
         leaks,
+        history: show.live ? lockHistory(car.id, now.getTime()) : null,
         show,
         showMaps,
       },

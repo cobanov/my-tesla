@@ -1,6 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { cache } from "react";
+import { vinModelYear } from "./car-image";
 import { carSlugs } from "./car-slug";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
@@ -26,6 +27,8 @@ export type Car = {
   wheelType: string | null;
   trimBadging: string | null;
   efficiencyKwhPerKm: number | null;
+  lfpBattery: boolean;
+  modelYear: number | null;
 };
 
 export type CarSnapshot = {
@@ -100,7 +103,9 @@ type PlaceColumns = {
 
 export const listCars = cache(async (): Promise<Car[]> => {
   await connection();
-  const rows = await database()<Omit<Car, "slug">[]>`
+  const rows = await database()<
+    (Omit<Car, "slug" | "modelYear"> & { vinYear: string | null })[]
+  >`
     select
       id::int as id,
       coalesce(nullif(name, ''), 'Tesla ' || id) as name,
@@ -109,13 +114,18 @@ export const listCars = cache(async (): Promise<Car[]> => {
       exterior_color as "exteriorColor",
       wheel_type as "wheelType",
       trim_badging as "trimBadging",
-      efficiency::float8 as "efficiencyKwhPerKm"
+      efficiency::float8 as "efficiencyKwhPerKm",
+      coalesce((
+        select lfp_battery from car_settings where id = cars.settings_id
+      ), false) as "lfpBattery",
+      substring(vin from 10 for 1) as "vinYear"
     from cars
     order by display_priority nulls last, id
   `;
   const slugs = carSlugs(rows);
-  return rows.map((row) => ({
+  return rows.map(({ vinYear, ...row }) => ({
     ...row,
+    modelYear: vinModelYear(vinYear),
     slug: slugs.get(row.id) ?? `car-${row.id}`,
   }));
 });

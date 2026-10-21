@@ -16,7 +16,11 @@ import {
   dcCurves,
   type ChargeTypeTotals,
 } from "@/lib/charge-insights-data";
-import { costPer100Km, costPerKwh, curveRows } from "@/lib/charge-insights";
+import {
+  chargeInsightTotals,
+  costPerKwh,
+  curveRows,
+} from "@/lib/charge-insights";
 import {
   chargeHistory,
   chargeLegs,
@@ -154,19 +158,15 @@ export default async function ChargingInsightsPage({
       chargeLevelTimes(car.id),
       carSnapshot(car.id),
     ]);
-  const ac = types.find((type) => !type.fast);
-  const dc = types.find((type) => type.fast);
-  const sessions = types.reduce((sum, type) => sum + type.sessions, 0);
-  const addedKwh = types.reduce((sum, type) => sum + type.addedKwh, 0);
-  const costs = types
-    .map((type) => type.cost)
-    .filter((cost): cost is number => cost !== null);
-  const cost = costs.length
-    ? costs.reduce((sum, value) => sum + value, 0)
-    : null;
-  const costedKwh = types.reduce((sum, type) => sum + type.costedKwh, 0);
-  const perKwh = costPerKwh(cost, costedKwh);
-  const perDistance = costPer100Km(cost, drives.distanceKm);
+  const {
+    ac,
+    dc,
+    sessions,
+    addedKwh,
+    cost,
+    perKwh,
+    perKm: perDistance,
+  } = chargeInsightTotals(types, drives.distanceKm);
   const hundred = f.units.distance === "mi" ? 160.9344 : 100;
   const curveData = curveRows(curves);
   const grid = weekGrid(starts);

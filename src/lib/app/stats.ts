@@ -23,6 +23,7 @@ import {
   widestEfficiency,
 } from "../stats-figures";
 import { leakWarning, type SlowLeak } from "../tire-leak";
+import { odometerRows, type OdometerPoint } from "../trends";
 import { efficiencyDigits } from "../units";
 import { buildChart } from "./chart";
 import type { AppBlock, InsightPage } from "./contract";
@@ -40,6 +41,7 @@ export type StatsInput = {
   longest: LongDrive[];
   speedRows: SpeedBandRow[];
   leaks: SlowLeak[];
+  odometer: OdometerPoint[];
 };
 
 type StatsSettings = Pick<
@@ -59,10 +61,11 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-function heatmap(
+export function heatmap(
   starts: StatsInput["starts"],
   sundayFirst: boolean,
   f: Formatter,
+  unit = "drives",
 ): AppBlock {
   const grid = weekGrid(starts);
   const order = sundayFirst ? [6, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
@@ -74,61 +77,22 @@ function heatmap(
     })),
     hours: [0, 6, 12, 18, 24].map((hour) => f.hour(hour)),
     max: Math.max(1, ...grid.flat()),
-    unit: "drives",
+    unit,
   };
 }
 
-export function statsPage(
-  input: StatsInput,
+export function statsHero(
+  drives: DriveTotals,
+  charges: ChargeTotals,
   car: Car,
-  settings: StatsSettings,
-  period: PeriodId,
   f: Formatter,
-  now: Date,
-): InsightPage {
-  const { drives, charges } = input;
+): Pick<InsightPage, "hero" | "heroBlocks"> {
   const { whPerKm, distanceTotal, costPer100 } = statsTotals(
     drives,
     charges.cost,
     f,
   );
-  const unit = bucketUnit(period);
-  const bucketNote = `Per ${unit}`;
-  const xFormat = unit === "month" ? "month" : "day";
-  const rows = bucketRows(input.buckets, f);
-  const style = f.chartStyle;
-  const bucketChart = (
-    title: string,
-    series: Parameters<typeof buildChart>[0]["series"],
-    left: "zero" | "auto" = "zero",
-  ) => buildChart({ title, rows, xKey: "at", xFormat, style, series, left });
-  const temperatureBandRows = efficiencyBands(
-    input.efficiency,
-    f,
-    settings.temperature === "f",
-  );
-  const widestBand = widestEfficiency(temperatureBandRows, f);
-  const speeds = speedBands(
-    input.speedRows,
-    speedEdges(settings.distance).shown,
-  );
-  const widestSpeed = widestEfficiency(speeds, f);
-  const scatter = efficiencyScatter(input.efficiency, f).sort(
-    (a, b) => a.x - b.x,
-  );
-  const pressureDigits = pressureTooltipDigits[settings.pressure];
-  const tires = [
-    ["frontLeft", "Front left", "chart1"],
-    ["frontRight", "Front right", "chart3"],
-    ["rearLeft", "Rear left", "chart4"],
-    ["rearRight", "Rear right", "charge"],
-  ] as const;
-
   return {
-    title: "Stats",
-    subtitle: periodLabel(period),
-    period,
-    periods: periodChoices(),
     hero: [
       appStat("Distance", `${f.number(distanceTotal)} ${f.units.distance}`, {
         detail: plural(drives.drives, "drive", "drives"),
@@ -172,6 +136,57 @@ export function statsPage(
         ],
       },
     ],
+  };
+}
+
+export function statsPage(
+  input: StatsInput,
+  car: Car,
+  settings: StatsSettings,
+  period: PeriodId,
+  f: Formatter,
+  now: Date,
+): InsightPage {
+  const { drives, charges } = input;
+  const unit = bucketUnit(period);
+  const bucketNote = `Per ${unit}`;
+  const odometerSeries = odometerRows(input.odometer, f);
+  const xFormat = unit === "month" ? "month" : "day";
+  const rows = bucketRows(input.buckets, f);
+  const style = f.chartStyle;
+  const bucketChart = (
+    title: string,
+    series: Parameters<typeof buildChart>[0]["series"],
+    left: "zero" | "auto" = "zero",
+  ) => buildChart({ title, rows, xKey: "at", xFormat, style, series, left });
+  const temperatureBandRows = efficiencyBands(
+    input.efficiency,
+    f,
+    settings.temperature === "f",
+  );
+  const widestBand = widestEfficiency(temperatureBandRows, f);
+  const speeds = speedBands(
+    input.speedRows,
+    speedEdges(settings.distance).shown,
+  );
+  const widestSpeed = widestEfficiency(speeds, f);
+  const scatter = efficiencyScatter(input.efficiency, f).sort(
+    (a, b) => a.x - b.x,
+  );
+  const pressureDigits = pressureTooltipDigits[settings.pressure];
+  const tires = [
+    ["frontLeft", "Front left", "chart1"],
+    ["frontRight", "Front right", "chart3"],
+    ["rearLeft", "Rear left", "chart4"],
+    ["rearRight", "Rear right", "charge"],
+  ] as const;
+
+  return {
+    title: "Stats",
+    subtitle: periodLabel(period),
+    period,
+    periods: periodChoices(),
+    ...statsHero(drives, charges, car, f),
     sections: [
       {
         title: null,
@@ -197,6 +212,26 @@ export function statsPage(
             ],
             bucketNote,
           ),
+          panel(`Odometer (${f.units.distance})`, [
+            odometerSeries.length > 1 &&
+              chartBlock(
+                buildChart({
+                  title: "Odometer",
+                  rows: odometerSeries,
+                  xKey: "at",
+                  xFormat: "day",
+                  style,
+                  series: [
+                    {
+                      key: "odometer",
+                      label: "Odometer",
+                      unit: f.units.distance,
+                      color: "chart1",
+                    },
+                  ],
+                }),
+              ),
+          ]),
           panel(
             "Energy (kWh)",
             [

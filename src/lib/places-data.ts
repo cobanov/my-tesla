@@ -1,14 +1,20 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { connection } from "next/server";
 import { cache } from "react";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
+import { drivenPointsQuery } from "./driven-roads-sql";
 import {
   frequentRoutesQuery,
   type FrequentRouteRow,
 } from "./frequent-routes-sql";
+import { drivenPointLimit, drivenRoads, type LngLat } from "./route";
 import { placeLabel } from "./vehicle";
 import { getPlaceStyle, getRangeKind } from "./viewer";
+import { visitedAreas } from "./visited-areas";
+import { visitedAreasQuery } from "./visited-areas-sql";
+import { sinceOf, untilOf } from "./time-bounds";
 
 type Place = {
   geofence: string | null;
@@ -60,12 +66,12 @@ export type FrequentRoute = Omit<FrequentRouteRow, "from" | "to"> & {
 
 const shownRoutes = 8;
 
-function sinceOf(from: Date | null) {
-  return (from ?? new Date(0)).toISOString();
-}
-
 export const visitedPlaces = cache(
-  async (carId: number, from: Date | null): Promise<VisitedPlace[]> => {
+  async (
+    carId: number,
+    from: Date | null,
+    to: Date | null = null,
+  ): Promise<VisitedPlace[]> => {
     await connection();
     const style = await getPlaceStyle();
     const rows = await database()<
@@ -101,6 +107,7 @@ export const visitedPlaces = cache(
       left join geofences g on g.id = a.end_geofence_id
       left join addresses ad on ad.id = a.end_address_id
       where a.end_date >= (${sinceOf(from)}::timestamptz at time zone 'UTC')
+        and a.end_date < (${untilOf(to)}::timestamptz at time zone 'UTC')
         and (a.end_geofence_id is not null or a.end_address_id is not null)
       group by 1
       order by visits desc, "parkedS" desc
@@ -195,5 +202,31 @@ export const frequentRoutes = cache(
       from: placeLabel(row.from, style),
       to: placeLabel(row.to, style),
     }));
+  },
+);
+
+export const areasVisited = cache(async (carId: number, from: Date | null) => {
+  await connection();
+  const rows = await visitedAreasQuery(database(), {
+    carId,
+    since: from ?? new Date(0),
+  });
+  return visitedAreas(rows);
+});
+
+async function cachedDrivenRoads(carId: number): Promise<LngLat[][]> {
+  "use cache";
+  cacheLife("hours");
+  const points = await drivenPointsQuery(database(), {
+    carId,
+    sampleSize: drivenPointLimit,
+  });
+  return drivenRoads(points);
+}
+
+export const drivenRoadMap = cache(
+  async (carId: number): Promise<LngLat[][]> => {
+    await connection();
+    return cachedDrivenRoads(carId);
   },
 );

@@ -30,5 +30,7 @@ export function targetHref(target: AppTarget, stack: TabStack): Href {
             pathname: "/charging/[chargeId]",
             params: { chargeId: String(target.id) },
           };
+    case "day":
+      return { pathname: "/drives/timeline", params: { day: target.day } };
   }
 }

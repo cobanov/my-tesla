@@ -1,30 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChargerBadge } from "@/components/charger-badge";
-import { MapsOff, PlacesMap } from "@/components/maps";
+import { DrivenMap, MapsOff, PlacesMap } from "@/components/maps";
 import { Metric } from "@/components/metric";
 import { PageTransition } from "@/components/page-transition";
 import { Panel, PanelNote } from "@/components/panel";
 import { PeriodLinks } from "@/components/period-links";
+import { VisitedPlaces } from "@/components/visited-places";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { periodStart, periods, readPeriod } from "@/lib/insights";
 import { placesOnMap } from "@/lib/map-points";
 import { mapThemeOf } from "@/lib/preferences";
 import {
+  areasVisited,
   chargingPlaces,
+  drivenRoadMap,
   frequentRoutes,
   geofenceList,
   visitedPlaces,
 } from "@/lib/places-data";
 import { placesFigures } from "@/lib/places-figures";
 import { toElevation } from "@/lib/units";
-import { cn } from "@/lib/utils";
 import { getFormatter, getPreferences } from "@/lib/viewer";
+import type { VisitedArea } from "@/lib/visited-areas";
 
 export const instant = false;
 
 export const metadata: Metadata = { title: "Places" };
+
+const shownAreas = 10;
 
 export default async function PlacesPage({
   params,
@@ -42,12 +47,16 @@ export default async function PlacesPage({
     preferences.period,
   );
   const from = periodStart(period, now);
-  const [visited, charging, geofences, routes] = await Promise.all([
-    visitedPlaces(car.id, from),
-    chargingPlaces(car.id, from),
-    geofenceList(),
-    frequentRoutes(car.id, from, f.timeZone),
-  ]);
+  const mapsShown = preferences.maps === "show";
+  const [visited, charging, geofences, routes, areas, roads] =
+    await Promise.all([
+      visitedPlaces(car.id, from),
+      chargingPlaces(car.id, from),
+      geofenceList(),
+      frequentRoutes(car.id, from, f.timeZone),
+      areasVisited(car.id, from),
+      mapsShown ? drivenRoadMap(car.id) : [],
+    ]);
 
   const {
     top,
@@ -138,52 +147,13 @@ export default async function PlacesPage({
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Panel title="Most visited" className="lg:col-span-3">
           {top.length ? (
-            <ol className="space-y-4">
-              {top.map((place, index) => (
-                <li key={place.key} className="flex items-start gap-4">
-                  <span className="w-4 pt-0.5 text-sm text-subtle tabular">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="truncate text-sm font-medium">
-                        {place.label}
-                      </span>
-                      <span className="shrink-0 text-sm tabular">
-                        {place.visits}{" "}
-                        <span className="text-muted-foreground">
-                          {place.visits === 1 ? "visit" : "visits"}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-[width] duration-700 ease-tesla starting:w-0!",
-                          chargingKeys.has(place.key)
-                            ? "bg-charge"
-                            : "bg-primary",
-                        )}
-                        style={{
-                          width: `${(place.visits / mostVisits) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1.5 truncate text-xs text-subtle tabular">
-                      {[
-                        place.city && place.city !== place.label
-                          ? place.city
-                          : null,
-                        `${f.span(place.parkedS / 60)} parked`,
-                        `last visit ${f.dayInline(place.lastAt, now)}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <VisitedPlaces
+              places={top}
+              mostVisits={mostVisits}
+              chargingKeys={chargingKeys}
+              f={f}
+              now={now}
+            />
           ) : (
             <PanelNote>No record yet.</PanelNote>
           )}
@@ -275,6 +245,39 @@ export default async function PlacesPage({
       </Panel>
 
       <section className="mt-14">
+        <h2 className="text-2xl font-medium">Visited</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The countries, states, and cities where a drive or a charge started or
+          ended.
+        </p>
+        <dl className="mt-6 grid grid-cols-3 gap-x-6">
+          <Metric size="lg" label="Countries" value={areas.countries.length} />
+          <Metric size="lg" label="States" value={areas.states.length} />
+          <Metric size="lg" label="Cities" value={areas.cities.length} />
+        </dl>
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <AreaList title="Top countries" areas={areas.countries} />
+          <AreaList title="Top states" areas={areas.states} />
+          <AreaList title="Top cities" areas={areas.cities} />
+        </div>
+        <section className="mt-4 overflow-hidden rounded-xl bg-card">
+          <header className="flex flex-wrap items-center justify-between gap-4 px-5 pt-5 md:px-6 md:pt-6">
+            <h2 className="text-sm text-muted-foreground">Every road driven</h2>
+            <span className="text-xs text-subtle">All records</span>
+          </header>
+          <div className="mt-4 h-[420px]">
+            {!mapsShown ? (
+              <MapsOff />
+            ) : roads.length ? (
+              <DrivenMap roads={roads} theme={mapThemeOf(preferences)} />
+            ) : (
+              <PanelNote>No drive yet.</PanelNote>
+            )}
+          </div>
+        </section>
+      </section>
+
+      <section className="mt-14">
         <h2 className="text-2xl font-medium">Saved places</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           TeslaMate names a place and sets its charging cost with a geofence.
@@ -329,5 +332,46 @@ export default async function PlacesPage({
         )}
       </section>
     </PageTransition>
+  );
+}
+
+function AreaList({ title, areas }: { title: string; areas: VisitedArea[] }) {
+  const shown = areas.slice(0, shownAreas);
+  const mostPlaces = Math.max(1, ...shown.map((area) => area.places));
+  return (
+    <Panel title={title}>
+      {shown.length ? (
+        <ol className="space-y-4">
+          {shown.map((area) => (
+            <li key={area.key}>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="truncate text-sm font-medium">
+                  {area.name}
+                </span>
+                <span className="shrink-0 text-sm tabular">
+                  {area.places}{" "}
+                  <span className="text-muted-foreground">
+                    {area.places === 1 ? "place" : "places"}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-700 ease-tesla starting:w-0!"
+                  style={{ width: `${(area.places / mostPlaces) * 100}%` }}
+                />
+              </div>
+              {area.within && (
+                <p className="mt-1.5 truncate text-xs text-subtle">
+                  {area.within}
+                </p>
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <PanelNote>No record yet.</PanelNote>
+      )}
+    </Panel>
   );
 }

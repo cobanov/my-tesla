@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { useDrive } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Chart } from "@/components/chart";
+import { ExportButton } from "@/components/export-button";
 import { RouteMap } from "@/components/map";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
@@ -41,6 +42,13 @@ export function DriveScreen({ driveId }: { driveId: string }) {
                 <Chart chart={chart} />
               </Panel>
             ))}
+            <ExportButton
+              item={{
+                label: "GPX",
+                path: detail.gpxPath,
+                file: `drive-${driveId.replace(/\D/g, "")}.gpx`,
+              }}
+            />
           </>
         )}
       </QueryView>

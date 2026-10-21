@@ -24,6 +24,7 @@ const modelNames: Record<string, string> = {
   S: "Model S",
   X: "Model X",
   Y: "Model Y",
+  Cybertruck: "Cybertruck",
 };
 
 export function modelName(model: string | null | undefined): string {

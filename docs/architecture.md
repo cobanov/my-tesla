@@ -27,6 +27,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/app/cars/[carId]/layout.tsx` | The header, the car switcher, the tabs, the phone tab bar, the live refresh, and `CanonicalCarPath`, which puts the slug in the address of an id link. |
 | `src/app/cars/[carId]/page.tsx`, `drives/`, `charging/` | Overview, Drives, and Charging. Server components read through `src/lib/queries.ts`. Overview also shows the day strip for today. |
 | `src/app/cars/[carId]/battery/`, `stats/`, `places/` | The three insight tabs. Each one reads the `period` search parameter: 7 days, 30 days, 90 days, 1 year, or all. |
+| `src/app/cars/[carId]/stats/year/` | The year in review, linked from Stats: the Stats totals, the distance per month, the records, and the top places of one calendar year in the user's time zone. Reads the `year` search parameter and offers only the years with data. |
 | `src/app/cars/[carId]/timeline/` | One local day: the 24 h strip, the day totals, and the list of drives, charges, and parked times. Reads the `day` search parameter. |
 | `src/app/cars/[carId]/charging/[chargeId]/` | The charge page: the power curve by battery level, battery and power, voltage and current, and the place. |
 | `src/lib/charge-data.ts`, `timeline-data.ts`, `battery-data.ts`, `stats-data.ts`, `places-data.ts` | The read queries for the insight pages. The SQL follows the TeslaMate Grafana dashboards. Server only. |
@@ -42,7 +43,11 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `tools/brand/render.ts` | Builds the preview images and icons from the T mark with headless Chrome and `sips`. |
 | `src/lib/charge-insights-data.ts`, `charge-insights.ts` | The charging insights: charge starts by weekday and hour, the AC and DC totals, and the DC curves (server), plus the curve rows and the cost ratios (pure, with tests). |
 | `src/lib/charge-time-sql.ts`, `charge-time.ts` | The charging time: the median and the slow time that past charges spent at each battery percent (SQL, with PGlite tests), plus the legs and the sum for one leg (pure, with tests). Read [decision 0014](decisions/0014-charging-time.md). |
+| `src/lib/year-review-sql.ts`, `year-review.ts` | The year in review: the years with drives or charges in the user's time zone, and the biggest charge of a year through the charge sessions relation (SQL, with PGlite tests), plus the year from the address, the local start and end of a year, the busiest day or month, and the month name (pure, with tests). The Stats queries and the visited places take an optional end date for the year. |
 | `src/lib/frequent-routes-sql.ts` | The frequent routes: drives grouped by start and end place, where a place is a geofence or a grid cell of about 500 m. PGlite tests. Read [decision 0015](decisions/0015-frequent-routes.md). |
+| `src/lib/visited-areas-sql.ts`, `visited-areas.ts` | The countries, states, and cities visited: the addresses where a drive or a charge of the period started or ended, counted as the TeslaMate Locations dashboard counts them (SQL, with PGlite tests), and the lists by country, state, and city, where a city keeps its state so that two towns of one name stay apart (pure, with tests). |
+| `src/lib/driven-roads-sql.ts` | The positions for the map of every road driven: the three latest drives between each pair of places, about 500 m cells in either direction, every nth position of them, and the start and end of each drive. PGlite tests. `src/lib/route.ts` groups them by drive, drops points closer than 50 m, and caps the map at 10,000 points. Read [the UI stack research](../research/ui-stack.md#every-road-driven). |
+| `src/lib/trends-sql.ts`, `trends.ts` | The long-term trends: the charge level and the odometer, sampled into at most 240 slices of the period, the projected range for each degree and each battery level, and the time in each car state (SQL, with PGlite tests), plus the chart rows in the user's units and the state shares (pure, with tests). The SQL follows the TeslaMate Charge Level, Mileage, Projected Range, and States dashboards. |
 | `src/lib/tire-leak.ts`, `speed-bands.ts` | Pure logic: the slow-leak test, which compares each tire with the median of the other three so that temperature cancels out, and the consumption by speed band. Full test cover. |
 | `src/lib/drive-sessions-sql.ts` | One SQL relation for the Drives list, a drive page, the drives CSV, and the trips: it fills a drive that TeslaMate left open from its positions. PGlite tests. Read [decision 0018](decisions/0018-drives-left-open.md). |
 | `src/lib/trip-legs-sql.ts`, `trip-data.ts` | The trips: one SQL pass joins the drives of a car into trips, with the stop limits of teslamate-mcp (SQL, with PGlite tests), and the server module that loads the drives and the charges of those trips, also for the Drives tab. Read [decision 0017](decisions/0017-trips-from-drives.md) and [decision 0019](decisions/0019-drives-list-trips.md). |
@@ -56,6 +61,7 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/app/api/app/cars/[carId]/` | The app API routes. They read through the same `src/lib/` modules as the pages. Read [API](api.md#app-api). |
 | `src/lib/push/events.ts`, `devices.ts` | Pure logic for push alerts: the event list, the rule that compares two live views, the device parser, and the Expo messages. Full test cover. Read [decision 0020](decisions/0020-mobile-app-and-push-alerts.md). |
 | `src/lib/push/device-store.ts`, `alerts.ts`, `src/instrumentation.ts` | The push device file next to the Settings file, and the watcher that the server starts at boot when `MQTT_URL` is set. It sends each alert through the Expo push service. Server only. |
+| `src/lib/history/` | The lock and Sentry Mode history: `store.ts` keeps the changes in `history.sqlite`, `changes.ts` finds a change between two live views, both with tests, and `recorder.ts` saves each change from the MQTT feed. `src/lib/sqlite.ts` holds the open, migration, and transaction code that the account store shares. Read [decision 0024](decisions/0024-lock-and-sentry-history.md). |
 | `src/app/api/push/route.ts`, `src/app/api/cars.json/route.ts` | The push device endpoints and the car list for the mobile app. Read [API](api.md). |
 | `src/lib/json-file.ts` | Reads a JSON file, and writes it through one queue, to a temporary file, then a rename. The Settings and the push devices use it. Server only. |
 | `mobile/` | The Expo app for iOS and Android. It reads the JSON endpoints through the same proxy. Read [Mobile app](mobile.md). |
@@ -63,10 +69,10 @@ A Next.js App Router app that reads the TeslaMate PostgreSQL database on the ser
 | `src/lib/sql-template.ts` | The postgres.js tag interface on top of PGlite: parameters, nested fragments, and identifiers. Pure, with tests. |
 | `src/components/landing/`, `src/lib/github.ts`, `src/lib/project.ts` | The landing page of the demo site, the cached GitHub star count, and the project links. |
 | `tools/demo/` | The seed tool for the PostgreSQL demo database. Read [decision 0003](decisions/0003-demo-database.md). |
-| `src/lib/route.ts`, `maplibre-asset.ts` | Pure logic: route sampling and bounds, and the allowed MapLibre worker files. |
+| `src/lib/route.ts`, `maplibre-asset.ts` | Pure logic: route sampling, thinning, the point cap, and bounds, and the allowed MapLibre worker files. |
 | `src/app/maplibre/[version]/[file]/route.ts` | Serves the MapLibre worker and its shared chunk from `node_modules`, with an immutable cache for the installed version only. |
 | `src/app/cars/[carId]/drives/[driveId]/page.tsx` | The drive page with the route map. |
-| `src/components/maps.tsx` | The location map, the route map, and the places map on mapcn. |
+| `src/components/maps.tsx` | The location map, the route map, the trip map, the places map, and the map of every road driven on mapcn. |
 | `src/components/` | Client parts: splash, tab navigation, car switcher, pending state, animated numbers, and live refresh. `ui/` holds generated shadcn/ui files. |
 
 ## Data flow
@@ -81,7 +87,7 @@ The settings change how the server renders, not what it reads. The root layout a
 
 ## Runtime and deployment
 
-The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings and `auth.sqlite` in `/data`, checks `/api/health`, and holds `reset-password.mjs` for a lost password. The container joins the Docker network of the TeslaMate database. A reverse proxy or a tunnel with HTTPS sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
+The `Dockerfile` builds a Next.js standalone server on `node:24-bookworm-slim`. It runs as an unprivileged user on port 3000, keeps the saved settings, `auth.sqlite`, and `history.sqlite` in `/data`, checks `/api/health`, and holds `reset-password.mjs` for a lost password. The container joins the Docker network of the TeslaMate database. A reverse proxy or a tunnel with HTTPS sits in front of it. [Installation](installation.md) gives the methods, and `.github/workflows/image.yml` publishes the image to GitHub Container Registry on each version tag.
 
 ## Decisions
 

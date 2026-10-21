@@ -11,6 +11,8 @@ import {
   Navigation,
   Plug,
   PlugZap,
+  ShieldCheck,
+  ShieldOff,
   Unplug,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +37,8 @@ const icons: Record<LiveIcon, LucideIcon> = {
   download: Download,
   gauge: Gauge,
   navigation: Navigation,
+  shield: ShieldCheck,
+  "shield-off": ShieldOff,
 };
 
 const toneClass: Record<LiveTone, string> = {

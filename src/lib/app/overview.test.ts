@@ -18,6 +18,8 @@ const car: Car = {
   wheelType: null,
   trimBadging: null,
   efficiencyKwhPerKm: 0.136,
+  lfpBattery: false,
+  modelYear: null,
 };
 
 const snapshot: CarSnapshot = {
@@ -49,11 +51,33 @@ const input: OverviewInput = {
   today: null,
   live: null,
   leaks: [{ tire: "rearLeft", dropBar: 0.3, days: 5 }],
+  history: null,
   show: defaultPreferences.overview,
   showMaps: true,
 };
 
 describe("overviewPage", () => {
+  test("lists the lock and Sentry Mode changes with an unlock as a warning", () => {
+    const at = now.getTime() - 60_000;
+    const page = overviewPage(
+      {
+        ...input,
+        history: [
+          { kind: "locked", value: false, at },
+          { kind: "sentry", value: true, at: at - 1000 },
+        ],
+      },
+      f,
+      now,
+    );
+    expect(page.history).toMatchObject([
+      { icon: "lock-open", title: "Unlocked", tone: "warning" },
+      { icon: "shield", title: "Sentry Mode on", tone: "normal" },
+    ]);
+    expect(page.history?.[0]?.when).toContain(f.clock(new Date(at)));
+    expect(overviewPage(input, f, now).history).toBeNull();
+  });
+
   test("formats the battery, the stats, and the tires", () => {
     const page = overviewPage(input, f, now);
     expect(page.car).toEqual({

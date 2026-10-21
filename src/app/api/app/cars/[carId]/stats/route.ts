@@ -7,6 +7,7 @@ import {
   driveTotals,
   efficiencyPoints,
   longestDrives,
+  odometerTrend,
   periodChargeTotals,
   pressureTrend,
   recentTireLeaks,
@@ -40,6 +41,7 @@ export async function GET(
     longest,
     speedRows,
     leaks,
+    odometer,
   ] = await Promise.all([
     statsBuckets(
       car.id,
@@ -57,6 +59,7 @@ export async function GET(
     longestDrives(car.id, from),
     speedBandRows(car.id, from, speedEdges(preferences.distance).kmh),
     recentTireLeaks(car.id, timeZone),
+    odometerTrend(car.id, from),
   ]);
   return appJson(
     statsPage(
@@ -71,6 +74,7 @@ export async function GET(
         longest,
         speedRows,
         leaks,
+        odometer,
       },
       car,
       preferences,

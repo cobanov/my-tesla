@@ -5,6 +5,7 @@ import {
   Layer,
   Map,
   Marker,
+  TransformRequestManager,
   type InitialViewState,
 } from "@maplibre/maplibre-react-native";
 import { useEffect, useState, type ReactNode } from "react";
@@ -16,6 +17,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSettings } from "@/api/queries";
+import { basemapKeyOf } from "@/api/responses";
 import { motion, space } from "@/theme/tokens";
 import { usePalette } from "@/theme/use-palette";
 import { useReducedMotion } from "@/theme/use-reduced-motion";
@@ -36,6 +38,24 @@ const mapStyles = {
 
 const carZoom = 15;
 const fitPadding = { top: 48, right: 48, bottom: 48, left: 48 };
+
+const basemapKeyId = "carto-basemap-key";
+
+function useBasemapKey(): void {
+  const key = basemapKeyOf(useSettings().data);
+  useEffect(() => {
+    if (!key) {
+      TransformRequestManager.removeUrlSearchParam(basemapKeyId);
+      return;
+    }
+    TransformRequestManager.addUrlSearchParam({
+      id: basemapKeyId,
+      match: "^https://([a-z0-9-]+\\.)*cartocdn\\.com/",
+      name: "key",
+      value: key,
+    });
+  }, [key]);
+}
 
 function useMapStyle(): string {
   const scheme = useColorScheme();
@@ -68,6 +88,7 @@ function MapCanvas({
   children: ReactNode;
 }) {
   const palette = usePalette();
+  useBasemapKey();
   const mapStyle = useMapStyle();
   const height = useMapHeight(size);
   const [settled, setSettled] = useState(false);

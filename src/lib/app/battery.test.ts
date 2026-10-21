@@ -14,6 +14,10 @@ const empty: BatteryInput = {
   charges: [],
   idle: [],
   minimumKwh: 45,
+  levelTrend: [],
+  ranges: { byTemperature: [], byLevel: [] },
+  states: [],
+  lfpBattery: false,
 };
 
 describe("batteryPage", () => {
@@ -80,5 +84,65 @@ describe("batteryPage", () => {
       ],
     });
     expect(page.sections[1]?.subtitle).toBe("All records");
+  });
+
+  test("adds the charge level, the car states, the projected range, and the advice", () => {
+    const day = 24 * 60 * 60 * 1000;
+    const page = batteryPage(
+      {
+        ...empty,
+        lfpBattery: true,
+        charges: [
+          {
+            startLevel: 50,
+            endLevel: 100,
+            endAt: new Date(now.getTime() - 2 * day),
+          },
+        ],
+        levelTrend: [
+          { at: new Date(now.getTime() - day), level: 80, usableLevel: 80 },
+          { at: now, level: 70, usableLevel: 70 },
+        ],
+        states: [
+          { state: "online", seconds: 3600 },
+          { state: "asleep", seconds: 3 * 3600 },
+        ],
+        ranges: {
+          byTemperature: [
+            { value: 10, samples: 1, rangeKm: 400, level: 80, usableLevel: 80 },
+            { value: 20, samples: 1, rangeKm: 420, level: 80, usableLevel: 80 },
+          ],
+          byLevel: [
+            { value: 50, samples: 1, rangeKm: 250, level: 50, usableLevel: 50 },
+            { value: 80, samples: 1, rangeKm: 410, level: 80, usableLevel: 80 },
+          ],
+        },
+      },
+      "30d",
+      f,
+      now,
+    );
+    const panels = page.sections.flatMap((section) => section.panels);
+    const titled = (title: string) =>
+      panels.find((item) => item.title === title);
+    expect(titled("Charging advice")?.blocks[0]).toMatchObject({
+      kind: "note",
+      text: expect.stringContaining("LFP battery"),
+    });
+    expect(titled("Charging advice")?.blocks[1]).toMatchObject({
+      text: "The last full charge was 2 days ago.",
+    });
+    expect(titled("Charge level (%)")?.blocks[0]?.kind).toBe("chart");
+    expect(titled("Time in each state")?.blocks[0]).toMatchObject({
+      kind: "shares",
+      rows: [
+        { label: "Online", share: 0.25 },
+        { label: "Asleep", share: 0.75 },
+        { label: "Offline", share: 0 },
+      ],
+    });
+    expect(
+      titled("Projected range (km)")?.blocks.map((block) => block.kind),
+    ).toEqual(["chart", "chart"]);
   });
 });

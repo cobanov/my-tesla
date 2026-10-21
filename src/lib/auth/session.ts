@@ -1,11 +1,10 @@
 import "server-only";
-import { mkdirSync } from "node:fs";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
-import { dirname } from "node:path";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { isDemoMode } from "../demo/mode";
 import { siteUrl } from "../site";
+import { openPrivately, processWide as shared } from "../sqlite";
 import { authDatabasePath, bearerToken, trustedAddress } from "./paths";
 import { Backoff, FailureCap } from "./limits";
 import { AuthStore, lifetimes, type Session, type User } from "./store";
@@ -15,24 +14,10 @@ export const cookieNames = {
   plain: "mytesla-session",
 } as const;
 
-function shared<T>(name: string, create: () => T): T {
-  const registry = globalThis as unknown as Record<symbol, T | undefined>;
-  const key = Symbol.for(`my-tesla.${name}`);
-  registry[key] ??= create();
-  return registry[key];
-}
-
 export function authStore(): AuthStore {
-  return shared("auth-store", () => {
-    const path = authDatabasePath(process.env);
-    mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-    const previous = process.umask(0o077);
-    try {
-      return new AuthStore(path);
-    } finally {
-      process.umask(previous);
-    }
-  });
+  return shared("auth-store", () =>
+    openPrivately(authDatabasePath(process.env), (path) => new AuthStore(path)),
+  );
 }
 
 export const limits = {
@@ -43,13 +28,26 @@ export const limits = {
 
 export type SignedIn = { session: Session; user: User };
 
+export const calendarPlatform = "calendar";
+
+export function calendarSession(
+  token: string | null,
+  now: number,
+): SignedIn | null {
+  const signedIn = token ? authStore().validate(token, "device", now) : null;
+  return signedIn?.session.platform === calendarPlatform ? signedIn : null;
+}
+
 export function readSession(
   list: { get(name: string): string | null },
   cookieValue: (name: string) => string | undefined,
   now: number,
 ): SignedIn | null {
   const bearer = bearerToken(list.get("authorization"));
-  if (bearer) return authStore().validate(bearer, "device", now);
+  if (bearer) {
+    const signedIn = authStore().validate(bearer, "device", now);
+    return signedIn?.session.platform === calendarPlatform ? null : signedIn;
+  }
   const token = cookieValue(
     isSecureRequest(list) ? cookieNames.secure : cookieNames.plain,
   );

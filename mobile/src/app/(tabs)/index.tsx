@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Linking, Platform, StyleSheet, View } from "react-native";
+import { useLiveChanges } from "@/api/live";
 import { useOverview } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { Battery } from "@/components/battery";
@@ -10,6 +11,7 @@ import { Button } from "@/components/button";
 import { DayStrip } from "@/components/day-strip";
 import { ListRow } from "@/components/list-row";
 import { LivePanel } from "@/components/live-tiles";
+import { LockHistory } from "@/components/lock-history";
 import { LocationMap, MapSection } from "@/components/map";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
@@ -167,11 +169,8 @@ function OverviewContent({ page }: { page: OverviewPage }) {
         </View>
       ) : null}
       {page.live ? <LivePanel live={page.live} /> : null}
-      {page.today ? (
-        <Panel title="Today">
-          <DayStrip today={page.today} />
-        </Panel>
-      ) : null}
+      {page.history ? <LockHistory history={page.history} /> : null}
+      {page.today ? <TodayPanel today={page.today} /> : null}
       {page.tires ? <Tires tires={page.tires} /> : null}
       <Location page={page} />
       {page.lastDrive ? (
@@ -184,12 +183,31 @@ function OverviewContent({ page }: { page: OverviewPage }) {
   );
 }
 
+function TodayPanel({ today }: { today: NonNullable<OverviewPage["today"]> }) {
+  const router = useRouter();
+  return (
+    <Panel title="Today">
+      <DayStrip today={today} label="Today, hour by hour" />
+      <Button
+        label="Timeline"
+        kind="secondary"
+        onPress={() => router.push("/drives/timeline", { withAnchor: true })}
+      />
+    </Panel>
+  );
+}
+
 export default function OverviewScreen() {
   const { cars, car, choose } = useCar();
   const overview = useOverview(car.id);
+  useLiveChanges(car.id, ["overview", car.id]);
   const refresh = useRefresh(overview);
   return (
-    <Screen refreshing={refresh.refreshing} onRefresh={refresh.onRefresh}>
+    <Screen
+      withoutHeader
+      refreshing={refresh.refreshing}
+      onRefresh={refresh.onRefresh}
+    >
       {cars.length > 1 ? (
         <SegmentedControl
           label="Car"

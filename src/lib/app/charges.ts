@@ -243,13 +243,24 @@ export function chargeDetail(
               : `up to ${Math.round(session.maxCurrent)} A`,
         },
       ),
+      ...(figures.cable ? [appStat("Cable", figures.cable)] : []),
+      ...(figures.batteryHeater
+        ? [appStat("Battery heater", figures.batteryHeater)]
+        : []),
     ],
     cost: breakdown
       ? {
           source: figures.costSource,
-          note: session.costEstimated
-            ? "Change the price in Settings on the web."
-            : null,
+          note:
+            [
+              figures.tariff && `The price at this place: ${figures.tariff}.`,
+              figures.estimatedFrom === "settings" &&
+                "Change the price in Settings on the web.",
+              figures.estimatedFrom === "geofence" &&
+                "Change it in the geofence in TeslaMate.",
+            ]
+              .filter(Boolean)
+              .join(" ") || null,
           stats: [
             appStat(
               "Energy billed",
@@ -259,9 +270,7 @@ export function chargeDetail(
               { detail: "From the charger" },
             ),
             appStat("Price per kWh", f.cost(breakdown.perKwhBilled), {
-              detail: session.costEstimated
-                ? "Your price"
-                : "Cost ÷ energy billed",
+              detail: figures.perKwhSource,
             }),
             appStat("Per kWh in the battery", f.cost(breakdown.perKwhAdded), {
               detail:

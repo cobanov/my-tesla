@@ -61,3 +61,44 @@ export function idleWatts(period: IdlePeriod): number | null {
   const hours = period.durationS / 3600;
   return period.energyKwh === null ? null : (period.energyKwh / hours) * 1000;
 }
+
+const dayMs = 24 * 60 * 60 * 1000;
+
+export function chargeAdvice(
+  lfp: boolean,
+  charges: { endLevel: number; endAt: Date }[],
+  now: Date,
+): { advice: string; detail: string | null } {
+  if (lfp) {
+    const lastFull = charges
+      .filter((charge) => charge.endLevel >= 99)
+      .reduce<Date | null>(
+        (latest, charge) =>
+          latest && latest >= charge.endAt ? latest : charge.endAt,
+        null,
+      );
+    const days = lastFull
+      ? Math.floor((now.getTime() - lastFull.getTime()) / dayMs)
+      : null;
+    return {
+      advice:
+        "This car has an LFP battery. Tesla recommends a charge limit of 100%, and a full charge at least once a week.",
+      detail:
+        days === null
+          ? charges.length
+            ? "No full charge in this period."
+            : null
+          : days === 0
+            ? "The last full charge was today."
+            : `The last full charge was ${days} ${days === 1 ? "day" : "days"} ago.`,
+    };
+  }
+  const high = charges.filter((charge) => charge.endLevel > 90).length;
+  return {
+    advice:
+      "Tesla recommends a daily charge limit of 80 to 90% for this battery, and 100% only before a long trip.",
+    detail: charges.length
+      ? `${high} of ${charges.length} ${charges.length === 1 ? "charge" : "charges"} in this period ended above 90%.`
+      : null,
+  };
+}

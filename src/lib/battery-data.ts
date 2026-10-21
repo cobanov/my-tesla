@@ -5,6 +5,13 @@ import { chargeSessions, type ChargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import type { CapacityPoint, IdlePeriod } from "./insights";
 import { rangeColumn } from "./range-columns";
+import type { LevelTrendPoint, RangeGroup, StateTime } from "./trends";
+import {
+  chargeLevelTrendQuery,
+  rangeByLevelQuery,
+  rangeByTemperatureQuery,
+  stateTimesQuery,
+} from "./trends-sql";
 import { getRangeKind } from "./viewer";
 
 export type BatteryCapacityPoint = CapacityPoint & {
@@ -181,14 +188,15 @@ export const chargeLevels = cache(
   async (
     carId: number,
     from: Date | null,
-  ): Promise<{ startLevel: number; endLevel: number }[]> => {
+  ): Promise<{ startLevel: number; endLevel: number; endAt: Date }[]> => {
     await connection();
     const since = (from ?? new Date(0)).toISOString();
     const { relation: sessions } = await chargeSessions(carId);
-    return database()<{ startLevel: number; endLevel: number }[]>`
+    return database()<{ startLevel: number; endLevel: number; endAt: Date }[]>`
       select
         start_battery_level::int as "startLevel",
-        end_battery_level::int as "endLevel"
+        end_battery_level::int as "endLevel",
+        end_date at time zone 'UTC' as "endAt"
       from ${sessions} cp
       where car_id = ${carId}
         and end_date is not null
@@ -289,5 +297,39 @@ export const idlePeriods = cache(
         and v.end_km - v.start_km < 1
       order by v.start_date desc
     `;
+  },
+);
+
+export const chargeLevelTrend = cache(
+  async (carId: number, from: Date | null): Promise<LevelTrendPoint[]> => {
+    await connection();
+    return chargeLevelTrendQuery(database(), carId, from ?? new Date(0));
+  },
+);
+
+export const projectedRanges = cache(
+  async (
+    carId: number,
+    from: Date | null,
+  ): Promise<{ byTemperature: RangeGroup[]; byLevel: RangeGroup[] }> => {
+    await connection();
+    const kind = await getRangeKind();
+    const since = from ?? new Date(0);
+    const [byTemperature, byLevel] = await Promise.all([
+      rangeByTemperatureQuery(database(), carId, since, kind),
+      rangeByLevelQuery(database(), carId, since, kind),
+    ]);
+    return { byTemperature, byLevel };
+  },
+);
+
+export const stateTimes = cache(
+  async (
+    carId: number,
+    from: Date | null,
+    until: Date,
+  ): Promise<StateTime[]> => {
+    await connection();
+    return stateTimesQuery(database(), carId, from ?? new Date(0), until);
   },
 );

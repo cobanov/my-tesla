@@ -93,6 +93,44 @@ Checked on 2026-10-13 against the Checklist Design checklists for a data table, 
 5. **Charger badge.** `ChargerBadge` draws the AC or DC label on every page.
 6. **Open.** The lists show the last 50 drives and charges without paging. The subtle text color is under 4.5:1 on the cards. Reset to defaults has no confirmation. Each needs a product decision.
 
+## Sign-in forms and the calendar panel
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light.
+
+1. **One card.** `AuthCard` holds the setup, sign-in, invite, and reset forms: one column, the title and one sentence of intro, the form, and the error or the result under it. Apple's and Material's sign-in guidance both ask for one task per screen and no navigation around it, so the card has no tab bar and no car switcher.
+2. **Fields.** `TextField` in `auth/fields.tsx` pairs each input with a visible label through `htmlFor` and `useId`, and puts the hint in `aria-describedby`, not inside the label, so a screen reader reads the name first (WCAG 2.2, 1.3.1 and 3.3.2). The `autoComplete` tokens `username`, `current-password`, and `new-password` let password managers fill and save. The password rule shows before the first try, because WCAG 3.3.2 asks for the instruction up front.
+3. **Submit.** `SubmitButton` reads `useFormStatus` and disables itself while the action runs, with the same height and the Tesla blue of the other primary buttons. The result message is a live region (`role="status"`), the error an `alert`.
+4. **Calendar panel.** `CalendarLinkPanel` follows the pairing panel of Settings: one button makes the link, the link shows once with a `webcal:` subscribe link, and a sentence says that the link is a key. The link is never kept in the page after a reload.
+
+Sources: [Apple HIG, Entering data](https://developer.apple.com/design/human-interface-guidelines/entering-data), [Material 3, Text fields](https://m3.material.io/components/text-fields/guidelines), [WCAG 2.2, 3.3.2 Labels or Instructions](https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions), [React, useFormStatus](https://react.dev/reference/react-dom/hooks/useFormStatus).
+
+## Year in review
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with metric and with US settings.
+
+1. **Place.** The page hangs off Stats at `/stats/year`, with a back link, like Charging insights and Report hang off their tabs. The tab bar keeps five data tabs. Stats links to it with a card button next to the period control, like the Insights and Report buttons.
+2. **Year picker.** `SegmentedLinks` with one link for each year that has a drive or a charge, newest first. The current year in the user's time zone is the default, and the newest year with data stands in when the current year has none. The active year carries `aria-current="page"`, and each link is 32 px high, above the 24 px of WCAG 2.2 target size.
+3. **Many years.** Apple suggests about five segments on iPhone, and a car that TeslaMate has logged since 2019 has eight years. `SegmentedLinks` now wraps its links inside the screen width with `max-w-full flex-wrap`, so no year moves off the screen and the page never scrolls sideways, which WCAG 2.2 reflow asks for at 320 px. The period control has five short links and stays on one line.
+4. **Shared parts.** `StatsTotals` holds the eight figures of Stats, and `VisitedPlaces` holds the most visited list of Places. The year page uses both, so the figures read the same on the three pages.
+5. **Month chart.** Bars for the distance of each month, the pattern for counts per day, week, or month. Records name the busiest month in full, because the axis label `Sep 26` can read as a date.
+6. **Records.** One row each for the busiest month, the busiest day, the longest drive, and the biggest charge. A row links to the day in Timeline, the drive, or the charge, and a row without a page keeps the same right edge.
+7. **Places.** A list without a map, so the map setting does not apply.
+
+Sources: [Apple segmented controls](https://developer.apple.com/design/human-interface-guidelines/segmented-controls), [WCAG 2.2 reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow), [WCAG 2.2 target size (minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [WAI-ARIA `aria-current`](https://www.w3.org/TR/wai-aria-1.2/#aria-current), and the Next.js 16.3.8 `page.md` guide on `searchParams` in `node_modules/next/dist/docs/`.
+
+## Every road driven
+
+Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with maps on and off.
+
+1. **One layer.** `DrivenMap` in `src/components/maps.tsx` draws all drives as one `MultiLineString` through the mapcn `MapGeoJSON` part: one GeoJSON source and one line layer, 2 px Electric Blue at 75% opacity, with no markers. The trip map keeps one `MapRoute` for each drive, which adds a source and a layer for each line and does not scale to a lifetime. MapLibre cuts a GeoJSON source into tiles in its worker and simplifies each line there with Douglas-Peucker, `tolerance` 0.375 by default.
+2. **Sampled on the server.** The page never sends every position. Drives between the same two places, about 500 m cells in either direction, keep their three latest drives. The query then takes every nth position of those drives, so that about 10,000 remain, plus the start and end of each drive. The server drops points closer than 50 m to the last kept one and thins each drive by the same share until the map holds at most 10,000 points. A drive that falls under two points is left out. The demo sends 3,730 points, and a generated history of 2,400 days with 406,281 positions sends 3,754.
+3. **Lifetime.** The map shows all records whatever the period of the page, and says so. The counts and lists of countries, states, and cities follow the period.
+4. **Maps off.** With maps off in Settings, the page runs no position query and sends no coordinate. The card shows the same note as the other maps.
+5. **Access.** The map is a picture of the roads. The counts and the lists of countries, states, and cities next to it carry its information as text, and the card heading names it (WCAG 1.1.1). The zoom buttons give a single-pointer way to zoom, and cooperative gestures keep one finger and the scroll wheel for the page (WCAG 2.5.7).
+6. **Open.** Older roads between two places that the car now drives another way do not show. The query reads the positions of the chosen drives twice, once to count and once to sample.
+
+Sources: [MapLibre style spec, sources](https://maplibre.org/maplibre-style-spec/sources/), [Mapbox, working with large GeoJSON sources](https://docs.mapbox.com/help/troubleshooting/working-with-large-geojson-data/), [WCAG 2.2 Understanding 1.1.1 Non-text Content](https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html), [WCAG 2.2 Understanding 2.5.7 Dragging Movements](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements), [TeslaMate Grafana dashboards Visited and Locations](https://github.com/teslamate-org/teslamate/tree/main/grafana/dashboards).
+
 ## Rejected
 
 | Option | Reason |
@@ -127,11 +165,22 @@ Checked on 2026-10-01. Tesla's compositor draws a car from option codes: `https:
 2. A badge that ends in `d` picks the all-wheel-drive trim.
 3. `bkba_opt=1` gives a transparent PNG, 1440 x 810.
 4. An unknown code returns HTTP 412. The page hides the image when it fails to load.
-5. Akamai returns 403 to curl and Node on a development machine, and 200 to Chrome. So the browser loads the render directly, with `unoptimized` on `next/image`. Tesla sees the browser address and the car configuration.
+5. The browser loads the render directly, with `unoptimized` on `next/image`. Tesla sees the browser address and the car configuration. Akamai refuses a browser `User-Agent` sent by curl or Node.js, not the tools themselves. [Car images](car-images.md) explains why My Tesla keeps the direct link.
 6. The codes `MTY68`, `MTY78`, and `MTY85` also render with the Aperture wheels, and look the same at this angle. One of them can be the Model Y Standard from late 2025. The table keeps the verified `MTY61`.
 7. Checked on 2026-10-14 with the names that TeslaMate users report in [vide/matedroid](https://github.com/vide/matedroid/blob/main/docs/ASSETS.md). TeslaMate writes some names in two ways, such as `BlackDiamond` and `StealthGray`, and it can add an ending to a wheel name, such as `Pinwheel18CapKit` and `Apollo19MetallicShadow`. The table matches the start of the wheel name, the longest name first.
 8. A wheel name can fit two generations: `Uberturbine21` is the 2020-2024 Model Y Performance and the 2025 one. The first generation with both the color and the wheel wins, and the older one comes first. A white 2025 Performance then shows the older body.
-9. An unknown wheel shows the usual wheels of the generation, when the color fits one generation only. With a color of two generations, the car shows no image.
+9. An unknown wheel shows the usual wheels of the newest generation that has the color.
 10. The 138 addresses that the table makes for these names were loaded: 136 gave a render. Marine Blue with the 18 inch wheels gives HTTP 412, and Tesla does not sell it.
-11. `v1/compositor` answers 200 with a black shape for a color that it does not know, such as `PN01` on a Model S. Model S, Model X, and Cybertruck have no table: `v1/compositor` draws the body from before 2021.
+11. `v1/compositor` answers 200 with a black shape for a color that it does not know, such as `PN01` on a Model S. Checked on 2026-10-18: Model S, Model X, and the Cybertruck have tables too, and [Car images](car-images.md) lists every model, color, and wheel with its source and result.
 
+
+## CARTO basemaps key
+
+Checked on 2026-10-18. CARTO asks for a free key on its basemaps: a raster tile without a key shows "API KEY REQUIRED", and the vector styles and tiles that My Tesla uses still answer without one, but CARTO says the vector maps come next. The key goes in the `key` query parameter of every style, tile, glyph, and sprite request under `basemaps.cartocdn.com`. Keys registered before 23 September 2026 work as they are until 30 November 2026. The free tier allows 5 million requests a month for non-commercial use.
+
+1. **Optional.** `CARTO_BASEMAPS_KEY` turns the key on. Without it nothing changes.
+2. **Every request.** The style URL alone is not enough, because the style links to the tile list, the tiles, the glyphs, and the sprites. The web map adds the key with the MapLibre `transformRequest` option, and the app with `TransformRequestManager.addUrlSearchParam` of `@maplibre/maplibre-react-native` 11, both only for `https` URLs on `cartocdn.com`.
+3. **Public.** The key reaches each browser through the car layout and each phone through the Settings answer of the app API. A basemap key is public by nature, as in the CARTO samples for MapLibre GL JS.
+4. **Checked.** With a placeholder key, every CARTO request of the Places page (style, sprites, tile list, tiles, and glyphs) carried it, and CARTO still answered 200, so an unknown key is not refused yet. The maps of the app drew on iOS and Android with the key set.
+
+Sources: [CARTO: request an API key for basemaps](https://www.carto.com/basemaps/apikey/), [CARTO basemaps docs](https://docs.carto.com/carto-for-developers/basemaps), [MapLibre GL JS `transformRequest`](https://maplibre.org/maplibre-gl-js/docs/API/type-aliases/MapOptions/#transformrequest), [Home Assistant report of the key message, August 2026](https://community.home-assistant.io/t/carto-com-maps-requires-an-api-key/1022703).

@@ -19,6 +19,7 @@ import type {
   AppChart,
   AppTarget,
   DriveDetail,
+  DriveRow,
   DriveList,
   LngLat,
   TripDetail,
@@ -37,6 +38,33 @@ function tripTarget(trip: Trip): AppTarget {
   return trip.drives.length === 1
     ? { kind: "drive", id: trip.drives[0]!.id }
     : { kind: "trip", id: trip.id };
+}
+
+export function tripRow(
+  trip: Trip,
+  rated: number | null,
+  f: Formatter,
+): DriveRow {
+  const summary = tripSummary(trip);
+  return {
+    key: `trip-${trip.id}`,
+    target: tripTarget(trip),
+    clock: f.clock(trip.startAt),
+    duration: f.duration(summary.totalMin),
+    title: tripDestination(trip).place,
+    subtitle: dotted([tripOrigin(trip), stopsText(summary)]),
+    segments: tripSegments(trip),
+    distance: f.distance(summary.distanceKm),
+    consumption: appValue(
+      f.efficiency(summary.consumptionWhPerKm),
+      assessConsumption(
+        summary.consumptionWhPerKm,
+        rated,
+        f,
+        summary.distanceKm,
+      ),
+    ),
+  };
 }
 
 export function driveList(
@@ -62,25 +90,7 @@ export function driveList(
       .groupByDay(summaries, ({ trip }) => trip.startAt, now)
       .map((group) => ({
         title: group.label,
-        rows: group.items.map(({ trip, summary }) => ({
-          key: `trip-${trip.id}`,
-          target: tripTarget(trip),
-          clock: f.clock(trip.startAt),
-          duration: f.duration(summary.totalMin),
-          title: tripDestination(trip).place,
-          subtitle: dotted([tripOrigin(trip), stopsText(summary)]),
-          segments: tripSegments(trip),
-          distance: f.distance(summary.distanceKm),
-          consumption: appValue(
-            f.efficiency(summary.consumptionWhPerKm),
-            assessConsumption(
-              summary.consumptionWhPerKm,
-              rated,
-              f,
-              summary.distanceKm,
-            ),
-          ),
-        })),
+        rows: group.items.map(({ trip }) => tripRow(trip, rated, f)),
       })),
   };
 }

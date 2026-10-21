@@ -7,7 +7,7 @@ The dashboard shows a location history. This page lists every place that data go
 - The server reads the database and renders the pages. The browser gets HTML and chart data for the pages that you open.
 - The saved Settings stay in `PREFERENCES_FILE` on your server.
 - The accounts stay in `auth.sqlite` next to it: name, email, and an Argon2id hash of the password. For each session, phone, and script token it keeps a hash of the token, the phone name and system, the network address of the sign-in, and the time of the last use. Signed-out sessions are deleted.
-- With [Live status](live-status.md), the server keeps the last MQTT values in memory only. It saves no history and never publishes to the broker.
+- With [Live status](live-status.md), the server keeps the last MQTT values in memory and never publishes to the broker. It saves one history in `history.sqlite`, next to the Settings file: each change of the lock state and of Sentry Mode, with its time, for 366 days. Delete the file to clear it.
 - With push alerts, the server keeps the push token and the chosen events of each phone in `push-devices.json`, next to the Settings file.
 - A normal install sends no analytics and no telemetry. Only demo mode can load an analytics script, and only when its operator sets `OPEN_ANALYTICS_URL` and `OPEN_ANALYTICS_KEY`. The container image also sets `NEXT_TELEMETRY_DISABLED=1`, which turns off the build telemetry of Next.js.
 
@@ -21,7 +21,7 @@ The dashboard shows a location history. This page lists every place that data go
 
 | Service | Request | What the service can see | How to stop it |
 |---|---|---|---|
-| CARTO basemaps | Map tiles for the map views of the web and the mobile app | Your IP address and the map area around the car, its routes, and your places | Settings, Location, Maps: Hide |
+| CARTO basemaps | Map tiles for the map views of the web and the mobile app, with the `CARTO_BASEMAPS_KEY` when it is set | Your IP address, the map area around the car, its routes, and your places, and the key, which ties the requests to the CARTO account of the key | Settings, Location, Maps: Hide |
 | Tesla image server (`static-assets.tesla.com`) | The picture of your car on Overview | Your IP address and the model, color, wheels, and trim of the car | Settings, Overview: turn off Car image |
 | Apple Maps | Only when you press "Open in Maps" | The car position | Do not press the button |
 

@@ -18,6 +18,7 @@ import {
 import { safeNext } from "./paths";
 import {
   authStore,
+  calendarPlatform,
   clearSessionCookie,
   clientAddress,
   currentSession,
@@ -341,8 +342,15 @@ export async function changePassword(
   if (next !== text(form, "confirm")) {
     return { error: "The two new passwords differ." };
   }
+  let hash: string;
+  try {
+    hash = await hashPassword(next);
+  } catch (error) {
+    if (error instanceof PasswordBusyError) return busy;
+    throw error;
+  }
   succeeded(attempt);
-  authStore().setPassword(user.id, await hashPassword(next), Date.now());
+  authStore().setPassword(user.id, hash, Date.now());
   authStore().deleteOtherSessions(user.id, session.id);
   refresh();
   return {
@@ -387,6 +395,36 @@ export async function createScriptToken(
   );
   refresh();
   return { error: null, done: token, values: { name } };
+}
+
+export type CalendarLink =
+  { ok: true; url: string; subscribe: string } | { ok: false; message: string };
+
+export async function createCalendarLink(
+  carId: unknown,
+): Promise<CalendarLink> {
+  const { user } = await requireWeb();
+  const car =
+    typeof carId === "number" && Number.isInteger(carId)
+      ? await findCar(carId)
+      : null;
+  if (!car) return { ok: false, message: "The server does not know this car." };
+  const origin = await linkOrigin();
+  if (!origin) {
+    return { ok: false, message: "Set SITE_URL to the public address." };
+  }
+  const { token } = authStore().createSession(
+    {
+      userId: user.id,
+      kind: "device",
+      status: "active",
+      device: { name: car.name, platform: calendarPlatform, ip: null },
+      ip: null,
+    },
+    Date.now(),
+  );
+  const url = `${origin}/api/cars/${car.id}/calendar.ics?token=${token}`;
+  return { ok: true, url, subscribe: url.replace(/^https?:/, "webcal:") };
 }
 
 export type PairingCode =

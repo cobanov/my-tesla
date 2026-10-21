@@ -1,5 +1,7 @@
 import { assessBatteryLevel, assessTirePressure } from "../assessment";
 import type { Formatter } from "../format";
+import { historyText } from "../history/changes";
+import type { HistoryEvent } from "../history/store";
 import { buildTimeline } from "../insights";
 import type { LiveFeed } from "../live/live";
 import { liveNotices, liveTiles } from "../live/tiles";
@@ -16,7 +18,12 @@ import {
   ongoingText,
   variantLine,
 } from "../vehicle";
-import type { AppValue, OverviewPage, RecentRecord } from "./contract";
+import type {
+  AppValue,
+  LiveIcon,
+  OverviewPage,
+  RecentRecord,
+} from "./contract";
 import { appStat, appValue } from "./values";
 
 export type OverviewInput = {
@@ -28,11 +35,17 @@ export type OverviewInput = {
   today: (DayRecords & { start: Date; end: Date }) | null;
   live: LiveFeed | null;
   leaks: SlowLeak[];
+  history: HistoryEvent[] | null;
   show: Preferences["overview"];
   showMaps: boolean;
 };
 
-function dayStrip(
+function historyIcon(event: HistoryEvent): LiveIcon {
+  if (event.kind === "locked") return event.value ? "lock" : "lock-open";
+  return event.value ? "shield" : "shield-off";
+}
+
+export function dayStrip(
   today: NonNullable<OverviewInput["today"]>,
   f: Formatter,
   now: Date,
@@ -169,6 +182,17 @@ export function overviewPage(
               ? null
               : `No live values yet. TeslaMate sends them when ${car.name} is online.`,
           }
+        : null,
+    history:
+      show.live && input.history
+        ? input.history.map((event) => ({
+            key: `${event.kind}-${event.at}`,
+            icon: historyIcon(event),
+            title: historyText(event),
+            when: `${f.day(new Date(event.at), now)} ${f.clock(new Date(event.at))}`,
+            tone:
+              event.kind === "locked" && !event.value ? "warning" : "normal",
+          }))
         : null,
     today:
       hasData && show.today && input.today

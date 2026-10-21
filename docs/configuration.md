@@ -20,6 +20,7 @@ The server reads environment variables at the first request. The browser never s
 | `OPEN_ANALYTICS_KEY` | No | Empty | Demo mode only. The public tracking key of the Open Analytics site. Both variables must be set. |
 | `PORT` | No | `3000` | The port of the standalone server |
 | `HOSTNAME` | No | `0.0.0.0` in the image | The address of the standalone server |
+| `CARTO_BASEMAPS_KEY` | No | Empty | A CARTO basemaps key, free at [carto.com/basemaps/apikey](https://www.carto.com/basemaps/apikey/). The web and the mobile app add it as `key=` to every request to `cartocdn.com`. CARTO now asks for a key on its raster maps and says the vector maps that My Tesla uses come next. Without a key the maps still load today. The key goes to each browser and phone, so it is public by nature: use one key for this dashboard only. |
 | `MQTT_URL` | No | Empty | The TeslaMate MQTT broker, such as `mqtt://mosquitto:1883`. Empty turns off the Live card. Read [Live status](live-status.md). |
 | `MQTT_USERNAME` | No | Empty | A broker user that can only read `teslamate/#` |
 | `MQTT_PASSWORD` | No | Empty | The password of that user. Set `MQTT_USERNAME` with it. |
@@ -56,7 +57,7 @@ TeslaMate records a cost only for a charge in a geofence with a price. For the o
 3. Type the price per kWh, then press Enter. Use a dot or a comma for the decimals.
 4. Optional: type a separate price for DC fast chargers.
 
-For each completed charge without a TeslaMate cost, the app multiplies the energy from the charger by the price. The energy from the charger is the larger of the energy added and the energy used, as in TeslaMate. A cost that TeslaMate recorded always stays.
+For each completed charge without a TeslaMate cost, the app first applies the rules of TeslaMate: a car with free Supercharging costs 0 at a Tesla Supercharger, and a geofence with a price per minute or per kWh, or a session fee, prices the charge as TeslaMate does. Otherwise the app multiplies the energy from the charger by the price. The energy from the charger is the larger of the energy added and the energy used, as in TeslaMate. A cost that TeslaMate recorded always stays.
 
 The charge page shows the source of each cost and a breakdown: the energy billed, the price per kWh, the cost per kWh in the battery, the charging losses, and the cost per 100 km of range. The Stats chart and the CSV file also name the charges that use your price. Empty the field to remove a price. [Decision 0011](decisions/0011-charging-cost-from-a-price.md) explains the rule.
 
@@ -69,3 +70,5 @@ The server keeps the Settings in memory for up to 1 minute, with Next.js Cache C
 Back up the file with the rest of your TeslaMate data. It holds only display choices, no car data and no secrets.
 
 With [push alerts](mobile.md#push-alerts), the server also writes `push-devices.json` in the same folder. It holds the push token and the chosen alerts of each phone.
+
+With `MQTT_URL`, the server also writes `history.sqlite` in the same folder: each change of the lock state and of Sentry Mode, for 366 days. The Overview shows the changes of the last 7 days. [Decision 0024](decisions/0024-lock-and-sentry-history.md) explains it.

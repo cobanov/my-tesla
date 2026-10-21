@@ -15,10 +15,16 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 | Choice lists | A pushed screen with one row for each option and a check mark on the chosen one. It stays open after a choice. | The Settings pattern of iOS: the check mark moves at once, and Back returns. A choice saves at once, with the old value back when the server refuses it. |
 | Search in a long list | `Stack.SearchBar` on a choice list with more than 12 options, such as the time zone | The native search field of the header. SDK 55 and later replace `headerSearchBarOptions` with this component. |
 | Stacks | A `Stack` inside each tab folder, with `unstable_settings = { anchor: "index" }` | `initialRouteName` is gone in SDK 58. The anchor puts the list under a deep link, so Back returns to it. |
+| Status bar on Android | A screen without a native header adds the top safe-area inset on Android through `Screen withoutHeader`. | `contentInsetAdjustmentBehavior` works on iOS only. Android 15 and later draw every app edge to edge, so the first row of the Overview sat under the status bar on an Android 16 emulator until the inset was added. |
 | Headers | Native large titles on the list screens, a small title on the detail screens | The ScrollView must be the first child for the large title to collapse. iOS 26 makes headers transparent with Liquid Glass by default, so the app adds no blur. |
 | Header fonts | `headerTitleStyle` and `headerLargeTitleStyle` set Inter | iOS 26 headers ignore the theme fonts in SDK 58. |
 | Lists | A ScrollView with sticky day headings | Native tabs scroll a ScrollView to the top and pop the stack when the active tab is pressed again. They do not do this for a FlatList. A list holds at most 50 rows. |
 | Links from an alert | `router.navigate` to a known route only, after the car is chosen | The notification data comes from outside the app, so the app accepts only the routes in its own list. |
+| More screens of a tab | Timeline and Report in Drives, Charging insights in Charging, and the year in review in Stats open from a `LinkRow` with a chevron at the top of the list, not from header buttons. | The Apple HIG uses a disclosure indicator for a row that opens another view, and Material 3 lists use a trailing icon for navigation. A header button would need `Stack.Toolbar`, which needs `@expo/ui` on Android. Five tabs stay the limit. |
+| Year picker | A compact segmented control with the five newest years that have data | Apple suggests about five segments. An owner with more years sees the newest five; the web lists all. |
+| Report range | The four presets of the web (7 days, 30 days, this month, this year) as a segmented control. No custom date range in the app. | A date picker needs a native package. The web keeps the free range. |
+| Exports | `expo-file-system` downloads the CSV or GPX with the phone token into the cache, and `expo-sharing` opens the share sheet. | React Native `Share` shares only text on Android. A browser link would not carry the token. |
+| Pairing link from the camera | The QR code is a `mytesla://connect?…` link. When the system camera opens it, Connect shows the server address with **Connect** and **Cancel**, and claims the code only after a press. | Expo Router opens a deep link as the route with its query as search params. A link can come from any app or web page, so the app never acts on it alone: the press, the single-use code, and the approval on the web with the matching number keep a stray link from signing the phone in somewhere else. |
 | Two controls | One full-width segmented control for Battery, Stats, and Places. The period is a compact control in the section that it changes. | Apple uses a segmented control for closely related views. Two stacked controls of the same weight confuse. `Stack.Toolbar` would need `@expo/ui` on Android. |
 
 ## Components
@@ -44,6 +50,13 @@ Which navigation, components, charts, and maps give a native iOS and Android app
 | QR scanner | `CameraView.launchScanner` from `expo-camera`, with one listener on `onModernBarcodeScanned` for the Connect screen | The system scanner: VisionKit `DataScannerViewController` on iOS 16 and later, and the Google code scanner on Android. The app draws no camera screen. On iOS the scanner reports a code again on every frame, so the app takes the first one and closes it with `dismissScanner()`. iOS needs the camera permission first, and Android needs none. The plugin leaves out the microphone and `RECORD_AUDIO`. |
 | Remote images | `expo-image` with `cachePolicy="memory-disk"` and a 330 ms fade on the first load only | The car image comes from the Tesla compositor with `max-age=60`. React Native `Image` follows that header on iOS and fetched the 290 KB image again after a minute and at each start. `expo-image` keeps it in memory and on disk. |
 | Period changes | `placeholderData: keepPreviousData` | The old panels stay while the next period loads. |
+
+## Live updates
+
+| Topic | Decision | Reason |
+|---|---|---|
+| Change signal | The Overview and a charge read `/api/cars/{carId}/live`, the server-sent event stream of the web, through `expo/fetch` with the phone token, and refetch their query on an `event: change`, at most once every 2 s. | React Native has no `EventSource`, and a library would add a dependency for a few lines. SDK 58 installs `expo/fetch` as the global fetch with a streaming body on iOS and Android, and Hermes gives `TextDecoder`. The stream sends only "something changed", never a value, so the answer still comes from the formatted app API. |
+| Life cycle | The stream runs only while the screen is focused and the app is active, reconnects after 5 s, and stops for good on 204 (no MQTT feed), 401, 403, or 404. | A hidden tab or a phone in the pocket should hold no connection. The 30 s poll stays as the fallback when the stream is closed. |
 
 ## Charts
 
@@ -91,7 +104,10 @@ The server sends each chart as points in the user's units, the axis domains, the
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [React Native Pressable](https://reactnative.dev/docs/pressable), [accessibility](https://reactnative.dev/docs/accessibility), [AccessibilityInfo](https://reactnative.dev/docs/accessibilityinfo), [text style props](https://reactnative.dev/docs/text-style-props)
 - [Expo React Compiler guide](https://docs.expo.dev/guides/react-compiler/), [Expo color themes](https://docs.expo.dev/develop/user-interface/color-themes/)
-- [TanStack Query for React Native](https://tanstack.com/query/latest/docs/framework/react/react-native)
+- [TanStack Query for React Native](https://tanstack.com/query/latest/docs/framework/react/react-native), [query invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation)
+- [Apple HIG: lists and tables](https://developer.apple.com/design/human-interface-guidelines/lists-and-tables), [Material 3 lists](https://m3.material.io/components/lists/guidelines), [Expo FileSystem](https://docs.expo.dev/versions/v58.0.0/sdk/filesystem/), [Expo Sharing](https://docs.expo.dev/versions/v58.0.0/sdk/sharing/)
+- [Android edge-to-edge](https://developer.android.com/develop/ui/views/layout/edge-to-edge), [react-native-safe-area-context](https://docs.expo.dev/versions/v58.0.0/sdk/safe-area-context/)
+- [Expo `expo/fetch` streaming](https://docs.expo.dev/versions/latest/sdk/expo/), [Expo Router linking](https://docs.expo.dev/router/basics/navigation/), [server-sent events in the HTML standard](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 - [React Native Appearance](https://reactnative.dev/docs/appearance), [Expo storage guide](https://docs.expo.dev/develop/user-interface/store-data/), [Expo SQLite kv-store](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/), [expo-image](https://docs.expo.dev/versions/v58.0.0/sdk/image/), [expo-camera](https://docs.expo.dev/versions/v58.0.0/sdk/camera/), [React Native image cache control](https://reactnative.dev/docs/images#cache-control-ios-only), [Expo Router stack search bar](https://docs.expo.dev/versions/v58.0.0/sdk/router/stack/)
 - [Nielsen Norman Group: skeleton screens](https://www.nngroup.com/articles/skeleton-screens/)
 - [victory-native releases](https://github.com/FormidableLabs/victory-native-xl/releases), [gifted-charts issue 789](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/issues/789), [Skia bundle size](https://github.com/wcandillon/react-native-skia/blob/2.x/apps/docs/docs/getting-started/bundle-size.md)

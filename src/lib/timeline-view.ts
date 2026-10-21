@@ -1,0 +1,103 @@
+import type { Formatter } from "./format";
+import {
+  buildTimeline,
+  timelineItems,
+  type TimelineCharge,
+  type TimelineDrive,
+  type TimelineItem,
+  type TimelineState,
+} from "./insights";
+import { ongoingText } from "./vehicle";
+
+const minuteMs = 60_000;
+
+type TimelineTarget =
+  { kind: "drive"; id: number } | { kind: "charge"; id: number } | null;
+
+export type TimelineRow = {
+  item: TimelineItem;
+  time: string;
+  title: string;
+  detail: string;
+  target: TimelineTarget;
+};
+
+function describe(item: TimelineItem, f: Formatter): TimelineRow {
+  const durationOf = (ms: number) => f.duration(ms / minuteMs);
+  const open = item.kind === "charge" && item.charge.end === null;
+  const time = `${f.clock(item.start)} – ${open ? "Now" : f.clock(item.end)}`;
+  const length = item.end.getTime() - item.start.getTime();
+  if (item.kind === "drive") {
+    return {
+      item,
+      time,
+      title: `Drive to ${item.drive.to}`,
+      detail: `${f.distance(item.drive.distanceKm)} · ${durationOf(length)} · from ${item.drive.from}`,
+      target: { kind: "drive", id: item.drive.id },
+    };
+  }
+  if (item.kind === "charge") {
+    return {
+      item,
+      time,
+      title: `${open ? "Charging" : "Charged"} at ${item.charge.place}`,
+      detail: `${open ? ongoingText : `+${f.energy(item.charge.energyAddedKwh)}`} · ${durationOf(length)} · ${item.charge.fast ? "DC" : "AC"}`,
+      target: { kind: "charge", id: item.charge.id },
+    };
+  }
+  return {
+    item,
+    time,
+    title: item.place ? `Parked at ${item.place}` : "Parked",
+    detail: [
+      item.asleepMs ? `asleep ${durationOf(item.asleepMs)}` : null,
+      item.awakeMs ? `awake ${durationOf(item.awakeMs)}` : null,
+      item.offlineMs ? `offline ${durationOf(item.offlineMs)}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    target: null,
+  };
+}
+
+export function timelineView(
+  records: {
+    states: TimelineState[];
+    drives: TimelineDrive[];
+    charges: TimelineCharge[];
+  },
+  window: { start: Date; end: Date },
+  now: Date,
+  f: Formatter,
+) {
+  const segments = buildTimeline({ ...records, ...window, now });
+  const rows = timelineItems(segments)
+    .filter((item) => item.end.getTime() - item.start.getTime() >= minuteMs)
+    .map((item) => describe(item, f));
+  const sum = (kind: string) =>
+    segments
+      .filter((segment) => segment.kind === kind)
+      .reduce(
+        (total, segment) =>
+          total + segment.end.getTime() - segment.start.getTime(),
+        0,
+      );
+  const covered = segments.reduce(
+    (total, segment) => total + segment.end.getTime() - segment.start.getTime(),
+    0,
+  );
+  return {
+    segments,
+    rows,
+    drivenKm: records.drives.reduce(
+      (total, drive) => total + (drive.distanceKm ?? 0),
+      0,
+    ),
+    chargedKwh: records.charges.reduce(
+      (total, charge) => total + (charge.energyAddedKwh ?? 0),
+      0,
+    ),
+    drivingMin: sum("drive") / minuteMs,
+    asleepPercent: covered ? Math.round((sum("asleep") / covered) * 100) : 0,
+  };
+}

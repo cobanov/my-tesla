@@ -36,7 +36,7 @@ export function CarProvider({ children }: { children: ReactNode }) {
 
   if (!cars.data) {
     return (
-      <Screen>
+      <Screen withoutHeader>
         <QueryView query={cars}>{() => null}</QueryView>
       </Screen>
     );
@@ -48,7 +48,7 @@ export function CarProvider({ children }: { children: ReactNode }) {
     list[0];
   if (!car) {
     return (
-      <Screen>
+      <Screen withoutHeader>
         <EmptyState
           title="No car yet"
           text="TeslaMate shows a car here after you sign in to your Tesla account in TeslaMate."

@@ -49,7 +49,7 @@ mobile/src/
 2. Every tab with more than one screen is a folder with a `_layout.tsx` that renders a `Stack` and exports `unstable_settings = { anchor: "index" }`.
 3. The list screen of a tab uses a large title (`headerLargeTitleEnabled: true`). A detail screen sets its title from its data with `<Stack.Screen options={{ title }} />` inside the screen.
 4. Every `Stack` uses `screenOptions={useStackOptions()}` from `src/navigation/header.ts`, so the headers use Inter and the palette.
-5. Connect lives in the root stack. Its scan button reads the QR code from Settings on the web with `CameraView.launchScanner`, `pairingOf()` in `src/connection/server.ts` checks the code, `/api/app/pair` trades it for a phone token, and the screen polls `/api/app/pair/status` until the person allows the phone on the web. The token stays in `expo-secure-store` with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. A 401 for a phone token throws `SignedOutError`, and the root layout then forgets the connection. Settings is a tab: its list screen shows the groups from `/api/app/settings`, and `settings/[key]` lists the options of one choice with a check mark. A choice list with more than 12 options gets `Stack.SearchBar`.
+5. Connect lives in the root stack. Its scan button reads the QR code from Settings on the web with `CameraView.launchScanner`, and a `mytesla://connect?…` link from the camera app opens Connect with the code, which waits for a press on **Connect**. `pairingOf()` and `pairingOfLink()` in `src/connection/server.ts` check the code, `/api/app/pair` trades it for a phone token, and the screen polls `/api/app/pair/status` until the person allows the phone on the web. The token stays in `expo-secure-store` with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. A 401 for a phone token throws `SignedOutError`, and the root layout then forgets the connection. Settings is a tab: its list screen shows the groups from `/api/app/settings`, and `settings/[key]` lists the options of one choice with a check mark. A choice list with more than 12 options gets `Stack.SearchBar`.
 6. Build a link to a drive, a trip, or a charge with `targetHref(target, stack)`. Push it with `router.push(href)` in the same tab. From another tab, add `{ withAnchor: true }`.
 7. Use the typed route objects (`{ pathname: "/drives/[driveId]", params }`). Typed routes are on, so the type check catches a wrong path. Run `bun run start` once after you add a route, so Expo writes the route types.
 8. Never navigate to a string that comes from outside the app. `alertRoute()` in `src/alerts/use-alerts.ts` keeps the list of routes that an alert may open.
@@ -60,7 +60,7 @@ mobile/src/
    - checks the answer with a shape function from `src/api/responses.ts`, and fails with a readable message when the server is not My Tesla or is too old;
    - sets `subscribed: useIsFocused()`, so a hidden tab does not poll;
    - keeps the server address in the query key, so two servers never share a cache.
-2. Poll (`refetchInterval: 30_000`) only screens that show live values: Overview and a charge. Lists refresh when the tab comes back into focus or the app returns to the foreground.
+2. Poll (`refetchInterval: 30_000`) only screens that show live values: Overview and a charge. They also call `useLiveChanges()` from `src/api/live.ts`, which reads the change stream of the server and refetches their query on a change. Lists refresh when the tab comes back into focus or the app returns to the foreground.
 3. A screen with a filter, such as the period, sets `keepPrevious: true`, so the old panels stay while the next ones load.
 4. A query that must show without a network sets `stored: <key>` in `useAppQuery`. The answer goes to `expo-sqlite/kv-store`, comes back as `initialData` through the same shape check, and is fetched again at once. Only the car list and the Settings use it: the tabs need the car list to open, and live values from a stored answer would mislead. Disconnect removes both with `forgetStored()`.
 5. Change a server setting with `useSettingChange()`. It shows the new value at once, puts the old one back when the server refuses, and refetches the other screens, because their units change.
@@ -76,11 +76,15 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | Component | Use |
 |---|---|
 | `Text` | All text. Variants: `body`, `label`, `caption`, `strong`, `value`, `heading`, `title`, `display`, `hero`. Pass `tone` for a palette color or `color` for a computed one. `hero`, `display`, and `title` stop growing at 1.2 times the font scale. |
-| `Screen` | The scroll container of every screen. It sets the insets for the transparent header and the tab bar, and the refresh control. |
+| `Screen` | The scroll container of every screen. It sets the insets for the transparent header and the tab bar, and the refresh control. A screen without a native header, such as the Overview, passes `withoutHeader`, so Android keeps it below the status bar. |
 | `Panel` | A card: a muted title, an optional note on the right, and children. A `Button` inside a panel gets the page background. |
 | `Stat`, `StatGrid` | An `AppStat` from the server: a label, a value with its tone, and a detail. A value with a note opens the explanation on press. |
 | `ListRow`, `RowTime` | A row of a list. Always pass `label`, the text that a screen reader says, with the units written out by the server text. Pass `selected` for the chosen row of a choice list. |
-| `DayList` | A list grouped by day with sticky headings |
+| `DayList` | A list grouped by day with sticky headings, and optional `actions` under the summary |
+| `LinkRow` | A row with a chevron that opens another screen of the same tab, such as Timeline from Drives |
+| `InsightBody`, `PeriodControl` | The hero, the hero blocks, and the sections of an insight page, for Insights, Charging insights, and the year in review |
+| `DriveListRow` | A trip or a charge row of a drive list, for Drives and the Report |
+| `ExportButton` | Downloads an export of the server with the phone token and opens the share sheet. `src/api/export-file.ts` checks the path and the file name. |
 | `SegmentedControl` | Two to five choices that switch a view or a filter. `size="compact"` for a filter inside a section. |
 | `Button` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. |
 | `SwitchRow`, `Field` | An on and off setting with an optional detail, and a labelled text field |

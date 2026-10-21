@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   authDatabasePath,
   bearerToken,
+  isCalendarFeed,
   isPublicPath,
   safeNext,
   sameSiteWrite,
@@ -49,6 +50,15 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/cars/rika")).toBe(false);
     expect(isPublicPath("/api/cars.json")).toBe(false);
     expect(isPublicPath("/login/x")).toBe(false);
+  });
+});
+
+describe("isCalendarFeed", () => {
+  test("matches only the calendar file of one car", () => {
+    expect(isCalendarFeed("/api/cars/2/calendar.ics")).toBe(true);
+    expect(isCalendarFeed("/api/cars/2/drives.csv")).toBe(false);
+    expect(isCalendarFeed("/api/cars/x/calendar.ics")).toBe(false);
+    expect(isCalendarFeed("/api/cars/2/calendar.ics/x")).toBe(false);
   });
 });
 
