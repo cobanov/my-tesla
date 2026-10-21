@@ -4,6 +4,13 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-21
+
+### Changed
+
+- The Overview shows the last 5 lock and Sentry Mode changes, with a button under them that shows the rest of the last 7 days, up to 50, on the web and in the app.
+- The invite link, the script token, and the calendar link show in a field with a copy button.
+
 ## [2.0.0] - 2026-10-21
 
 ### Added
@@ -196,7 +203,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/woosal1337/my-tesla/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/woosal1337/my-tesla/compare/v1.9.0...v2.0.0
 [1.9.0]: https://github.com/woosal1337/my-tesla/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/woosal1337/my-tesla/compare/v1.7.0...v1.8.0

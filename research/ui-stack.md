@@ -104,6 +104,15 @@ Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light.
 
 Sources: [Apple HIG, Entering data](https://developer.apple.com/design/human-interface-guidelines/entering-data), [Material 3, Text fields](https://m3.material.io/components/text-fields/guidelines), [WCAG 2.2, 3.3.2 Labels or Instructions](https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions), [React, useFormStatus](https://react.dev/reference/react-dom/hooks/useFormStatus).
 
+## Disclosure and copy
+
+Checked on 2026-10-21 on the demo at 1280 and 390 px, in dark and light.
+
+1. **Lock history.** The Overview panel lists the latest 5 changes and puts the rest behind a native `details` element whose `summary` reads "Show N more" and, once open, "Show fewer". A native disclosure needs no script, is a button for the keyboard and the screen reader with its expanded state (the WAI-ARIA disclosure pattern), and keeps the rows in the page for find-in-page. The button sits between the first rows and the rest, so the list grows in place instead of opening a menu. The app does the same with a secondary button and local state.
+2. **Copy field.** `CopyField` shows a one-time value (an invite link, a script token, a calendar link) in a bordered mono field with a copy button. The button has a visible icon and an `aria-label`, swaps to a check mark for 2 seconds, and announces "Copied" in a live region (WCAG 4.1.3 status messages). The text stays selectable and breaks at any character, because the Clipboard API works only on `https` and `localhost`; when it fails, the button selects the text instead.
+
+Sources: [MDN, details](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details), [WAI-ARIA APG, Disclosure](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/), [WCAG 2.2, 4.1.3 Status Messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages), [MDN, Clipboard API](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API).
+
 ## Year in review
 
 Checked on 2026-10-18 on the demo at 1280 and 390 px, in dark and light, with metric and with US settings.

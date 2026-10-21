@@ -167,7 +167,7 @@ The app follows the Tesla style of the web. `research/ui-stack.md` has the token
 1. Add a package with `bun x expo install <package>`, so that its version fits the SDK.
 2. Check it against `bundledNativeModules.json` of the `expo` package, and run `bun x expo-doctor`. It must pass every check.
 3. A package with native code needs a new development build: `APP_VARIANT=development bun run ios`.
-4. Keep `mobile/bun.lock` in the format of Bun 1.3.14, the version in `packageManager`. A newer Bun rewrites it to a format that CI cannot read: run `npx bun@1.3.14 install` in this folder to write it again.
+4. Keep `mobile/bun.lock` in the format of Bun 1.4.3, the version in `packageManager` and in CI. A newer Bun can rewrite it to a format that CI cannot read: run `npx bun@1.4.3 install` in this folder to write it again.
 5. Keep ESLint on version 9. ESLint 10 breaks the React plugin inside `eslint-config-expo` 58.
 6. Do not add NativeWind, Unistyles, a chart library, another map library, or `@expo/ui` without a decision record. `research/mobile-ui.md` says why.
 
