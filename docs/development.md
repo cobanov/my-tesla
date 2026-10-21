@@ -4,7 +4,7 @@
 
 | Tool | Version | Source of the version |
 |---|---|---|
-| Bun | 1.3.14 | `packageManager` in `package.json` |
+| Bun | 1.4.3 | `packageManager` in `package.json` |
 | Node.js | 24 | CI and the container image |
 | Python | 3.11 or newer | Runs `tools/quality.py` and the Python comment check |
 | pre-commit | 4.6.2 | Installs the Git hooks |
@@ -66,7 +66,7 @@ Create the read-only role first. Read [Connect to the TeslaMate database](teslam
 ALLOWED_DEV_ORIGINS=my-laptop.local bun run dev -- -H 0.0.0.0
 ```
 
-Keep the dev server on a private network. It has no login.
+Keep the dev server on a private network. It shows the stack traces and the source of every page.
 
 ## Two servers on one folder
 

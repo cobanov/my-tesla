@@ -6,6 +6,8 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { forgetAlerts, useAlertChoices } from "@/alerts/use-alerts";
 import {
   forgetStored,
+  signOutPhone,
+  useMe,
   usePushCatalog,
   useSettingChange,
   useSettings,
@@ -225,19 +227,28 @@ function ServerPanel() {
   const connection = useConnection();
   const { forget } = useConnectionState();
   const queryClient = useQueryClient();
+  const me = useMe();
+  const signedIn = connection.token !== null;
   return (
-    <Panel title="Server">
-      <Text numberOfLines={1}>{connection.url}</Text>
-      <Text variant="caption">
-        {connection.clientId
-          ? "With a Cloudflare Access service token"
-          : "Without a token"}
+    <Panel title="Account">
+      {signedIn ? (
+        <Text numberOfLines={1}>
+          {me.data
+            ? `${me.data.user.name} · ${me.data.user.email}`
+            : "Signed in"}
+        </Text>
+      ) : (
+        <Text>The demo needs no account.</Text>
+      )}
+      <Text variant="caption" numberOfLines={1}>
+        {connection.url.replace(/^https?:\/\//, "")}
       </Text>
       <Button
-        label="Disconnect"
+        label={signedIn ? "Sign out" : "Disconnect"}
         kind="secondary"
         onPress={async () => {
           await forgetAlerts(connection);
+          await signOutPhone(connection);
           forgetStored(connection);
           await forget();
           queryClient.clear();

@@ -27,6 +27,7 @@ export async function storePreferences(
     return;
   }
   const viewer = await currentViewer();
+  if (!viewer) throw new Error("Sign in to save the Settings.");
   await writeUserPreferences(viewer, preferences);
   expire(userPreferencesTag(viewer));
 }

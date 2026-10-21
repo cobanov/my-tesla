@@ -2,7 +2,7 @@
 
 Date: 2026-10-01
 
-Status: Accepted.
+Status: Accepted. Since [decision 0023](0023-native-accounts.md) the app signs people in itself. The check stays as an option in front of that sign-in, and the email header no longer names the user.
 
 ## Context
 

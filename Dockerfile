@@ -1,5 +1,5 @@
 FROM node:24-bookworm-slim AS base
-COPY --from=oven/bun:1.3.14-slim /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.3-slim /usr/local/bin/bun /usr/local/bin/bun
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 
@@ -10,7 +10,9 @@ RUN bun install --frozen-lockfile
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bun run build
+RUN bun run build \
+    && bun build src/cli/reset-password.ts --target=node \
+       --outfile=.next/standalone/reset-password.mjs
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production \

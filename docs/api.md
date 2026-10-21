@@ -1,6 +1,6 @@
 # API
 
-The app has five read-only `GET` endpoints for scripts, widgets, home automation, and the [mobile app](mobile.md), and one endpoint for push alerts. They sit behind the same proxy as the pages. Read [Protect the dashboard](authentication.md) first.
+The app has five read-only `GET` endpoints for scripts, widgets, home automation, and the [mobile app](mobile.md), and one endpoint for push alerts. Each call needs an account: a script sends a token, the mobile app sends its phone token, and a browser sends its session cookie. Read [Accounts and sign-in](authentication.md) first.
 
 | Endpoint | Gives |
 |---|---|
@@ -70,7 +70,7 @@ The example shows some of the fields. Each response has the header `Cache-Contro
 
 ## App API
 
-The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. Unlike the endpoints above, these answers are formatted for the person who asks: the server applies the units, the number style, the date and clock format, the currency, the time zone, the place names, and the map setting from Settings, as it does for the pages. A request with a service token uses the Settings of the shared `owner` user.
+The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. Unlike the endpoints above, these answers are formatted for the person who asks: the server applies the units, the number style, the date and clock format, the currency, the time zone, the place names, and the map setting from Settings, as it does for the pages. Each answer uses the Settings of the signed-in account.
 
 | Endpoint | Screen |
 |---|---|
@@ -81,29 +81,30 @@ The [mobile app](mobile.md) reads its screens from `/api/app/cars/{carId}/…`. 
 
 `/api/app/settings` reads and changes the Settings of the person who asks, the same Settings as the web page. `GET` gives the groups, the choices, and a preview. `PUT` with `{ "key": "distance", "value": "mi" }` changes one setting and answers with the new page. A price takes a text such as `"4,857"`, and an Overview card takes `"overview.tires"` with `true` or `false`. The web-only settings, such as the theme and the tabs, stay on the web. In demo mode the Settings live in a cookie, as in the browser.
 
+The app signs in through these endpoints, which need no session:
+
+| Endpoint | Method | Use |
+|---|---|---|
+| `/api/app/pair` | `POST` `{ "code": "…", "name": "Ege's iPhone", "platform": "ios" }` | Trades the one-time code of the QR code for a phone token that waits for approval. Answers 201 `{ token, status: "pending", user: { name } }`, 400 for a used or expired code, and 429 after too many tries. |
+| `/api/app/pair/status` | `GET` with the phone token | `{ status: "pending" }` until the person allows the phone on the web, then `{ status: "active", user }`. 401 once the pairing is denied or expired. |
+| `/api/app/me` | `GET`, `DELETE` with the phone token | The signed-in account, and sign-out of the phone |
+
 With maps on in Settings, the answers hold the positions for the maps of the app: the car on the Overview, the route of a drive, the legs of a trip with its start, stops, and end, the place of a charge, and the places of the Places page with their weight. With maps off, these fields are `null`, and the Places map panel says so. The map theme is a setting of `/api/app/settings`.
 
 `src/lib/app/contract.ts` defines every answer. A chart comes with its points in the user's units, the axis ticks, and the tooltip labels, so the app only draws it. The shape follows the app and can change in any release, so scripts should use `summary.json` and the exports.
 
-## Call the API through Cloudflare Access
+## Call the API with a token
 
-A script cannot do the login in a browser. Give it a Cloudflare Access service token:
+A script cannot sign in through a browser. Make a token for it:
 
-1. In Cloudflare Zero Trust, open Access, Service credentials, Service Tokens. Make a token, and keep the Client ID and the Client Secret in your password manager.
-2. Open the Access application of the dashboard. Add a policy with the action **Service Auth**, and include only this service token.
-3. Send the two values as headers:
+1. Open **Account** from the round button in the header, then **Tokens for scripts**.
+2. Name the token after the script, and copy it. It shows only once.
+3. Send it as a header:
 
    ```bash
-   curl -fsS \
-     -H "CF-Access-Client-Id: $CF_CLIENT_ID" \
-     -H "CF-Access-Client-Secret: $CF_CLIENT_SECRET" \
+   curl -fsS -H "Authorization: Bearer $MY_TESLA_TOKEN" \
      https://tesla.example.com/api/cars/2/summary.json
    ```
 
-The token check in the app accepts a service token. A service token has no email, so the request uses the Settings of the shared `owner` user. The CSV files use these units and this time zone.
+The answers use the Settings of the account that made the token, so the CSV files use its units and time zone. A token lasts 90 days after its last use. To stop it, sign it out in **Account**. Give each script its own token, so that you can stop one without the others. A call without a valid token gets 401.
 
-To stop the access, delete the service token in Zero Trust. Give each script its own token, so that you can stop one without the others.
-
-## Other proxies
-
-With Authelia, Authentik, or oauth2-proxy, use the token or the API key feature of the proxy. With Tailscale, call the endpoint from a device on your tailnet.

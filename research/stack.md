@@ -8,7 +8,7 @@ Research date: 2026-09-30
 |---|---|---|
 | Runtime | Node.js 24 LTS | Next.js 16.3.8 needs 20.9 or newer. 24 is the active LTS line. |
 | Framework | Next.js 16.3.8, App Router, `src/` directory | The current release. Server components keep the database on the server. |
-| Package manager and tests | Bun 1.3.14 | The owner's choice for the whole project. `bun test` removes the need for Vitest. |
+| Package manager and tests | Bun 1.4.3 | The owner's choice for the whole project. `bun test` removes the need for Vitest. |
 | Language | TypeScript 5.9.3 | `create-next-app` pins `^5`. TypeScript 7.0.2 is out, but the source gate needs the compiler API of version 5. |
 | Styles | Tailwind CSS 4.3.3 | Chosen by the scaffolder. The Tesla theme builds on it. |
 | Database client | postgres 3.4.9 | Pure JavaScript, runs on Node.js and Bun, and sets session options at connect time. |
@@ -29,7 +29,7 @@ Research date: 2026-10-17. The versions come from `expo-template-default@58.0.23
 | Server data | TanStack Query 5.104.3 | Cache, refetch on focus and at an interval, and mutations for the alert settings |
 | Push | `expo-notifications` 58.1.5 and the Expo push service | One token for iOS and Android, and no Apple or Google key on the server |
 | Scanner | `expo-camera` 58.0.10, `launchScanner` only | The system QR scanner on iOS and Android, with no camera screen of the app's own |
-| Secrets | `expo-secure-store` 58.0.2 | The service token stays in the Keychain or the Android Keystore |
+| Secrets | `expo-secure-store` 58.0.2 | The phone token stays in the Keychain or the Android Keystore, for this device only |
 | Maps | `@maplibre/maplibre-react-native` 11.5.0, pinned | The engine of the web maps, with the same CARTO styles. New architecture only, with an Expo config plugin. |
 | Font | `@expo-google-fonts/inter` 0.4.2, 400 and 500 | The two weights of the web |
 | Language | TypeScript 6.0.3 | The SDK template pins it. The root keeps TypeScript 5 for the source gate. |
@@ -66,4 +66,4 @@ Open questions:
 
 1. Upgrade Bun to 1.4.2 on every machine and in CI together.
 2. ESLint 10 is out. `create-next-app` still installs ESLint 9.
-3. The image uses `node:24-bookworm-slim` with the Bun binary from `oven/bun:1.3.14-slim` for the build.
+3. The image uses `node:24-bookworm-slim` with the Bun binary from `oven/bun:1.4.3-slim` for the build.

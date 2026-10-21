@@ -4,7 +4,7 @@ The dashboard is one Next.js server. It needs three things:
 
 1. A network path to the TeslaMate PostgreSQL database.
 2. A read-only database role. [Connect to the TeslaMate database](teslamate-database.md) gives the SQL.
-3. An authenticating proxy in front of it. The app has no login. [Protect the dashboard](authentication.md) gives examples.
+3. A reverse proxy or a tunnel that serves it over HTTPS. The app signs people in itself. [Accounts and sign-in](authentication.md) explains the first start.
 
 Pick one of the methods below. All of them use the same [environment variables](configuration.md).
 
@@ -86,7 +86,7 @@ This is the simplest method. The dashboard joins the default network of the Tesl
 
    The answer is `{"status":"ok","database":"ok"}`.
 
-7. Put your authenticating proxy in front of `127.0.0.1:3000`.
+7. Serve `127.0.0.1:3000` through your reverse proxy or tunnel, then open the setup link from the log. [Accounts and sign-in](authentication.md#the-first-start) shows the command.
 
 ## Method 2: A separate Compose project
 
@@ -128,7 +128,7 @@ The database host name stays `database`, because the TeslaMate service has that 
 
 ## Method 4: From source
 
-You need Node.js 24 and Bun 1.3.14.
+You need Node.js 24 and Bun 1.4.3.
 
 ```bash
 git clone https://github.com/woosal1337/my-tesla.git

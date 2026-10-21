@@ -25,7 +25,9 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const save = async (next: Connection) => {
-    await SecureStore.setItemAsync(storageKey, JSON.stringify(next));
+    await SecureStore.setItemAsync(storageKey, JSON.stringify(next), {
+      keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    });
     setConnection(next);
   };
 

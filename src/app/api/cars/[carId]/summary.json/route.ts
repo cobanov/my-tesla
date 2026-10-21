@@ -3,12 +3,15 @@ import { getLive } from "@/lib/live/live";
 import { carSnapshot, findCar } from "@/lib/queries";
 import { carSummary, wantsLocation } from "@/lib/summary";
 import { getPreferences } from "@/lib/viewer";
+import { apiUnauthorized } from "@/lib/auth/session";
 
 export async function GET(
   request: Request,
   context: RouteContext<"/api/cars/[carId]/summary.json">,
 ) {
   await connection();
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   const { carId } = await context.params;
   const car = /^\d{1,5}$/.test(carId) ? await findCar(Number(carId)) : null;
   if (!car) return Response.json({ error: "No such car." }, { status: 404 });

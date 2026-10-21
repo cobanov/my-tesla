@@ -1,12 +1,15 @@
 import { connection } from "next/server";
 import { driveGpx, gpxFileName } from "@/lib/gpx";
 import { drivePositions, findCar, findDriveRecord } from "@/lib/queries";
+import { apiUnauthorized } from "@/lib/auth/session";
 
 export async function GET(
   _request: Request,
   context: RouteContext<"/api/cars/[carId]/drives/[file]">,
 ) {
   await connection();
+  const denied = await apiUnauthorized();
+  if (denied) return denied;
   const { carId, file } = await context.params;
   const match = /^(\d{1,9})\.gpx$/.exec(file);
   const car = /^\d{1,5}$/.test(carId) ? await findCar(Number(carId)) : null;

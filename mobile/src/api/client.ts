@@ -1,10 +1,14 @@
-import { accessHeaders, type Connection } from "@/connection/server";
+import { authorization, type Connection } from "@/connection/server";
 import { responseProblem } from "./responses";
 
 const timeoutMs = 15_000;
 
 export class ApiError extends Error {
   name = "ApiError";
+}
+
+export class SignedOutError extends ApiError {
+  name = "SignedOutError";
 }
 
 type RequestOptions = {
@@ -38,7 +42,7 @@ export async function request(
         ...(options.body === undefined
           ? {}
           : { "Content-Type": "application/json" }),
-        ...accessHeaders(connection),
+        ...authorization(connection),
       },
       body:
         options.body === undefined ? undefined : JSON.stringify(options.body),
@@ -50,6 +54,12 @@ export async function request(
     );
   } finally {
     clearTimeout(timer);
+  }
+  if (response.status === 401 && connection.token) {
+    throw new SignedOutError(
+      (await serverMessage(response)) ??
+        "This phone is signed out. Pair it again from Settings on the web.",
+    );
   }
   const contentType = response.headers.get("content-type");
   const message = response.ok ? null : await serverMessage(response);

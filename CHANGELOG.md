@@ -6,9 +6,14 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ### Added
 
+- Accounts in the app itself. A new install prints a one-time setup link in its log, and the first account is the admin. Every page and API call then needs a sign-in. Passwords use Argon2id, sessions last 30 days, sign-in is rate limited, and **Account** lists every browser, phone, and script token with a sign-out button. Read [Accounts and sign-in](docs/authentication.md) and [decision 0023](docs/decisions/0023-native-accounts.md).
+- Tokens for scripts in **Account**, for the API without Cloudflare Access.
+- Phone pairing: the QR code in Settings holds a single-use code that changes every minute, and the web page asks to allow the phone before it signs in.
+- Invites: the admin makes a link for one email under **Account**, **People**. It works once, for 3 days, and makes a member account. The admin can revoke an invite and remove a member, which signs the member out on every browser and phone at once.
+- `docker exec my-tesla node reset-password.mjs EMAIL` prints a one-time link that resets the password of one account within 30 minutes, without email, and signs out its sessions.
+
 - A mobile app for iOS and Android in `mobile/`, built with Expo SDK 58. It connects to a My Tesla server, with a Cloudflare Access service token when needed, and shows the Overview, the trips and drives, the charges, and the Battery, Stats, and Places insights of each car in the style of the dashboard, with charts. It uses the units and formats from Settings. Read [Mobile app](docs/mobile.md).
 - Push alerts for the mobile app: charging started, complete, or stopped, a car left unlocked for 10 minutes, a software update, and a tire warning. They need the MQTT feed. Each phone chooses its alerts. [Decision 0020](docs/decisions/0020-mobile-app-and-push-alerts.md) explains the design, and [Privacy](docs/privacy.md) lists what the alerts send.
-- A QR code in Settings on the web, under Mobile app. The app scans it on the Connect screen, connects to the server, and opens that car. With `MOBILE_ACCESS_CLIENT_ID` and `MOBILE_ACCESS_CLIENT_SECRET` set, the code also holds the Cloudflare Access service token of the app. Read [Mobile app](docs/mobile.md#connect-with-a-qr-code).
 - The launch animation of the web in the mobile app: the T-mark draws itself and fades into the app. While a screen loads, the mark breathes as on the web, instead of a spinner.
 - Maps in the mobile app, drawn with MapLibre and the CARTO styles of the web: the car on the Overview, the route of a drive, a trip with its stops, the place of a charge, and the Places map. Map theme in the app Settings changes them. [Decision 0022](docs/decisions/0022-maps-in-the-mobile-app.md) explains the choice.
 - A Settings tab in the mobile app. It changes the same Settings as the web, and the phone keeps the last Settings. The app starts in dark mode, and Settings has a theme choice for the phone.
@@ -16,6 +21,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ### Changed
 
+- **Breaking:** the app no longer reads the user from a proxy header. `IDENTITY_HEADER` is gone, and the Settings stay under the email of the account that signs in. Scripts that used a Cloudflare Access service token need a token from **Account**, and paired phones pair again.
 - With `MQTT_URL` set, the server connects to the broker when it starts, not at the first page.
 
 ### Fixed

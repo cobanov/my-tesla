@@ -1,8 +1,4 @@
-export type Connection = {
-  url: string;
-  clientId: string | null;
-  clientSecret: string | null;
-};
+export type Connection = { url: string; token: string | null };
 
 export function serverUrl(input: string): string | null {
   const trimmed = input.trim();
@@ -21,62 +17,46 @@ export function serverUrl(input: string): string | null {
   return `${parsed.protocol}//${parsed.host}${parsed.pathname.replace(/\/+$/, "")}`;
 }
 
-function optional(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-export function connectionOf(input: {
-  url: string;
-  clientId?: string;
-  clientSecret?: string;
-}): Connection | null {
-  const url = serverUrl(input.url);
-  const clientId = optional(input.clientId);
-  const clientSecret = optional(input.clientSecret);
-  if (!url || Boolean(clientId) !== Boolean(clientSecret)) return null;
-  return { url, clientId, clientSecret };
-}
+const tokenPattern = /^[A-Za-z0-9_-]{20}\.[A-Za-z0-9_-]{43}$/;
 
 export function parseConnection(stored: string | null): Connection | null {
   if (!stored) return null;
   try {
     const value: unknown = JSON.parse(stored);
     if (!value || typeof value !== "object") return null;
-    const { url, clientId, clientSecret } = value as Record<string, unknown>;
-    return typeof url === "string"
-      ? connectionOf({
-          url,
-          clientId: optional(clientId) ?? undefined,
-          clientSecret: optional(clientSecret) ?? undefined,
-        })
-      : null;
+    const { url, token } = value as Record<string, unknown>;
+    const address = typeof url === "string" ? serverUrl(url) : null;
+    if (!address) return null;
+    return {
+      url: address,
+      token:
+        typeof token === "string" && tokenPattern.test(token) ? token : null,
+    };
   } catch {
     return null;
   }
 }
 
-export type Pairing = { connection: Connection; carId: number | null };
+export function authorization(connection: Connection): Record<string, string> {
+  return connection.token
+    ? { Authorization: `Bearer ${connection.token}` }
+    : {};
+}
+
+export function isDeviceToken(value: unknown): value is string {
+  return typeof value === "string" && tokenPattern.test(value);
+}
+
+export type Pairing = { url: string; code: string; carId: number | null };
 
 const pairingPrefix = "mytesla://connect?";
 
 export function pairingOf(text: string): Pairing | null {
   if (!text.startsWith(pairingPrefix)) return null;
   const params = new URLSearchParams(text.slice(pairingPrefix.length));
-  const connection = connectionOf({
-    url: params.get("url") ?? "",
-    clientId: params.get("id") ?? undefined,
-    clientSecret: params.get("secret") ?? undefined,
-  });
-  if (!connection) return null;
+  const url = serverUrl(params.get("url") ?? "");
+  const code = params.get("code") ?? "";
+  if (!url || !/^[A-Za-z0-9_-]{43}$/.test(code)) return null;
   const car = params.get("car") ?? "";
-  return { connection, carId: /^\d{1,9}$/.test(car) ? Number(car) : null };
-}
-
-export function accessHeaders(connection: Connection): Record<string, string> {
-  return connection.clientId && connection.clientSecret
-    ? {
-        "CF-Access-Client-Id": connection.clientId,
-        "CF-Access-Client-Secret": connection.clientSecret,
-      }
-    : {};
+  return { url, code, carId: /^\d{1,9}$/.test(car) ? Number(car) : null };
 }

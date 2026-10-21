@@ -1,4 +1,6 @@
 import type {
+  AppMe,
+  AppUser,
   CarIdentity,
   CarList,
   ChargeDetail,
@@ -7,6 +9,8 @@ import type {
   DriveList,
   InsightPage,
   OverviewPage,
+  PairClaim,
+  PairStatus,
   PushCatalog,
   SettingsPage,
   TripDetail,
@@ -20,7 +24,7 @@ export function responseProblem(
   serverMessage: string | null,
 ): string | null {
   if (status === 401 || status === 403) {
-    return "The server refused the request. Check the service token.";
+    return "The server refused the request. Pair this phone from Settings on the web.";
   }
   if (status === 404) {
     return "The server does not know this request. Update My Tesla on the server.";
@@ -30,7 +34,7 @@ export function responseProblem(
   }
   if (status >= 500) return "The server failed. Try again later.";
   if (status !== 204 && !contentType?.includes("application/json")) {
-    return "The server answered with a login page. Add a Cloudflare Access service token.";
+    return "The server answered with a login page. A proxy in front of My Tesla asks for its own login, so let the app through.";
   }
   return null;
 }
@@ -144,3 +148,35 @@ export const settingsPage = (value: unknown) =>
           ),
       ),
   );
+
+function isUser(value: unknown): value is AppUser {
+  return (
+    isRecord(value) &&
+    typeof value.name === "string" &&
+    typeof value.email === "string" &&
+    (value.role === "admin" || value.role === "member")
+  );
+}
+
+export const pairClaim = (value: unknown) =>
+  shaped<PairClaim>(
+    value,
+    (shape) =>
+      typeof shape.token === "string" &&
+      typeof shape.check === "string" &&
+      /^\d{4}$/.test(shape.check) &&
+      shape.status === "pending" &&
+      isRecord(shape.user) &&
+      typeof shape.user.name === "string",
+  );
+
+export const pairStatus = (value: unknown) =>
+  shaped<PairStatus>(
+    value,
+    (shape) =>
+      shape.status === "pending" ||
+      (shape.status === "active" && isUser(shape.user)),
+  );
+
+export const appMe = (value: unknown) =>
+  shaped<AppMe>(value, (shape) => isUser(shape.user) && isRecord(shape.device));

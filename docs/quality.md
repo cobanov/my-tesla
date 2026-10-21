@@ -98,7 +98,7 @@ Set `BASE_URL` for another address. Add `webkit` or `chromium` to check one engi
 
 ## Continuous integration
 
-`.github/workflows/checks.yml` installs Node.js 24 and Bun 1.3.14, runs `bun install --frozen-lockfile` at the root and in `mobile/`, runs the gates, and runs `bun run build`. It needs only `contents: read`. The actions use full commit hashes.
+`.github/workflows/checks.yml` installs Node.js 24 and Bun 1.4.3, runs `bun install --frozen-lockfile` at the root and in `mobile/`, runs the gates, and runs `bun run build`. It needs only `contents: read`. The actions use full commit hashes.
 
 `.github/workflows/image.yml` builds the container image for `linux/amd64` and `linux/arm64` on each `v*` tag, and pushes it to GitHub Container Registry. A manual run on a branch pushes the tags `sha-<commit>` and `<branch>-test`, and it does not move `latest`. It needs `packages: write`. Its Docker actions also use full commit hashes: setup-qemu-action 4.4.0, setup-buildx-action 4.4.1, login-action 4.6.0, metadata-action 6.2.0, and build-push-action 7.4.0.
 

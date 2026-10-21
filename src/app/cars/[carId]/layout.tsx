@@ -9,6 +9,7 @@ import {
   NavigationPendingProvider,
 } from "@/components/navigation-pending";
 import { TabBar, TabNav } from "@/components/tab-nav";
+import { currentSession } from "@/lib/auth/session";
 import { requireCar } from "@/lib/car-route";
 import { carPath } from "@/lib/car-slug";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -21,10 +22,11 @@ export default async function CarLayout({
   children,
   params,
 }: LayoutProps<"/cars/[carId]">) {
-  const [car, cars, preferences] = await Promise.all([
+  const [car, cars, preferences, signedIn] = await Promise.all([
     requireCar(params),
     listCars(),
     getPreferences(),
+    currentSession(),
   ]);
   const visible: TabId[] = [
     "overview",
@@ -58,7 +60,17 @@ export default async function CarLayout({
               <CarSwitcher cars={options} currentId={car.id} />
             </div>
             <TabNav basePath={carPath(car)} visible={visible} />
-            <div className="hidden w-32 lg:block" />
+            <div className="flex justify-end lg:w-32">
+              {signedIn && (
+                <Link
+                  href="/account"
+                  aria-label={`Account of ${signedIn.user.name}`}
+                  className="grid size-9 place-items-center rounded-full bg-card text-sm font-medium transition-tesla hover:bg-accent"
+                >
+                  {signedIn.user.name.trim().charAt(0).toUpperCase() || "?"}
+                </Link>
+              )}
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-5xl px-5 pb-32 md:pb-20">

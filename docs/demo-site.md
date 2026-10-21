@@ -39,7 +39,7 @@ You need no database. Open http://localhost:3000.
 4. Add your domain in the project settings, and point a `CNAME` record at `cname.vercel-dns.com`.
 5. Set the `vercel.app` domain of the project to redirect to your domain with status 308. Then the site has one public address.
 
-Do not set `DATABASE_URL` on a public deployment. The app has no login, so a public deployment must never read real car data.
+Do not set `DATABASE_URL` on a public deployment. Demo mode has no accounts, so a public demo must never read real car data.
 
 ## Update the landing page screenshots
 

@@ -6,6 +6,9 @@ import {
   insightPage,
   overviewPage,
   pushCatalog,
+  appMe,
+  pairClaim,
+  pairStatus,
   responseProblem,
   settingsPage,
 } from "./responses";
@@ -16,7 +19,9 @@ describe("responseProblem", () => {
   test("explains the answers that hold no data", () => {
     expect(responseProblem(200, "application/json", null)).toBeNull();
     expect(responseProblem(204, null, null)).toBeNull();
-    expect(responseProblem(403, "text/plain", null)).toContain("service token");
+    expect(responseProblem(403, "text/plain", null)).toContain(
+      "Pair this phone",
+    );
     expect(responseProblem(200, "text/html", null)).toContain("login page");
     expect(
       responseProblem(
@@ -91,5 +96,29 @@ describe("screen shapes", () => {
       }),
     ).toBeNull();
     expect(settingsPage({ preview: [], groups: [null] })).toBeNull();
+  });
+
+  test("check the sign-in answers of pairing", () => {
+    const user = { name: "Ege", email: "ege@example.com", role: "admin" };
+    expect(
+      pairClaim({
+        token: "t",
+        check: "0421",
+        status: "pending",
+        user: { name: "Ege" },
+      }),
+    ).not.toBeNull();
+    expect(
+      pairClaim({ token: "t", status: "pending", user: { name: "Ege" } }),
+    ).toBeNull();
+    expect(pairClaim({ token: "t", status: "active", user: {} })).toBeNull();
+    expect(pairStatus({ status: "active", user })).not.toBeNull();
+    expect(pairStatus({ status: "pending" })).not.toBeNull();
+    expect(pairStatus({ status: "active" })).toBeNull();
+    expect(
+      pairStatus({ status: "active", user: { ...user, role: "x" } }),
+    ).toBeNull();
+    expect(appMe({ user, device: { name: null } })).not.toBeNull();
+    expect(appMe({ user })).toBeNull();
   });
 });
