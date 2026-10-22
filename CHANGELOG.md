@@ -4,6 +4,14 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-10-22
+
+### Fixed
+
+- A row of the Overview menu opens its tab on the first screen. Before, with a detail screen open in that tab, the row stacked a second copy of the tab above it, with a back button to the detail. The Battery, Stats, and Places rows pass the kind to Insights without a route parameter for the same reason.
+- The quick actions Timeline, Report, and Year open their screen once. A second press no longer stacks a second copy.
+- A callout above the car keeps its width when the car name is long, and the link rows of Drives, Charging, and Insights line up with the panels.
+
 ## [2.2.0] - 2026-10-22
 
 ### Changed
@@ -221,7 +229,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/woosal1337/my-tesla/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/woosal1337/my-tesla/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/woosal1337/my-tesla/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/woosal1337/my-tesla/compare/v2.0.1...v2.0.2
