@@ -30,6 +30,7 @@ export function MenuRow({
       android_ripple={{ color: palette.accent }}
       style={({ pressed }) => [
         styles.row,
+        chevron && styles.flush,
         selected && { backgroundColor: palette.card },
         pressed && styles.pressed,
       ]}
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     overflow: "hidden",
   },
+  flush: { paddingHorizontal: 0 },
   pressed: { opacity: 0.6 },
   icon: { width: 28, alignItems: "center" },
   text: { flex: 1, minWidth: 0, gap: 2 },

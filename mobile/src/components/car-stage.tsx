@@ -99,10 +99,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: "3%",
   },
-  callout: { position: "absolute", gap: 2, maxWidth: "36%" },
+  callout: { position: "absolute", gap: 2, maxWidth: "34%" },
   calloutLabel: { textTransform: "uppercase", letterSpacing: 1 },
   left: { left: 0, top: "34%" },
-  top: { top: space.xs, left: "32%", right: "32%", maxWidth: "100%" },
+  top: { top: space.xs, left: "22%", right: "22%", maxWidth: "100%" },
   right: { right: 0, top: "34%" },
   line: { width: 1, height: 24, marginTop: space.xs },
 });

@@ -2,7 +2,7 @@ import type { OverviewMenuKey, OverviewPage } from "@contract";
 import { useRouter, type Href } from "expo-router";
 import { Linking, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useLiveChanges } from "@/api/live";
-import { useOverview } from "@/api/queries";
+import { useOverview, type InsightKind } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
 import { CarStage } from "@/components/car-stage";
 import { CarTitle } from "@/components/car-title";
@@ -12,33 +12,29 @@ import { QuickActions, type QuickAction } from "@/components/quick-actions";
 import { EmptyState, QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
 import { useRefresh } from "@/hooks/use-refresh";
+import { requestInsight } from "@/navigation/insight-request";
 import { mapsUrl } from "@/navigation/maps";
+import { useOpenTab } from "@/navigation/open-tab";
 import { space } from "@/theme/tokens";
 
 const wideWidth = 720;
 
-const menuLinks: Record<OverviewMenuKey, { icon: IconName; href: Href }> = {
+const menuLinks: Record<
+  OverviewMenuKey,
+  { icon: IconName; href: Href; insight?: InsightKind }
+> = {
   drives: { icon: icons.drive, href: "/drives" },
   charging: { icon: icons.charge, href: "/charging" },
-  battery: {
-    icon: icons.battery,
-    href: { pathname: "/insights", params: { kind: "battery" } },
-  },
-  stats: {
-    icon: icons.stats,
-    href: { pathname: "/insights", params: { kind: "stats" } },
-  },
-  places: {
-    icon: icons.places,
-    href: { pathname: "/insights", params: { kind: "places" } },
-  },
+  battery: { icon: icons.battery, href: "/insights", insight: "battery" },
+  stats: { icon: icons.stats, href: "/insights", insight: "stats" },
+  places: { icon: icons.places, href: "/insights", insight: "places" },
   location: { icon: icons.location, href: "/location" },
   status: { icon: icons.status, href: "/status" },
   settings: { icon: icons.settings, href: "/settings" },
 };
 
 function Menu({ page }: { page: OverviewPage }) {
-  const router = useRouter();
+  const openTab = useOpenTab();
   return (
     <View style={styles.menu}>
       {page.menu.map((row) => {
@@ -49,7 +45,10 @@ function Menu({ page }: { page: OverviewPage }) {
             icon={link.icon}
             title={row.title}
             subtitle={row.subtitle}
-            onPress={() => router.navigate(link.href)}
+            onPress={() => {
+              if (link.insight) requestInsight(link.insight);
+              openTab(link.href);
+            }}
           />
         );
       })}
@@ -65,19 +64,19 @@ function useActions(page: OverviewPage): QuickAction[] {
       key: "timeline",
       icon: icons.timeline,
       label: "Timeline",
-      onPress: () => router.push("/drives/timeline", { withAnchor: true }),
+      onPress: () => router.navigate("/drives/timeline", { withAnchor: true }),
     },
     {
       key: "report",
       icon: icons.report,
       label: "Report",
-      onPress: () => router.push("/drives/report", { withAnchor: true }),
+      onPress: () => router.navigate("/drives/report", { withAnchor: true }),
     },
     {
       key: "year",
       icon: icons.year,
       label: "Year",
-      onPress: () => router.push("/insights/year", { withAnchor: true }),
+      onPress: () => router.navigate("/insights/year", { withAnchor: true }),
     },
     ...(location
       ? [

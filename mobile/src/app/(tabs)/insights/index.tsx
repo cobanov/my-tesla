@@ -1,5 +1,5 @@
 import type { PeriodId } from "@contract";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useInsight, type InsightKind } from "@/api/queries";
 import { useCar } from "@/car/car-provider";
@@ -10,16 +10,13 @@ import { QueryView } from "@/components/query-view";
 import { Screen } from "@/components/screen";
 import { SegmentedControl } from "@/components/segmented-control";
 import { useRefresh } from "@/hooks/use-refresh";
+import { useInsightRequest } from "@/navigation/insight-request";
 
 const kinds = [
   { id: "battery", label: "Battery" },
   { id: "stats", label: "Stats" },
   { id: "places", label: "Places" },
 ] as const;
-
-function isKind(value: unknown): value is InsightKind {
-  return kinds.some((entry) => entry.id === value);
-}
 
 function Insights({ initialKind }: { initialKind: InsightKind }) {
   const router = useRouter();
@@ -62,7 +59,6 @@ function Insights({ initialKind }: { initialKind: InsightKind }) {
 }
 
 export default function InsightsScreen() {
-  const { kind } = useLocalSearchParams<{ kind?: string }>();
-  const initialKind = isKind(kind) ? kind : "battery";
-  return <Insights key={initialKind} initialKind={initialKind} />;
+  const request = useInsightRequest();
+  return <Insights key={request.count} initialKind={request.kind} />;
 }
