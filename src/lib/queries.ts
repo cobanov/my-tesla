@@ -6,6 +6,7 @@ import { carSlugs } from "./car-slug";
 import { chargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import { driveSessionsRelation } from "./drive-sessions-sql";
+import { latestRangedPositionDate } from "./latest-position-sql";
 import { rangeColumn } from "./range-columns";
 import { sampleRoute, type LngLat } from "./route";
 import {
@@ -143,6 +144,7 @@ export async function defaultCarId(): Promise<number | null> {
     left join lateral (
       select date from positions p
       where p.car_id = c.id
+        and p.date >= ${latestRangedPositionDate(database(), database()`c.id`)}
       order by p.date desc
       limit 1
     ) latest on true
@@ -198,16 +200,28 @@ export const carSnapshot = cache(
       from (select ${carId}::int as car_id) car
       left join lateral (
         select date, latitude, longitude from positions
-        where car_id = car.car_id order by date desc limit 1
+        where car_id = car.car_id
+          and date >= ${latestRangedPositionDate(database(), database()`car.car_id`)}
+        order by date desc limit 1
       ) pos on true
       left join lateral (
         select * from positions
         where car_id = car.car_id and battery_level is not null
+          and date >= ${latestRangedPositionDate(
+            database(),
+            database()`car.car_id`,
+            database()`battery_level is not null`,
+          )}
         order by date desc limit 1
       ) bat on true
       left join lateral (
         select * from positions
         where car_id = car.car_id and tpms_pressure_fl is not null
+          and date >= ${latestRangedPositionDate(
+            database(),
+            database()`car.car_id`,
+            database()`tpms_pressure_fl is not null`,
+          )}
         order by date desc limit 1
       ) tpms on true
       left join lateral (
