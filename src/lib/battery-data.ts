@@ -4,6 +4,7 @@ import { cache } from "react";
 import { chargeSessions, type ChargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import type { CapacityPoint, IdlePeriod } from "./insights";
+import { lastUsableCharge } from "./last-charge-sql";
 import { latestRangedPositionDate } from "./latest-position-sql";
 import { rangeColumn } from "./range-columns";
 import type { LevelTrendPoint, RangeGroup, StateTime } from "./trends";
@@ -80,14 +81,7 @@ export const capacityHistory = cache(
       from ${sessions} cp
       cross join e
       join lateral (
-        select
-          charges.rated_battery_range_km,
-          ${rangeColumn(kind, "charges", "battery")} as preferred_range_km,
-          charges.usable_battery_level
-        from charges
-        where charging_process_id = cp.id and usable_battery_level > 0
-        order by date desc
-        limit 1
+        ${lastUsableCharge(database(), database()`cp.id`, kind)}
       ) c on true
       left join positions p on p.id = cp.position_id
       where cp.car_id = ${carId}
