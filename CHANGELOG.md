@@ -8,6 +8,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 - Drives opens fast on a large database. PostgreSQL compiled the drive list with JIT on every request, and on a database with 2,244 drives the compilation took 1,174 ms of the 1,189 ms of the query. Every session now turns JIT off, and the query takes 3 ms.
 - The Overview, the start page, and Battery no longer read every position of the car to find the newest one. TeslaMate has no plain index on the car and the date of a position, so each of these lookups read all 4.26 million positions of a large database, in 0.5 s to 1 s. They now take a few milliseconds.
+- The capacity history of Battery reads the last charge of each session through the index of the session. The database walked the date index of all charges for each session, which took 885 ms for 115 sessions, and now takes 19 ms.
 
 ## [2.2.1] - 2026-10-22
 
