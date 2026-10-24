@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-10-24
+
 ### Fixed
 
 - Drives opens fast on a large database. PostgreSQL compiled the drive list with JIT on every request, and on a database with 2,244 drives the compilation took 1,174 ms of the 1,189 ms of the query. Every session now turns JIT off, and the query takes 3 ms.
@@ -235,7 +237,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 - README screenshots of every page.
 - Documentation for installation, the database role, authentication, configuration, privacy, upgrades, and troubleshooting.
 
-[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.2.1...HEAD
+[Unreleased]: https://github.com/woosal1337/my-tesla/compare/v2.2.2...HEAD
+[2.2.2]: https://github.com/woosal1337/my-tesla/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/woosal1337/my-tesla/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/woosal1337/my-tesla/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/woosal1337/my-tesla/compare/v2.0.2...v2.1.0
