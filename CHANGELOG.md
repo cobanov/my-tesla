@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Fixed
+
+- Drives opens fast on a large database. PostgreSQL compiled the drive list with JIT on every request, and on a database with 2,244 drives the compilation took 1,174 ms of the 1,189 ms of the query. Every session now turns JIT off, and the query takes 3 ms.
+
 ## [2.2.1] - 2026-10-22
 
 ### Fixed

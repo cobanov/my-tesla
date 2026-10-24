@@ -28,6 +28,7 @@ export function database(): postgres.Sql {
         application_name: "my-tesla",
         default_transaction_read_only: true,
         statement_timeout: config.statementTimeoutMs,
+        jit: "off",
       },
     });
   }

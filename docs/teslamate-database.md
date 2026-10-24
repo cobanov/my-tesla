@@ -91,4 +91,4 @@ curl -s http://127.0.0.1:3000/api/health
 | `states` | Online, asleep, and offline time |
 | `updates` | Software versions |
 
-Every session sets `default_transaction_read_only` and a statement timeout. [Configuration](configuration.md) sets the timeout and the pool size.
+Every session sets `default_transaction_read_only`, a statement timeout, and `jit = off`. [Configuration](configuration.md) sets the timeout and the pool size. [Decision 0026](decisions/0026-no-jit-compilation.md) explains the JIT setting.
