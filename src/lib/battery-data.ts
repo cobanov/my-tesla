@@ -4,6 +4,7 @@ import { cache } from "react";
 import { chargeSessions, type ChargeSessions } from "./charge-sessions";
 import { database } from "./database";
 import type { CapacityPoint, IdlePeriod } from "./insights";
+import { latestRangedPositionDate } from "./latest-position-sql";
 import { rangeColumn } from "./range-columns";
 import type { LevelTrendPoint, RangeGroup, StateTime } from "./trends";
 import {
@@ -114,14 +115,15 @@ export const batteryNow = cache(async (carId: number): Promise<BatteryNow> => {
   await connection();
   const kind = await getRangeKind();
   const range = rangeColumn(kind, "positions", "battery");
+  const latest = database()`usable_battery_level > 0 and ${range} is not null`;
   const [row] = await database()<BatteryNow[]>`
     select
       (${range} * 100.0 / usable_battery_level)::float8 as "rangeAt100Km",
       date at time zone 'UTC' as at
     from positions
     where car_id = ${carId}
-      and usable_battery_level > 0
-      and ${range} is not null
+      and ${latest}
+      and date >= ${latestRangedPositionDate(database(), carId, latest)}
     order by date desc
     limit 1
   `;
