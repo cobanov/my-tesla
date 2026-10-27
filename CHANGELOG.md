@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Fixed
+
+- Turning the last alert off in the mobile app works without notification permission. Before, the switch asked for a push token first and failed, so it stayed on.
+
 ## [2.2.2] - 2026-10-24
 
 ### Fixed
