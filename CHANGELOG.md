@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Fixed
+
+- A phone signed out from the web forgets its data like a phone signed out in the app: the stored car list and Settings, and the alert choices, which before turned the alerts on again at the next pairing, even with another server.
+
 ## [2.2.2] - 2026-10-24
 
 ### Fixed
