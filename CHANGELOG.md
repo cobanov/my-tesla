@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Vers
 
 ## [Unreleased]
 
+### Fixed
+
+- A drives or charges CSV with only `from` exports everything since that day. The missing end became a date that PostgreSQL refuses, so the export failed with an error.
+
 ## [2.2.2] - 2026-10-24
 
 ### Fixed
