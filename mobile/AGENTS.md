@@ -85,7 +85,7 @@ Use these components. Do not style a screen with raw colors or new text sizes.
 | `CarTitle`, `CarStage`, `QuickActions` | The head of the Overview: the car name with the chevron that switches the car, the battery glyph with the state; the car on its glow with the callouts from the server; and the row of icon buttons under it. Read [decision 0025](../docs/decisions/0025-the-tesla-app-layout.md). |
 | `InsightBody`, `PeriodControl` | The hero, the hero blocks, and the sections of an insight page, for Insights, Charging insights, and the year in review |
 | `DriveListRow` | A trip or a charge row of a drive list, for Drives and the Report |
-| `ExportButton` | Downloads an export of the server with the phone token and opens the share sheet. `src/api/export-file.ts` checks the path and the file name. |
+| `ExportButton` | Downloads an export of the server with the phone token and opens the share sheet. `src/api/export-file.ts` checks the path and the file name, and deletes the previous export first. |
 | `SegmentedControl` | Two to five choices that switch a view or a filter. `size="compact"` for a filter inside a section. |
 | `Button` | The primary button is the only blue control on a screen. Use `kind="secondary"` for every other action. |
 | `SwitchRow`, `Field` | An on and off setting with an optional detail, and a labelled text field |
